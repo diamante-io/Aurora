@@ -1,0 +1,7 @@
+{{ .AddImport "net/http" }}
+
+func (action {{ .Name }}) Handle(w http.ResponseWriter, r *http.Request) {
+	ap := &action.Action
+	ap.Prepare(w, r)
+	ap.Execute(&action)
+}

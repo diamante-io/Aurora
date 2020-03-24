@@ -1,0 +1,232 @@
+version: 2.1
+
+#----------------------------------------------------------------------------#
+# Commands are used as building blocks for jobs, which run through workflows #
+#----------------------------------------------------------------------------#
+
+commands:
+  # gofmt performs checks on the entire codebase to ensure everything is formated
+  # with the gofmt tool.
+  gofmt:
+    steps:
+      - checkout
+      - run:
+          name: Run gofmt
+          command: ./gofmt.sh
+
+  # govet does govet checks in the entire codebase.
+  govet:
+    steps:
+      - checkout
+      - run:
+          name: Run govet
+          command: ./govet.sh
+
+  # staticcheck runs staticcheck in the entire codebase.
+  staticcheck:
+    steps:
+      - checkout
+      - run:
+          name: Run staticcheck
+          command: ./staticcheck.sh
+
+  # check_deprecations ensures a release is actually removing deprecated fields
+  # that were supposed to be discontinued in said release.
+  check_deprecations:
+    steps:
+      - run:
+          name: Run deprecation tests when on a tagged commit
+          command: |
+            if [ "$CIRCLE_TAG" != "" ]; then
+              # Negate the result so process exits with 1 if anything found
+              echo "Searching for \"action needed\" tags..."
+              ! egrep -irn -A 1 --include=*.go "Action.+needed.+in.+release:.+$CIRCLE_TAG" ./
+            fi
+
+  # install_go_deps installs the go dependencies of the project.
+  install_go_deps:
+    steps:
+      - checkout
+      - run:
+          name: Install dep
+          command: curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+      - restore_cache:
+          keys:
+            - v1-pkg-cache
+      - run:
+          name: Install project dependencies using dep
+          command: dep ensure -v
+      - save_cache:
+          key: v1-pkg-cache
+          paths:
+            - "/go/src/github.com/hcnet/go/vendor"
+            - "/go/src/pkg/dep"
+
+  # test_packages performs tests on all packages of the monorepo.
+  test_packages:
+    steps:
+      - run:
+          name: Install dependencies
+          command: sudo apt-get update && sudo apt-get install postgresql-client-9.6 mariadb-client-10.1
+      - run:
+          name: Install dockerize
+          command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+          environment:
+            DOCKERIZE_VERSION: v0.3.0
+      - run:
+          name: Wait for mysql, postgres and redis
+          command: |
+            dockerize -wait tcp://localhost:5432 -timeout 1m
+            dockerize -wait tcp://localhost:3306 -timeout 1m
+            dockerize -wait tcp://localhost:6379 -timeout 1m
+      - run:
+          name: Run package tests
+          command: ./support/scripts/run_tests
+
+  # build_packages creates the project's artifacts.
+  build_packages:
+    steps:
+      - run:
+          name: Build release artifacts
+          command: go run ./support/scripts/build_release_artifacts/main.go
+
+#-----------------------------------------------------------------------------#
+# Jobs use the commands to accomplish a given task, and run through workflows #
+#-----------------------------------------------------------------------------#
+
+jobs:
+  # check_code_1_10 performs code checks using Go 1.10 (gofmt is only run for 1.12).
+  check_code_1_10:
+    working_directory: /go/src/github.com/hcnet/go
+    docker:
+      - image: circleci/golang:1.10-stretch
+    steps:
+      - govet
+
+  # check_code_1_11 performs code checks using Go 1.11 (gofmt is only run for 1.12).
+  check_code_1_11:
+    working_directory: /go/src/github.com/hcnet/go
+    docker:
+      - image: circleci/golang:1.11-stretch
+    steps:
+      - govet
+
+  # check_code_1_12 performs code checks using Go 1.12.
+  check_code_1_12:
+    working_directory: /go/src/github.com/hcnet/go
+    docker:
+      - image: circleci/golang:1.12-stretch
+    steps:
+      - install_go_deps
+      - gofmt
+      - govet
+      - staticcheck
+
+  # test_code_1_10 performs all package tests using Go 1.10.
+  test_code_1_10:
+    working_directory: /go/src/github.com/hcnet/go
+    docker:
+      - image: circleci/golang:1.10-stretch
+        environment:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: circleci
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_PORT: 3306
+      - image: circleci/postgres:9.6.5-alpine-ram
+        environment:
+          POSTGRES_USER: circleci
+      - image: circleci/mysql:5.7
+      - image: circleci/redis:5.0-alpine
+    steps:
+      - install_go_deps
+      - test_packages
+
+  # test_code_1_11 performs all package tests using Go 1.11.
+  test_code_1_11:
+    working_directory: /go/src/github.com/hcnet/go
+    docker:
+      - image: circleci/golang:1.11-stretch
+        environment:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: circleci
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_PORT: 3306
+      - image: circleci/postgres:9.6.5-alpine-ram
+        environment:
+          POSTGRES_USER: circleci
+      - image: circleci/mysql:5.7
+      - image: circleci/redis:5.0-alpine
+    steps:
+      - install_go_deps
+      - test_packages
+
+  # test_code_1_12 performs all package tests using Go 1.12.
+  test_code_1_12:
+    working_directory: /go/src/github.com/hcnet/go
+    docker:
+      - image: circleci/golang:1.12-stretch
+        environment:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: circleci
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_PORT: 3306
+      - image: circleci/postgres:9.6.5-alpine-ram
+        environment:
+          POSTGRES_USER: circleci
+      - image: circleci/mysql:5.7
+      - image: circleci/redis:5.0-alpine
+    steps:
+      - install_go_deps
+      - test_packages
+
+  # publish_artifacts builds and uploads artifacts to any tagged commit.
+  #
+  # NOTE: this commands relies on an env var called GITHUB_TOKEN which is a
+  # GH OAUTH token with `repo` access.
+  publish_artifacts:
+    working_directory: /go/src/github.com/hcnet/go
+    docker:
+      - image: circleci/golang:1.11-stretch
+    steps:
+      - check_deprecations
+      - install_go_deps
+      - build_packages
+      - attach_workspace:
+          at: ./dist
+      - run:
+          name: "Publish release on GitHub"
+          command: |
+            if [ -d "./dist" ]
+            then
+              go get github.com/tcnksm/ghr
+              ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${CIRCLE_TAG} ./dist/
+            else
+                echo "./dist does not exist. No binaries to publish for ${CIRCLE_TAG}."
+            fi
+#-------------------------------------------------------------------------#
+# Workflows orchestrate jobs and make sure they run in the right sequence #
+#-------------------------------------------------------------------------#
+
+workflows:
+  version: 2
+
+  check_code_and_test:
+    jobs:
+      - check_code_1_10
+      - check_code_1_11
+      - check_code_1_12
+      - test_code_1_10
+      - test_code_1_11
+      - test_code_1_12
+
+  build_and_deploy:
+    jobs:
+      - publish_artifacts:
+          filters:
+              tags:
+                ignore: snapshots
+              branches:
+                ignore: /.*/
