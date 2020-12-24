@@ -2,13 +2,13 @@
 title: Trades
 ---
 
-People on the HcNet network can make [offers](../resources/offer.md) to buy or sell assets. When
+People on the DiamNet network can make [offers](../resources/offer.md) to buy or sell assets. When
 an offer is fully or partially fulfilled, a [trade](../resources/trade.md) happens.
 
 Trades can be filtered for a specific orderbook, defined by an asset pair: `base` and `counter`.
 
 This endpoint can also be used in [streaming](../streaming.md) mode, making it possible to listen
-for new trades as they occur on the HcNet network.
+for new trades as they occur on the DiamNet network.
 
 If called in streaming mode Aurora will start at the earliest known trade unless a `cursor` is
 set. In that case it will start from the `cursor`. You can also set `cursor` value to `now` to only
@@ -37,14 +37,14 @@ GET /trades?base_asset_type={base_asset_type}&base_asset_code={base_asset_code}&
 
 ### curl Example Request
 ```sh
-curl https://aurora.hcnet.org/trades?base_asset_type=native&counter_asset_code=SLT&counter_asset_issuer=GCKA6K5PCQ6PNF5RQBF7PQDJWRHO6UOGFMRLK3DYHDOI244V47XKQ4GP&counter_asset_type=credit_alphanum4&limit=2&order=desc
+curl https://aurora.diamnet.org/trades?base_asset_type=native&counter_asset_code=SLT&counter_asset_issuer=GCKA6K5PCQ6PNF5RQBF7PQDJWRHO6UOGFMRLK3DYHDOI244V47XKQ4GP&counter_asset_type=credit_alphanum4&limit=2&order=desc
 ```
 
 ### JavaScript Example Request
 
 ```javascript
-var HcNetSdk = require('hcnet-sdk');
-var server = new HcNetSdk.Server('https://aurora-testnet.hcnet.org');
+var DiamNetSdk = require('diamnet-sdk');
+var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.trades()
   .call()
@@ -59,8 +59,8 @@ server.trades()
 ### JavaScript Example Streaming Request
 
 ```javascript
-var HcNetSdk = require('hcnet-sdk')
-var server = new HcNetSdk.Server('https://aurora-testnet.hcnet.org');
+var DiamNetSdk = require('diamnet-sdk')
+var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
 
 var tradesHandler = function (tradeResponse) {
   console.log(tradeResponse);
@@ -82,13 +82,13 @@ The list of trades. `base` and `counter` in the records will match the asset pai
 {
   "_links": {
     "self": {
-      "href": "https://aurora-testnet.hcnet.org/trades?cursor=&limit=10&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/trades?cursor=&limit=10&order=asc"
     },
     "next": {
-      "href": "https://aurora-testnet.hcnet.org/trades?cursor=6025839120434-0&limit=10&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/trades?cursor=6025839120434-0&limit=10&order=asc"
     },
     "prev": {
-      "href": "https://aurora-testnet.hcnet.org/trades?cursor=6012954218535-0&limit=10&order=desc"
+      "href": "https://aurora-testnet.diamnet.org/trades?cursor=6012954218535-0&limit=10&order=desc"
     }
   },
   "_embedded": {
@@ -99,13 +99,13 @@ The list of trades. `base` and `counter` in the records will match the asset pai
             "href": ""
           },
           "base": {
-            "href": "https://aurora-testnet.hcnet.org/accounts/GAQHWQYBBW272OOXNQMMLCA5WY2XAZPODGB7Q3S5OKKIXVESKO55ZQ7C"
+            "href": "https://aurora-testnet.diamnet.org/accounts/GAQHWQYBBW272OOXNQMMLCA5WY2XAZPODGB7Q3S5OKKIXVESKO55ZQ7C"
           },
           "counter": {
-            "href": "https://aurora-testnet.hcnet.org/accounts/GCYN7MI6VXVRP74KR6MKBAW2ELLCXL6QCY5H4YQ62HVWZWMCE6Y232UC"
+            "href": "https://aurora-testnet.diamnet.org/accounts/GCYN7MI6VXVRP74KR6MKBAW2ELLCXL6QCY5H4YQ62HVWZWMCE6Y232UC"
           },
           "operation": {
-            "href": "https://aurora-testnet.hcnet.org/operations/6012954218535"
+            "href": "https://aurora-testnet.diamnet.org/operations/6012954218535"
           }
         },
         "id": "6012954218535-0",
@@ -136,13 +136,13 @@ The list of trades. `base` and `counter` in the records will match the asset pai
             "href": ""
           },
           "base": {
-            "href": "https://aurora-testnet.hcnet.org/accounts/GAQHWQYBBW272OOXNQMMLCA5WY2XAZPODGB7Q3S5OKKIXVESKO55ZQ7C"
+            "href": "https://aurora-testnet.diamnet.org/accounts/GAQHWQYBBW272OOXNQMMLCA5WY2XAZPODGB7Q3S5OKKIXVESKO55ZQ7C"
           },
           "counter": {
-            "href": "https://aurora-testnet.hcnet.org/accounts/GCYN7MI6VXVRP74KR6MKBAW2ELLCXL6QCY5H4YQ62HVWZWMCE6Y232UC"
+            "href": "https://aurora-testnet.diamnet.org/accounts/GCYN7MI6VXVRP74KR6MKBAW2ELLCXL6QCY5H4YQ62HVWZWMCE6Y232UC"
           },
           "operation": {
-            "href": "https://aurora-testnet.hcnet.org/operations/6025839120385"
+            "href": "https://aurora-testnet.diamnet.org/operations/6025839120385"
           }
         },
         "id": "6025839120385-0",

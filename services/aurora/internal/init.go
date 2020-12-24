@@ -9,18 +9,18 @@ import (
 	raven "github.com/getsentry/raven-go"
 	"github.com/gomodule/redigo/redis"
 	metrics "github.com/rcrowley/go-metrics"
-	ingestio "github.com/hcnet/go/exp/ingest/io"
-	"github.com/hcnet/go/exp/orderbook"
-	"github.com/hcnet/go/services/aurora/internal/db2/core"
-	"github.com/hcnet/go/services/aurora/internal/db2/history"
-	"github.com/hcnet/go/services/aurora/internal/expingest"
-	"github.com/hcnet/go/services/aurora/internal/ingest"
-	"github.com/hcnet/go/services/aurora/internal/simplepath"
-	"github.com/hcnet/go/services/aurora/internal/txsub"
-	results "github.com/hcnet/go/services/aurora/internal/txsub/results/db"
-	"github.com/hcnet/go/services/aurora/internal/txsub/sequence"
-	"github.com/hcnet/go/support/db"
-	"github.com/hcnet/go/support/log"
+	ingestio "github.com/diamnet/go/exp/ingest/io"
+	"github.com/diamnet/go/exp/orderbook"
+	"github.com/diamnet/go/services/aurora/internal/db2/core"
+	"github.com/diamnet/go/services/aurora/internal/db2/history"
+	"github.com/diamnet/go/services/aurora/internal/expingest"
+	"github.com/diamnet/go/services/aurora/internal/ingest"
+	"github.com/diamnet/go/services/aurora/internal/simplepath"
+	"github.com/diamnet/go/services/aurora/internal/txsub"
+	results "github.com/diamnet/go/services/aurora/internal/txsub/results/db"
+	"github.com/diamnet/go/services/aurora/internal/txsub/sequence"
+	"github.com/diamnet/go/support/db"
+	"github.com/diamnet/go/support/log"
 )
 
 func mustInitAuroraDB(app *App) {
@@ -35,7 +35,7 @@ func mustInitAuroraDB(app *App) {
 }
 
 func mustInitCoreDB(app *App) {
-	session, err := db.Open("postgres", app.config.HcNetCoreDatabaseURL)
+	session, err := db.Open("postgres", app.config.DiamNetCoreDatabaseURL)
 	if err != nil {
 		log.Fatalf("cannot open Core DB: %v", err)
 	}
@@ -51,12 +51,12 @@ func initIngester(app *App) {
 	}
 
 	if app.config.NetworkPassphrase == "" {
-		log.Fatal("Cannot start ingestion without network passphrase. Please confirm connectivity with hcnet-core.")
+		log.Fatal("Cannot start ingestion without network passphrase. Please confirm connectivity with diamnet-core.")
 	}
 
 	app.ingester = ingest.New(
 		app.config.NetworkPassphrase,
-		app.config.HcNetCoreURL,
+		app.config.DiamNetCoreURL,
 		app.CoreSession(context.Background()),
 		app.AuroraSession(context.Background()),
 		ingest.Config{
@@ -87,7 +87,7 @@ func initExpIngester(app *App, orderBookGraph *orderbook.OrderBookGraph) {
 		// Use the first archive for now. We don't have a mechanism to
 		// use multiple archives at the same time currently.
 		HistoryArchiveURL: app.config.HistoryArchiveURLs[0],
-		HcNetCoreURL:    app.config.HcNetCoreURL,
+		DiamNetCoreURL:    app.config.DiamNetCoreURL,
 		OrderBookGraph:    orderBookGraph,
 		TempSet:           tempSet,
 	})
@@ -146,9 +146,9 @@ func initDbMetrics(app *App) {
 	app.goroutineGauge = metrics.NewGauge()
 	app.metrics.Register("history.latest_ledger", app.historyLatestLedgerGauge)
 	app.metrics.Register("history.elder_ledger", app.historyElderLedgerGauge)
-	app.metrics.Register("hcnet_core.latest_ledger", app.coreLatestLedgerGauge)
+	app.metrics.Register("diamnet_core.latest_ledger", app.coreLatestLedgerGauge)
 	app.metrics.Register("history.open_connections", app.auroraConnGauge)
-	app.metrics.Register("hcnet_core.open_connections", app.coreConnGauge)
+	app.metrics.Register("diamnet_core.open_connections", app.coreConnGauge)
 	app.metrics.Register("goroutines", app.goroutineGauge)
 }
 
@@ -236,7 +236,7 @@ func initSubmissionSystem(app *App) {
 
 	app.submitter = &txsub.System{
 		Pending:         txsub.NewDefaultSubmissionList(),
-		Submitter:       txsub.NewDefaultSubmitter(http.DefaultClient, app.config.HcNetCoreURL),
+		Submitter:       txsub.NewDefaultSubmitter(http.DefaultClient, app.config.DiamNetCoreURL),
 		SubmissionQueue: sequence.NewManager(),
 		Results: &results.DB{
 			Core:    cq,

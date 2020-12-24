@@ -3,12 +3,12 @@ package resourceadapter
 import (
 	"context"
 
-	"github.com/hcnet/go/amount"
-	protocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/services/aurora/internal/db2/assets"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/support/render/hal"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/amount"
+	protocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/services/aurora/internal/db2/assets"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/support/render/hal"
+	"github.com/diamnet/go/xdr"
 )
 
 // PopulateAssetStat fills out the details

@@ -3,8 +3,8 @@ package resourceadapter
 import (
 	"context"
 
-	protocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/xdr"
+	protocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/xdr"
 )
 
 func PopulateAsset(ctx context.Context, dest *protocol.Asset, asset xdr.Asset) error {

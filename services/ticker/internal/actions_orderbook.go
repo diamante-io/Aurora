@@ -3,11 +3,11 @@ package ticker
 import (
 	"time"
 
-	auroraclient "github.com/hcnet/go/clients/auroraclient"
-	"github.com/hcnet/go/services/ticker/internal/scraper"
-	"github.com/hcnet/go/services/ticker/internal/tickerdb"
-	"github.com/hcnet/go/support/errors"
-	hlog "github.com/hcnet/go/support/log"
+	auroraclient "github.com/diamnet/go/clients/auroraclient"
+	"github.com/diamnet/go/services/ticker/internal/scraper"
+	"github.com/diamnet/go/services/ticker/internal/tickerdb"
+	"github.com/diamnet/go/support/errors"
+	hlog "github.com/diamnet/go/support/log"
 )
 
 // RefreshOrderbookEntries updates the orderbook entries for the relevant markets that were active

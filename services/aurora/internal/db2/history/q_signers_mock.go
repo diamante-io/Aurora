@@ -1,7 +1,7 @@
 package history
 
 import (
-	"github.com/hcnet/go/services/aurora/internal/db2"
+	"github.com/diamnet/go/services/aurora/internal/db2"
 	"github.com/stretchr/testify/mock"
 )
 

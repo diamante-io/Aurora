@@ -2,7 +2,7 @@
 
 👍🎉 First off, thanks for taking the time to contribute! 🎉👍
 
-Check out the [HcNet Contribution Guide](https://github.com/hcnet/docs/blob/master/CONTRIBUTING.md) for details.
+Check out the [DiamNet Contribution Guide](https://github.com/diamnet/docs/blob/master/CONTRIBUTING.md) for details.
 
 ## Style guides
 

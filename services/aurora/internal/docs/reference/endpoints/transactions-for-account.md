@@ -1,13 +1,13 @@
 ---
 title: Transactions for Account
 clientData:
-  laboratoryUrl: https://www.hcnet.org/laboratory/#explorer?resource=transactions&endpoint=for_account
+  laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=transactions&endpoint=for_account
 ---
 
 This endpoint represents successful [transactions](../resources/transaction.md) that affected a
 given [account](../resources/account.md).  This endpoint can also be used in
 [streaming](../streaming.md) mode so it is possible to use it to listen for new transactions that
-affect a given account as they get made in the HcNet network.
+affect a given account as they get made in the DiamNet network.
 
 If called in streaming mode Aurora will start at the earliest known transaction unless a `cursor`
 is set. In that case it will start from the `cursor`. You can also set `cursor` value to `now` to
@@ -32,14 +32,14 @@ GET /accounts/{account_id}/transactions{?cursor,limit,order,include_failed}
 ### curl Example Request
 
 ```sh
-curl "https://aurora-testnet.hcnet.org/accounts/GBS43BF24ENNS3KPACUZVKK2VYPOZVBQO2CISGZ777RYGOPYC2FT6S3K/transactions?limit=1"
+curl "https://aurora-testnet.diamnet.org/accounts/GBS43BF24ENNS3KPACUZVKK2VYPOZVBQO2CISGZ777RYGOPYC2FT6S3K/transactions?limit=1"
 ```
 
 ### JavaScript Example Request
 
 ```javascript
-var HcNetSdk = require('hcnet-sdk');
-var server = new HcNetSdk.Server('https://aurora-testnet.hcnet.org');
+var DiamNetSdk = require('diamnet-sdk');
+var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.transactions()
   .forAccount("GBS43BF24ENNS3KPACUZVKK2VYPOZVBQO2CISGZ777RYGOPYC2FT6S3K")
@@ -55,8 +55,8 @@ server.transactions()
 ### JavaScript Streaming Example
 
 ```javascript
-var HcNetSdk = require('hcnet-sdk')
-var server = new HcNetSdk.Server('https://aurora-testnet.hcnet.org');
+var DiamNetSdk = require('diamnet-sdk')
+var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
 
 var txHandler = function (txResponse) {
   console.log(txResponse);
@@ -80,13 +80,13 @@ This endpoint responds with a list of transactions that changed a given account'
 {
   "_links": {
     "self": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GBYUUJHG6F4EPJGNLERINATVQLNDOFRUD7SGJZ26YZLG5PAYLG7XUSGF/payments?cursor=&limit=10&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/accounts/GBYUUJHG6F4EPJGNLERINATVQLNDOFRUD7SGJZ26YZLG5PAYLG7XUSGF/payments?cursor=&limit=10&order=asc"
     },
     "next": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GBYUUJHG6F4EPJGNLERINATVQLNDOFRUD7SGJZ26YZLG5PAYLG7XUSGF/payments?cursor=2714719978786817&limit=10&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/accounts/GBYUUJHG6F4EPJGNLERINATVQLNDOFRUD7SGJZ26YZLG5PAYLG7XUSGF/payments?cursor=2714719978786817&limit=10&order=asc"
     },
     "prev": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GBYUUJHG6F4EPJGNLERINATVQLNDOFRUD7SGJZ26YZLG5PAYLG7XUSGF/payments?cursor=1919197546291201&limit=10&order=desc"
+      "href": "https://aurora-testnet.diamnet.org/accounts/GBYUUJHG6F4EPJGNLERINATVQLNDOFRUD7SGJZ26YZLG5PAYLG7XUSGF/payments?cursor=1919197546291201&limit=10&order=desc"
     }
   },
   "_embedded": {
@@ -94,19 +94,19 @@ This endpoint responds with a list of transactions that changed a given account'
       {
         "_links": {
           "self": {
-            "href": "https://aurora-testnet.hcnet.org/operations/1919197546291201"
+            "href": "https://aurora-testnet.diamnet.org/operations/1919197546291201"
           },
           "transaction": {
-            "href": "https://aurora-testnet.hcnet.org/transactions/7e2050abc676003efc3eaadd623c927f753b7a6c37f50864bf284f4e1510d088"
+            "href": "https://aurora-testnet.diamnet.org/transactions/7e2050abc676003efc3eaadd623c927f753b7a6c37f50864bf284f4e1510d088"
           },
           "effects": {
-            "href": "https://aurora-testnet.hcnet.org/operations/1919197546291201/effects"
+            "href": "https://aurora-testnet.diamnet.org/operations/1919197546291201/effects"
           },
           "succeeds": {
-            "href": "https://aurora-testnet.hcnet.org/effects?order=desc&cursor=1919197546291201"
+            "href": "https://aurora-testnet.diamnet.org/effects?order=desc&cursor=1919197546291201"
           },
           "precedes": {
-            "href": "https://aurora-testnet.hcnet.org/effects?order=asc&cursor=1919197546291201"
+            "href": "https://aurora-testnet.diamnet.org/effects?order=asc&cursor=1919197546291201"
           }
         },
         "id": "1919197546291201",
@@ -124,19 +124,19 @@ This endpoint responds with a list of transactions that changed a given account'
       {
         "_links": {
           "self": {
-            "href": "https://aurora-testnet.hcnet.org/operations/2714719978786817"
+            "href": "https://aurora-testnet.diamnet.org/operations/2714719978786817"
           },
           "transaction": {
-            "href": "https://aurora-testnet.hcnet.org/transactions/7cea6abe90654578b42ee696e823187d89d91daa157a1077b542ee7c77413ce3"
+            "href": "https://aurora-testnet.diamnet.org/transactions/7cea6abe90654578b42ee696e823187d89d91daa157a1077b542ee7c77413ce3"
           },
           "effects": {
-            "href": "https://aurora-testnet.hcnet.org/operations/2714719978786817/effects"
+            "href": "https://aurora-testnet.diamnet.org/operations/2714719978786817/effects"
           },
           "succeeds": {
-            "href": "https://aurora-testnet.hcnet.org/effects?order=desc&cursor=2714719978786817"
+            "href": "https://aurora-testnet.diamnet.org/effects?order=desc&cursor=2714719978786817"
           },
           "precedes": {
-            "href": "https://aurora-testnet.hcnet.org/effects?order=asc&cursor=2714719978786817"
+            "href": "https://aurora-testnet.diamnet.org/effects?order=asc&cursor=2714719978786817"
           }
         },
         "id": "2714719978786817",

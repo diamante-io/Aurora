@@ -1,5 +1,5 @@
 # Services package
 
-Packages contained by this package represent the long-running applications developed for the HcNet network.
+Packages contained by this package represent the long-running applications developed for the DiamNet network.
 
-See [godoc](https://godoc.org/github.com/hcnet/go/services) for details about each application.
+See [godoc](https://godoc.org/github.com/diamnet/go/services) for details about each application.

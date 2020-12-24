@@ -3,10 +3,10 @@ package resourceadapter
 import (
 	"context"
 
-	protocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/services/aurora/internal/httpx"
-	"github.com/hcnet/go/services/aurora/internal/txsub"
-	"github.com/hcnet/go/support/render/hal"
+	protocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/services/aurora/internal/httpx"
+	"github.com/diamnet/go/services/aurora/internal/txsub"
+	"github.com/diamnet/go/support/render/hal"
 )
 
 // Populate fills out the details

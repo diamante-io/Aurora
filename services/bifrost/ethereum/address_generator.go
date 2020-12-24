@@ -4,7 +4,7 @@ import (
 	ethereumCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/haltingstate/secp256k1-go"
-	"github.com/hcnet/go/support/errors"
+	"github.com/diamnet/go/support/errors"
 	"github.com/tyler-smith/go-bip32"
 )
 

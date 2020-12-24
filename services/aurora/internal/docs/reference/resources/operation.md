@@ -2,21 +2,21 @@
 title: Operation
 ---
 
-[Operations](https://www.hcnet.org/developers/learn/concepts/operations.html) are objects that represent a desired change to the ledger: payments,
+[Operations](https://www.diamnet.org/developers/learn/concepts/operations.html) are objects that represent a desired change to the ledger: payments,
 offers to exchange currency, changes made to account options, etc.  Operations
-are submitted to the HcNet network grouped in a [Transaction](./transaction.md).
+are submitted to the DiamNet network grouped in a [Transaction](./transaction.md).
 
-To learn more about the concept of operations in the HcNet network, take a look at the [HcNet operations concept guide](https://www.hcnet.org/developers/learn/concepts/operations.html).
+To learn more about the concept of operations in the DiamNet network, take a look at the [DiamNet operations concept guide](https://www.diamnet.org/developers/learn/concepts/operations.html).
 
 ## Operation Types
 
 | type                                          | type_i | description                                                                                                |
 |-----------------------------------------------|--------|------------------------------------------------------------------------------------------------------------|
-| [CREATE_ACCOUNT](#create-account)                       | 0      | Creates a new account in HcNet network.
-| [PAYMENT](#payment)                                     | 1      | Sends a simple payment between two accounts in HcNet network.
-| [PATH_PAYMENT](#path-payment)                           | 2      | Sends a path payment between two accounts in the HcNet network.
-| [MANAGE_SELL_OFFER](#manage-sell-offer)                 | 3      | Creates, updates or deletes a sell offer in the HcNet network.
-| [MANAGE_BUY_OFFER](#manage-buy-offer)                   | 12     | Creates, updates or deletes a buy offer in the HcNet network.
+| [CREATE_ACCOUNT](#create-account)                       | 0      | Creates a new account in DiamNet network.
+| [PAYMENT](#payment)                                     | 1      | Sends a simple payment between two accounts in DiamNet network.
+| [PATH_PAYMENT](#path-payment)                           | 2      | Sends a path payment between two accounts in the DiamNet network.
+| [MANAGE_SELL_OFFER](#manage-sell-offer)                 | 3      | Creates, updates or deletes a sell offer in the DiamNet network.
+| [MANAGE_BUY_OFFER](#manage-buy-offer)                   | 12     | Creates, updates or deletes a buy offer in the DiamNet network.
 | [CREATE_PASSIVE_SELL_OFFER](#create-passive-sell-offer) | 4      | Creates an offer that won't consume a counter offer that exactly matches this offer.
 | [SET_OPTIONS](#set-options)                             | 5      | Sets account options (inflation destination, adding signers, etc.)
 | [CHANGE_TRUST](#change-trust)                           | 6      | Creates, updates or deletes a trust line.
@@ -227,7 +227,7 @@ A path payment operation represents a payment from one account to another throug
 ### Manage Sell Offer
 
 A "Manage Sell Offer" operation can create, update or delete a sell
-offer to trade assets in the HcNet network.
+offer to trade assets in the DiamNet network.
 It specifies an issuer, a price and amount of a given asset to
 buy or sell.
 
@@ -308,7 +308,7 @@ Both will fill only partially (or not at all) if there are few (or no) offers th
 ### Manage Buy Offer
 
 A "Manage Buy Offer" operation can create, update or delete a buy
-offer to trade assets in the HcNet network.
+offer to trade assets in the DiamNet network.
 It specifies an issuer, a price and amount of a given asset to
 buy or sell.
 
@@ -480,7 +480,7 @@ Use “Set Options” operation to set following options to your account:
     }
   },
   "high_threshold": 3,
-  "home_domain": "hcnet.org",
+  "home_domain": "diamnet.org",
   "id": 696867033714691,
   "low_threshold": 0,
   "med_threshold": 3,

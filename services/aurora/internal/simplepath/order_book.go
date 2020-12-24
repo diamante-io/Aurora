@@ -6,9 +6,9 @@ import (
 	"math"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/hcnet/go/price"
-	"github.com/hcnet/go/services/aurora/internal/db2/core"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/price"
+	"github.com/diamnet/go/services/aurora/internal/db2/core"
+	"github.com/diamnet/go/xdr"
 )
 
 // ErrNotEnough represents an error that occurs when pricing a trade on an

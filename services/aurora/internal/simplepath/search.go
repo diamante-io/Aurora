@@ -1,9 +1,9 @@
 package simplepath
 
 import (
-	"github.com/hcnet/go/services/aurora/internal/db2/core"
-	"github.com/hcnet/go/services/aurora/internal/paths"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/services/aurora/internal/db2/core"
+	"github.com/diamnet/go/services/aurora/internal/paths"
+	"github.com/diamnet/go/xdr"
 )
 
 // MaxPathLength is a maximum path length as defined in XDR file (includes source and

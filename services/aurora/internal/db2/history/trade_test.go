@@ -3,10 +3,10 @@ package history_test
 import (
 	"testing"
 
-	"github.com/hcnet/go/services/aurora/internal/db2"
-	. "github.com/hcnet/go/services/aurora/internal/db2/history"
-	"github.com/hcnet/go/services/aurora/internal/test"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/services/aurora/internal/db2"
+	. "github.com/diamnet/go/services/aurora/internal/db2/history"
+	"github.com/diamnet/go/services/aurora/internal/test"
+	"github.com/diamnet/go/xdr"
 )
 
 func TestTradeQueries(t *testing.T) {

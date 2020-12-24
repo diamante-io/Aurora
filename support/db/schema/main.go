@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	migrate "github.com/rubenv/sql-migrate"
-	"github.com/hcnet/go/support/db"
+	"github.com/diamnet/go/support/db"
 )
 
 // MigrateDir represents a direction in which to perform schema migrations.

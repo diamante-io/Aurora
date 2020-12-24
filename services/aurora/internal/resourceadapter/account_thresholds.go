@@ -1,8 +1,8 @@
 package resourceadapter
 
 import (
-	protocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/services/aurora/internal/db2/core"
+	protocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/services/aurora/internal/db2/core"
 )
 
 func PopulateAccountThresholds(dest *protocol.AccountThresholds, row core.Account) {

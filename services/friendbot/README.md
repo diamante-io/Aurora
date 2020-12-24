@@ -1,6 +1,6 @@
-# Friendbot Service for the HcNet Test Network
+# Friendbot Service for the DiamNet Test Network
 
-Friendbot helps users of the HcNet testnet by exposing a REST endpoint that creates & funds new accounts.
+Friendbot helps users of the DiamNet testnet by exposing a REST endpoint that creates & funds new accounts.
 
 Aurora needs to be started with the following command line param: --friendbot-url="http://localhost:8004/"
 This will forward any query params received against /friendbot to the friendbot instance.

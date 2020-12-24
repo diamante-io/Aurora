@@ -3,8 +3,8 @@ package aurora
 import (
 	"encoding/json"
 
-	hProtocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/support/render/hal"
+	hProtocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/support/render/hal"
 )
 
 // Deprecated: use protocols/aurora instead

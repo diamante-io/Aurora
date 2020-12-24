@@ -3,7 +3,7 @@ package logmetrics
 import (
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/sirupsen/logrus"
-	"github.com/hcnet/go/support/log"
+	"github.com/diamnet/go/support/log"
 )
 
 // Metrics is a logrus hook-compliant struct that records metrics about logging

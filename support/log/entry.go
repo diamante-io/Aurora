@@ -8,7 +8,7 @@ import (
 	gerr "github.com/go-errors/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
-	"github.com/hcnet/go/support/errors"
+	"github.com/diamnet/go/support/errors"
 )
 
 // Ctx appends all fields from `e` to the new logger created from `ctx`

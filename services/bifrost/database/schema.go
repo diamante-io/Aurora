@@ -12,9 +12,9 @@ CREATE TABLE address_association (
   /* bitcoin 34 characters */
   /* ethereum 42 characters */
   address varchar(42) NOT NULL UNIQUE,
-  hcnet_public_key varchar(56) NOT NULL UNIQUE,
+  diamnet_public_key varchar(56) NOT NULL UNIQUE,
   created_at timestamp NOT NULL,
-  PRIMARY KEY (chain, address_index, address, hcnet_public_key),
+  PRIMARY KEY (chain, address_index, address, diamnet_public_key),
   CONSTRAINT valid_address_index CHECK (address_index >= 0)
 );
 
@@ -50,15 +50,15 @@ CREATE TABLE transactions_queue (
   transaction_id varchar(66) NOT NULL,
   asset_code varchar(3) NOT NULL,
   /* Amount in the base unit of currency (BTC or ETH). */
-  /* ethereum: 100000000 in year 2128 + 7 decimal precision in HcNet + dot */
-  /* bitcoin:   21000000              + 7 decimal precision in HcNet + dot */
+  /* ethereum: 100000000 in year 2128 + 7 decimal precision in DiamNet + dot */
+  /* bitcoin:   21000000              + 7 decimal precision in DiamNet + dot */
   amount varchar(20) NOT NULL,
-  hcnet_public_key varchar(56) NOT NULL,
+  diamnet_public_key varchar(56) NOT NULL,
   pooled boolean NOT NULL DEFAULT false,
   PRIMARY KEY (id),
   UNIQUE (transaction_id, asset_code),
   CONSTRAINT valid_asset_code CHECK (char_length(asset_code) = 3),
-  CONSTRAINT valid_hcnet_public_key CHECK (char_length(hcnet_public_key) = 56)
+  CONSTRAINT valid_diamnet_public_key CHECK (char_length(diamnet_public_key) = 56)
 );
 
 CREATE TYPE event AS ENUM ('transaction_received', 'account_created', 'exchanged', 'exchanged_timelocked');

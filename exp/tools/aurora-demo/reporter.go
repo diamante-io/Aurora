@@ -3,7 +3,7 @@ package main
 import (
 	"time"
 
-	"github.com/hcnet/go/support/log"
+	"github.com/diamnet/go/support/log"
 )
 
 // LoggingStateReporter logs the progress of a session running its

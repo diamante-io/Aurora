@@ -12,23 +12,23 @@ import (
 
 	"github.com/gomodule/redigo/redis"
 	metrics "github.com/rcrowley/go-metrics"
-	"github.com/hcnet/go/clients/hcnetcore"
-	"github.com/hcnet/go/exp/orderbook"
-	auroraContext "github.com/hcnet/go/services/aurora/internal/context"
-	"github.com/hcnet/go/services/aurora/internal/db2/core"
-	"github.com/hcnet/go/services/aurora/internal/db2/history"
-	"github.com/hcnet/go/services/aurora/internal/expingest"
-	"github.com/hcnet/go/services/aurora/internal/ingest"
-	"github.com/hcnet/go/services/aurora/internal/ledger"
-	"github.com/hcnet/go/services/aurora/internal/logmetrics"
-	"github.com/hcnet/go/services/aurora/internal/operationfeestats"
-	"github.com/hcnet/go/services/aurora/internal/paths"
-	"github.com/hcnet/go/services/aurora/internal/reap"
-	"github.com/hcnet/go/services/aurora/internal/txsub"
-	"github.com/hcnet/go/support/app"
-	"github.com/hcnet/go/support/db"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/support/log"
+	"github.com/diamnet/go/clients/diamnetcore"
+	"github.com/diamnet/go/exp/orderbook"
+	auroraContext "github.com/diamnet/go/services/aurora/internal/context"
+	"github.com/diamnet/go/services/aurora/internal/db2/core"
+	"github.com/diamnet/go/services/aurora/internal/db2/history"
+	"github.com/diamnet/go/services/aurora/internal/expingest"
+	"github.com/diamnet/go/services/aurora/internal/ingest"
+	"github.com/diamnet/go/services/aurora/internal/ledger"
+	"github.com/diamnet/go/services/aurora/internal/logmetrics"
+	"github.com/diamnet/go/services/aurora/internal/operationfeestats"
+	"github.com/diamnet/go/services/aurora/internal/paths"
+	"github.com/diamnet/go/services/aurora/internal/reap"
+	"github.com/diamnet/go/services/aurora/internal/txsub"
+	"github.com/diamnet/go/support/app"
+	"github.com/diamnet/go/support/db"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/support/log"
 	"github.com/throttled/throttled"
 	"golang.org/x/net/http2"
 	graceful "gopkg.in/tylerb/graceful.v1"
@@ -153,14 +153,14 @@ func (a *App) AuroraSession(ctx context.Context) *db.Session {
 	return &db.Session{DB: a.historyQ.Session.DB, Ctx: ctx}
 }
 
-// CoreSession returns a new session that loads data from the hcnet core
+// CoreSession returns a new session that loads data from the diamnet core
 // database. The returned session is bound to `ctx`.
 func (a *App) CoreSession(ctx context.Context) *db.Session {
 	return &db.Session{DB: a.coreQ.Session.DB, Ctx: ctx}
 }
 
 // CoreQ returns a helper object for performing sql queries aginst the
-// hcnet core database.
+// diamnet core database.
 func (a *App) CoreQ() *core.Q {
 	return a.coreQ
 }
@@ -295,21 +295,21 @@ func (a *App) UpdateOperationFeeStatsState() {
 	operationfeestats.SetState(next)
 }
 
-// UpdateHcNetCoreInfo updates the value of coreVersion,
-// currentProtocolVersion, and coreSupportedProtocolVersion from the HcNet
+// UpdateDiamNetCoreInfo updates the value of coreVersion,
+// currentProtocolVersion, and coreSupportedProtocolVersion from the DiamNet
 // core API.
-func (a *App) UpdateHcNetCoreInfo() {
-	if a.config.HcNetCoreURL == "" {
+func (a *App) UpdateDiamNetCoreInfo() {
+	if a.config.DiamNetCoreURL == "" {
 		return
 	}
 
-	core := &hcnetcore.Client{
-		URL: a.config.HcNetCoreURL,
+	core := &diamnetcore.Client{
+		URL: a.config.DiamNetCoreURL,
 	}
 
 	resp, err := core.Info(context.Background())
 	if err != nil {
-		log.Warnf("could not load hcnet-core info: %s", err)
+		log.Warnf("could not load diamnet-core info: %s", err)
 		return
 	}
 
@@ -317,7 +317,7 @@ func (a *App) UpdateHcNetCoreInfo() {
 	// state of the application.
 	if resp.Info.Network != a.config.NetworkPassphrase {
 		log.Errorf(
-			"Network passphrase of hcnet-core (%s) does not match Aurora configuration (%s). Exiting...",
+			"Network passphrase of diamnet-core (%s) does not match Aurora configuration (%s). Exiting...",
 			resp.Info.Network,
 			a.config.NetworkPassphrase,
 		)
@@ -353,11 +353,11 @@ func (a *App) DeleteUnretainedHistory() error {
 func (a *App) Tick() {
 	var wg sync.WaitGroup
 	log.Debug("ticking app")
-	// update ledger state, operation fee state, and hcnet-core info in parallel
+	// update ledger state, operation fee state, and diamnet-core info in parallel
 	wg.Add(3)
 	go func() { a.UpdateLedgerState(); wg.Done() }()
 	go func() { a.UpdateOperationFeeStatsState(); wg.Done() }()
-	go func() { a.UpdateHcNetCoreInfo(); wg.Done() }()
+	go func() { a.UpdateDiamNetCoreInfo(); wg.Done() }()
 	wg.Wait()
 
 	if a.ingester != nil {
@@ -390,8 +390,8 @@ func (a *App) init() {
 	// loggly
 	initLogglyLog(a)
 
-	// hcnetCoreInfo
-	a.UpdateHcNetCoreInfo()
+	// diamnetCoreInfo
+	a.UpdateDiamNetCoreInfo()
 
 	// aurora-db and core-db
 	mustInitAuroraDB(a)

@@ -19,27 +19,27 @@ Aurora uses two Go tools you'll need to install:
 1. [go-bindata](https://github.com/jteeuwen/go-bindata) is used to bundle test data
 2. [go-codegen](https://github.com/nullstyle/go-codegen) is used to generate some boilerplate code
 
-After the above are installed, run `go generate github.com/hcnet/go/services/aurora/...`. This will look for any `.tmpl` files in the directory and use them to generate code when annotated structs are found in the package source.
+After the above are installed, run `go generate github.com/diamnet/go/services/aurora/...`. This will look for any `.tmpl` files in the directory and use them to generate code when annotated structs are found in the package source.
 
 ## <a name="scenarios"></a> Adding, rebuilding and using test scenarios
 
-In order to simulate ledgers Aurora uses [`hcnet-core-commander`](https://github.com/hcnet/hcnet_core_commander) recipe files to add transactions and operations to ledgers using the hcnet-core test framework.
+In order to simulate ledgers Aurora uses [`diamnet-core-commander`](https://github.com/diamnet/diamnet_core_commander) recipe files to add transactions and operations to ledgers using the diamnet-core test framework.
 
 In order to add a new scenario or rebuild existing scenarios you need:
 
-1. [`hcnet-core-commander`](https://github.com/hcnet/hcnet_core_commander) (in short: `scc`) installed and [configured](https://github.com/hcnet/hcnet_core_commander#assumptions-about-environment).
-2. [`hcnet-core`](https://github.com/hcnet/hcnet-core) binary.
+1. [`diamnet-core-commander`](https://github.com/diamnet/diamnet_core_commander) (in short: `scc`) installed and [configured](https://github.com/diamnet/diamnet_core_commander#assumptions-about-environment).
+2. [`diamnet-core`](https://github.com/diamnet/diamnet-core) binary.
 3. This repository cloned locally.
 
-`scc` allows you to write scripts/recipes that are later executed in `hcnet-core` isolated network. After executing a recipe you can then export the `hcnet-core` database to be able to run Aurora ingestion system against it (this repository contains a script that does this for you - read below).
+`scc` allows you to write scripts/recipes that are later executed in `diamnet-core` isolated network. After executing a recipe you can then export the `diamnet-core` database to be able to run Aurora ingestion system against it (this repository contains a script that does this for you - read below).
 
 ### Example recipe
 
 Here's an example of recipe file with comments:
 ```rb
 # Define two accounts test accounts
-account :scott, HcNet::KeyPair.from_seed("SBZWG33UOQQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAPSA")
-account :bartek, HcNet::KeyPair.from_seed("SBRGC4TUMVVSAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCBDHV")
+account :scott, DiamNet::KeyPair.from_seed("SBZWG33UOQQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAPSA")
+account :bartek, DiamNet::KeyPair.from_seed("SBRGC4TUMVVSAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCBDHV")
 
 # use_manual_close causes scc to run a process with MANUAL_CLOSE=true
 use_manual_close
@@ -55,12 +55,12 @@ close_ledger
 payment :scott, :bartek,  [:native, 5]
 ```
 
-You can find more recipes in [`scc` examples](https://github.com/hcnet/hcnet_core_commander/tree/84d5ffb97202ecc3a0ed34a739c98e69536c0c2c/examples) and [aurora test scenarios](https://github.com/hcnet/go/tree/master/services/aurora/internal/test/scenarios).
+You can find more recipes in [`scc` examples](https://github.com/diamnet/diamnet_core_commander/tree/84d5ffb97202ecc3a0ed34a739c98e69536c0c2c/examples) and [aurora test scenarios](https://github.com/diamnet/go/tree/master/services/aurora/internal/test/scenarios).
 
 ### Rebuilding scenarios
 
-1. Create a new or modify existing recipe. All new recipes should be added to [aurora test scenarios](https://github.com/hcnet/go/tree/master/services/aurora/internal/test/scenarios) directory.
-2. In `hcnet/go` repository root directory run `./services/aurora/internal/scripts/build_test_scenarios.bash`.
+1. Create a new or modify existing recipe. All new recipes should be added to [aurora test scenarios](https://github.com/diamnet/go/tree/master/services/aurora/internal/test/scenarios) directory.
+2. In `diamnet/go` repository root directory run `./services/aurora/internal/scripts/build_test_scenarios.bash`.
 3. The command above will rebuild all test scenarios. If you need to rebuild only one scenario modify `PACKAGES` environment variable temporarily in the script.
 
 ### Using test scenarios
@@ -91,7 +91,7 @@ start a redis server on port `6379`
 redis-server
 ```
 
-then, run the all the Go monorepo tests like so (assuming you are at hcnet/go, or run from hcnet/go/services/aurora for just the Aurora subset):
+then, run the all the Go monorepo tests like so (assuming you are at diamnet/go, or run from diamnet/go/services/aurora for just the Aurora subset):
 
 ```bash
 bash ./support/scripts/run_tests
@@ -100,12 +100,12 @@ bash ./support/scripts/run_tests
 or run individual Aurora tests like so, providing the expected arguments:
 
 ```bash
-go test github.com/hcnet/go/services/aurora/...
+go test github.com/diamnet/go/services/aurora/...
 ```
 
 ## <a name="logging"></a> Logging
 
-All logging infrastructure is in the `github.com/hcnet/go/tree/master/services/aurora/internal/log` package.  This package provides "level-based" logging:  Each logging statement has a severity, one of "Debug", "Info", "Warn", "Error" or "Panic".  The Aurora server has a configured level "filter", specified either using the `--log-level` command line flag or the `LOG_LEVEL` environment variable.  When a logging statement is executed, the statements declared severity is checked against the filter and will only be emitted if the severity of the statement is equal or higher severity than the filter.
+All logging infrastructure is in the `github.com/diamnet/go/tree/master/services/aurora/internal/log` package.  This package provides "level-based" logging:  Each logging statement has a severity, one of "Debug", "Info", "Warn", "Error" or "Panic".  The Aurora server has a configured level "filter", specified either using the `--log-level` command line flag or the `LOG_LEVEL` environment variable.  When a logging statement is executed, the statements declared severity is checked against the filter and will only be emitted if the severity of the statement is equal or higher severity than the filter.
 
 In addition, the logging subsystem has support for fields: Arbitrary key-value pairs that will be associated with an entry to allow for filtering and additional contextual information.
 

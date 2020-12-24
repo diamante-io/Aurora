@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	hProtocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/support/http/httptest"
+	hProtocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/support/http/httptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -263,7 +263,7 @@ func TestNextLedgersPage(t *testing.T) {
 
 	hmock.On(
 		"GET",
-		"https://aurora-testnet.hcnet.org/ledgers?cursor=1559012998905856&limit=2&order=desc",
+		"https://aurora-testnet.diamnet.org/ledgers?cursor=1559012998905856&limit=2&order=desc",
 	).ReturnString(200, emptyLedgersPage)
 
 	nextPage, err := client.NextLedgersPage(ledgers)
@@ -272,19 +272,19 @@ func TestNextLedgersPage(t *testing.T) {
 	}
 }
 
-var ledgerStreamResponse = `data: {"_links":{"self":{"href":"https://aurora-testnet.hcnet.org/ledgers/560339"},"transactions":{"href":"https://aurora-testnet.hcnet.org/ledgers/560339/transactions{?cursor,limit,order}","templated":true},"operations":{"href":"https://aurora-testnet.hcnet.org/ledgers/560339/operations{?cursor,limit,order}","templated":true},"payments":{"href":"https://aurora-testnet.hcnet.org/ledgers/560339/payments{?cursor,limit,order}","templated":true},"effects":{"href":"https://aurora-testnet.hcnet.org/ledgers/560339/effects{?cursor,limit,order}","templated":true}},"id":"66f4d95dab22dbc422585cc4b011716014e81df3599cee8db9c776cfc3a31e93","paging_token":"2406637679673344","hash":"66f4d95dab22dbc422585cc4b011716014e81df3599cee8db9c776cfc3a31e93","prev_hash":"6071f1e52a6bf37aba3f7437081577eafe69f78593c465fc5028c46a4746dda3","sequence":560339,"successful_transaction_count":5,"failed_transaction_count":1,"operation_count":44,"closed_at":"2019-04-01T16:47:05Z","total_coins":"100057227213.0436903","fee_pool":"57227816.6766542","base_fee_in_stroops":100,"base_reserve_in_stroops":5000000,"max_tx_set_size":100,"protocol_version":10,"header_xdr":"AAAACmBx8eUqa/N6uj90NwgVd+r+afeFk8Rl/FAoxGpHRt2jdIn+3X+/O3PFUUZ8Tgy4rfD1oNamR+9NMOCM2V6ndksAAAAAXKJAiQAAAAAAAAAAPyIIYU6Y37lve/MwZls1vmbgxgFdx93hdzOn6g8kHhQ1BS9aAKuXtApQoE3gKpjQ5ze0H9qUruyOUsbM776zXQAIjNMN4r8uJHCvJwACCHvk18POAAAAAwAAAAAAQZnVAAAAZABMS0AAAABkkiIcXkjaTtc9zTQBn0o72CUBe3u+2Mz7W6dgkvkYcJJle8JCNmXx5HcRlDSHJzzBShc8C3rQUIsIuJ93eoBMgHeYAzfholE8hjvrHrqoHq8jfPowxj1FGD6HaUPD1PHTcBXmf0U0cs2Ki0NBDDKNcwKC84nUPdumCkdAxSuEzn4AAAAA"}
+var ledgerStreamResponse = `data: {"_links":{"self":{"href":"https://aurora-testnet.diamnet.org/ledgers/560339"},"transactions":{"href":"https://aurora-testnet.diamnet.org/ledgers/560339/transactions{?cursor,limit,order}","templated":true},"operations":{"href":"https://aurora-testnet.diamnet.org/ledgers/560339/operations{?cursor,limit,order}","templated":true},"payments":{"href":"https://aurora-testnet.diamnet.org/ledgers/560339/payments{?cursor,limit,order}","templated":true},"effects":{"href":"https://aurora-testnet.diamnet.org/ledgers/560339/effects{?cursor,limit,order}","templated":true}},"id":"66f4d95dab22dbc422585cc4b011716014e81df3599cee8db9c776cfc3a31e93","paging_token":"2406637679673344","hash":"66f4d95dab22dbc422585cc4b011716014e81df3599cee8db9c776cfc3a31e93","prev_hash":"6071f1e52a6bf37aba3f7437081577eafe69f78593c465fc5028c46a4746dda3","sequence":560339,"successful_transaction_count":5,"failed_transaction_count":1,"operation_count":44,"closed_at":"2019-04-01T16:47:05Z","total_coins":"100057227213.0436903","fee_pool":"57227816.6766542","base_fee_in_stroops":100,"base_reserve_in_stroops":5000000,"max_tx_set_size":100,"protocol_version":10,"header_xdr":"AAAACmBx8eUqa/N6uj90NwgVd+r+afeFk8Rl/FAoxGpHRt2jdIn+3X+/O3PFUUZ8Tgy4rfD1oNamR+9NMOCM2V6ndksAAAAAXKJAiQAAAAAAAAAAPyIIYU6Y37lve/MwZls1vmbgxgFdx93hdzOn6g8kHhQ1BS9aAKuXtApQoE3gKpjQ5ze0H9qUruyOUsbM776zXQAIjNMN4r8uJHCvJwACCHvk18POAAAAAwAAAAAAQZnVAAAAZABMS0AAAABkkiIcXkjaTtc9zTQBn0o72CUBe3u+2Mz7W6dgkvkYcJJle8JCNmXx5HcRlDSHJzzBShc8C3rQUIsIuJ93eoBMgHeYAzfholE8hjvrHrqoHq8jfPowxj1FGD6HaUPD1PHTcBXmf0U0cs2Ki0NBDDKNcwKC84nUPdumCkdAxSuEzn4AAAAA"}
 `
 
 var firstLedgersPage = `{
   "_links": {
     "self": {
-      "href": "https://aurora-testnet.hcnet.org/ledgers?cursor=1559021588840447&limit=2&order=desc"
+      "href": "https://aurora-testnet.diamnet.org/ledgers?cursor=1559021588840447&limit=2&order=desc"
     },
     "next": {
-      "href": "https://aurora-testnet.hcnet.org/ledgers?cursor=1559012998905856&limit=2&order=desc"
+      "href": "https://aurora-testnet.diamnet.org/ledgers?cursor=1559012998905856&limit=2&order=desc"
     },
     "prev": {
-      "href": "https://aurora-testnet.hcnet.org/ledgers?cursor=1559017293873152&limit=2&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/ledgers?cursor=1559017293873152&limit=2&order=asc"
     }
   },
   "_embedded": {
@@ -292,22 +292,22 @@ var firstLedgersPage = `{
       {
         "_links": {
           "self": {
-            "href": "https://aurora-testnet.hcnet.org/ledgers/362987"
+            "href": "https://aurora-testnet.diamnet.org/ledgers/362987"
           },
           "transactions": {
-            "href": "https://aurora-testnet.hcnet.org/ledgers/362987/transactions{?cursor,limit,order}",
+            "href": "https://aurora-testnet.diamnet.org/ledgers/362987/transactions{?cursor,limit,order}",
             "templated": true
           },
           "operations": {
-            "href": "https://aurora-testnet.hcnet.org/ledgers/362987/operations{?cursor,limit,order}",
+            "href": "https://aurora-testnet.diamnet.org/ledgers/362987/operations{?cursor,limit,order}",
             "templated": true
           },
           "payments": {
-            "href": "https://aurora-testnet.hcnet.org/ledgers/362987/payments{?cursor,limit,order}",
+            "href": "https://aurora-testnet.diamnet.org/ledgers/362987/payments{?cursor,limit,order}",
             "templated": true
           },
           "effects": {
-            "href": "https://aurora-testnet.hcnet.org/ledgers/362987/effects{?cursor,limit,order}",
+            "href": "https://aurora-testnet.diamnet.org/ledgers/362987/effects{?cursor,limit,order}",
             "templated": true
           }
         },
@@ -331,22 +331,22 @@ var firstLedgersPage = `{
       {
         "_links": {
           "self": {
-            "href": "https://aurora-testnet.hcnet.org/ledgers/362986"
+            "href": "https://aurora-testnet.diamnet.org/ledgers/362986"
           },
           "transactions": {
-            "href": "https://aurora-testnet.hcnet.org/ledgers/362986/transactions{?cursor,limit,order}",
+            "href": "https://aurora-testnet.diamnet.org/ledgers/362986/transactions{?cursor,limit,order}",
             "templated": true
           },
           "operations": {
-            "href": "https://aurora-testnet.hcnet.org/ledgers/362986/operations{?cursor,limit,order}",
+            "href": "https://aurora-testnet.diamnet.org/ledgers/362986/operations{?cursor,limit,order}",
             "templated": true
           },
           "payments": {
-            "href": "https://aurora-testnet.hcnet.org/ledgers/362986/payments{?cursor,limit,order}",
+            "href": "https://aurora-testnet.diamnet.org/ledgers/362986/payments{?cursor,limit,order}",
             "templated": true
           },
           "effects": {
-            "href": "https://aurora-testnet.hcnet.org/ledgers/362986/effects{?cursor,limit,order}",
+            "href": "https://aurora-testnet.diamnet.org/ledgers/362986/effects{?cursor,limit,order}",
             "templated": true
           }
         },
@@ -374,13 +374,13 @@ var firstLedgersPage = `{
 var emptyLedgersPage = `{
  "_links": {
     "self": {
-      "href": "https://aurora-testnet.hcnet.org/ledgers?cursor=1559012998905856&limit=2&order=desc"
+      "href": "https://aurora-testnet.diamnet.org/ledgers?cursor=1559012998905856&limit=2&order=desc"
     },
     "next": {
-      "href": "https://aurora-testnet.hcnet.org/ledgers?cursor=1559004408971264&limit=2&order=desc"
+      "href": "https://aurora-testnet.diamnet.org/ledgers?cursor=1559004408971264&limit=2&order=desc"
     },
     "prev": {
-      "href": "https://aurora-testnet.hcnet.org/ledgers?cursor=1559008703938560&limit=2&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/ledgers?cursor=1559008703938560&limit=2&order=asc"
     }
   },
   "_embedded": {

@@ -3,12 +3,12 @@ package ingest
 import (
 	"time"
 
-	"github.com/hcnet/go/services/aurora/internal/db2/core"
-	"github.com/hcnet/go/services/aurora/internal/db2/history"
-	herr "github.com/hcnet/go/services/aurora/internal/errors"
-	"github.com/hcnet/go/services/aurora/internal/ledger"
-	"github.com/hcnet/go/support/errors"
-	ilog "github.com/hcnet/go/support/log"
+	"github.com/diamnet/go/services/aurora/internal/db2/core"
+	"github.com/diamnet/go/services/aurora/internal/db2/history"
+	herr "github.com/diamnet/go/services/aurora/internal/errors"
+	"github.com/diamnet/go/services/aurora/internal/ledger"
+	"github.com/diamnet/go/support/errors"
+	ilog "github.com/diamnet/go/support/log"
 )
 
 // Backfill ingests history in reverse chronological order, from the current
@@ -62,7 +62,7 @@ func (i *System) ClearAll() error {
 	return nil
 }
 
-// RebaseHistory re-establishes aurora's history database by clearing it, ingesting the latest ledger in hcnet-core then backfilling as many ledgers as possible
+// RebaseHistory re-establishes aurora's history database by clearing it, ingesting the latest ledger in diamnet-core then backfilling as many ledgers as possible
 func (i *System) RebaseHistory() error {
 	var latest int32
 	var elder int32
@@ -220,7 +220,7 @@ func (i *System) Tick() *Session {
 	return is
 }
 
-// run causes the importer to check hcnet-core to see if we can import new
+// run causes the importer to check diamnet-core to see if we can import new
 // data.
 func (i *System) runOnce() {
 	defer func() {
@@ -270,7 +270,7 @@ func (i *System) runOnce() {
 	}
 
 	if coreLatest == 1 {
-		log.Warn("ingest: waiting for hcnet-core sync")
+		log.Warn("ingest: waiting for diamnet-core sync")
 		return
 	}
 

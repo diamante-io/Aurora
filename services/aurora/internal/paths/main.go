@@ -1,7 +1,7 @@
 package paths
 
 import (
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/xdr"
 )
 
 // Query is a query for paths

@@ -8,13 +8,13 @@ import (
 	"net/http"
 	"time"
 
-	auroraContext "github.com/hcnet/go/services/aurora/internal/context"
-	"github.com/hcnet/go/services/aurora/internal/ledger"
-	"github.com/hcnet/go/services/aurora/internal/render"
-	hProblem "github.com/hcnet/go/services/aurora/internal/render/problem"
-	"github.com/hcnet/go/services/aurora/internal/render/sse"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/support/render/problem"
+	auroraContext "github.com/diamnet/go/services/aurora/internal/context"
+	"github.com/diamnet/go/services/aurora/internal/ledger"
+	"github.com/diamnet/go/services/aurora/internal/render"
+	hProblem "github.com/diamnet/go/services/aurora/internal/render/problem"
+	"github.com/diamnet/go/services/aurora/internal/render/sse"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/support/render/problem"
 )
 
 // Base is a helper struct you can use as part of a custom action via
@@ -74,7 +74,7 @@ func (base *Base) Execute(action interface{}) {
 			lastLedgerState := ledger.CurrentState()
 
 			// Rate limit the request if it's a call to stream since it queries the DB every second. See
-			// https://github.com/hcnet/go/issues/715 for more details.
+			// https://github.com/diamnet/go/issues/715 for more details.
 			app := base.R.Context().Value(&auroraContext.AppContextKey)
 			rateLimiter := app.(RateLimiterProvider).GetRateLimiter()
 			if rateLimiter != nil {

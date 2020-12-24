@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	hProtocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/support/http/httptest"
+	hProtocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/support/http/httptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -156,11 +156,11 @@ func TestTradesRequest(t *testing.T) {
 	if assert.NoError(t, err) {
 		assert.IsType(t, trades, hProtocol.TradesPage{})
 		links := trades.Links
-		assert.Equal(t, links.Self.Href, "https://aurora-testnet.hcnet.org/trades?cursor=&limit=2&order=desc")
+		assert.Equal(t, links.Self.Href, "https://aurora-testnet.diamnet.org/trades?cursor=&limit=2&order=desc")
 
-		assert.Equal(t, links.Next.Href, "https://aurora-testnet.hcnet.org/trades?cursor=2099298409914407-0&limit=2&order=desc")
+		assert.Equal(t, links.Next.Href, "https://aurora-testnet.diamnet.org/trades?cursor=2099298409914407-0&limit=2&order=desc")
 
-		assert.Equal(t, links.Prev.Href, "https://aurora-testnet.hcnet.org/trades?cursor=2099319884746791-0&limit=2&order=asc")
+		assert.Equal(t, links.Prev.Href, "https://aurora-testnet.diamnet.org/trades?cursor=2099319884746791-0&limit=2&order=asc")
 
 		trade := trades.Embedded.Records[0]
 		assert.IsType(t, trade, hProtocol.Trade{})
@@ -240,7 +240,7 @@ func TestNextTradesPage(t *testing.T) {
 
 	hmock.On(
 		"GET",
-		"https://aurora-testnet.hcnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG/trades?cursor=45122926424065-0&limit=2&order=asc",
+		"https://aurora-testnet.diamnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG/trades?cursor=45122926424065-0&limit=2&order=asc",
 	).ReturnString(200, emptyTradesPage)
 
 	nextPage, err := client.NextTradesPage(trades)
@@ -339,13 +339,13 @@ func TestTradeRequestStreamTrades(t *testing.T) {
 var tradesResponse = `{
   "_links": {
     "self": {
-      "href": "https://aurora-testnet.hcnet.org/trades?cursor=&limit=2&order=desc"
+      "href": "https://aurora-testnet.diamnet.org/trades?cursor=&limit=2&order=desc"
     },
     "next": {
-      "href": "https://aurora-testnet.hcnet.org/trades?cursor=2099298409914407-0&limit=2&order=desc"
+      "href": "https://aurora-testnet.diamnet.org/trades?cursor=2099298409914407-0&limit=2&order=desc"
     },
     "prev": {
-      "href": "https://aurora-testnet.hcnet.org/trades?cursor=2099319884746791-0&limit=2&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/trades?cursor=2099319884746791-0&limit=2&order=asc"
     }
   },
   "_embedded": {
@@ -356,13 +356,13 @@ var tradesResponse = `{
             "href": ""
           },
           "base": {
-            "href": "https://aurora-testnet.hcnet.org/accounts/GAQHWQYBBW272OOXNQMMLCA5WY2XAZPODGB7Q3S5OKKIXVESKO55ZQ7C"
+            "href": "https://aurora-testnet.diamnet.org/accounts/GAQHWQYBBW272OOXNQMMLCA5WY2XAZPODGB7Q3S5OKKIXVESKO55ZQ7C"
           },
           "counter": {
-            "href": "https://aurora-testnet.hcnet.org/accounts/GCYN7MI6VXVRP74KR6MKBAW2ELLCXL6QCY5H4YQ62HVWZWMCE6Y232UC"
+            "href": "https://aurora-testnet.diamnet.org/accounts/GCYN7MI6VXVRP74KR6MKBAW2ELLCXL6QCY5H4YQ62HVWZWMCE6Y232UC"
           },
           "operation": {
-            "href": "https://aurora-testnet.hcnet.org/operations/2099319884746791"
+            "href": "https://aurora-testnet.diamnet.org/operations/2099319884746791"
           }
         },
         "id": "2099319884746791-0",
@@ -393,13 +393,13 @@ var tradesResponse = `{
             "href": ""
           },
           "base": {
-            "href": "https://aurora-testnet.hcnet.org/accounts/GAQHWQYBBW272OOXNQMMLCA5WY2XAZPODGB7Q3S5OKKIXVESKO55ZQ7C"
+            "href": "https://aurora-testnet.diamnet.org/accounts/GAQHWQYBBW272OOXNQMMLCA5WY2XAZPODGB7Q3S5OKKIXVESKO55ZQ7C"
           },
           "counter": {
-            "href": "https://aurora-testnet.hcnet.org/accounts/GCYN7MI6VXVRP74KR6MKBAW2ELLCXL6QCY5H4YQ62HVWZWMCE6Y232UC"
+            "href": "https://aurora-testnet.diamnet.org/accounts/GCYN7MI6VXVRP74KR6MKBAW2ELLCXL6QCY5H4YQ62HVWZWMCE6Y232UC"
           },
           "operation": {
-            "href": "https://aurora-testnet.hcnet.org/operations/2099298409914407"
+            "href": "https://aurora-testnet.diamnet.org/operations/2099298409914407"
           }
         },
         "id": "2099298409914407-0",
@@ -428,19 +428,19 @@ var tradesResponse = `{
   }
 }`
 
-var tradeStreamResponse = `data: {"_links":{"self":{"href":""},"base":{"href":"https://aurora-testnet.hcnet.org/accounts/GCRHQBHX7JNBZE4HHPLNOAAYDRDVAGBJKJ4KPGHIID3CBGVALXBD6TVQ"},"counter":{"href":"https://aurora-testnet.hcnet.org/accounts/GAEETTPUI5CO3CSYXXM5CRX4FHLDWJ3KD6XRRJ3GJISWQSCYF5ALN6JC"},"operation":{"href":"https://aurora-testnet.hcnet.org/operations/76909979385857"}},"id":"76909979385857-0","paging_token":"76909979385857-0","ledger_close_time":"2019-02-28T11:29:40Z","offer_id":"494","base_offer_id":"4611762928406773761","base_account":"GCRHQBHX7JNBZE4HHPLNOAAYDRDVAGBJKJ4KPGHIID3CBGVALXBD6TVQ","base_amount":"0.0000001","base_asset_type":"native","counter_offer_id":"494","counter_account":"GAEETTPUI5CO3CSYXXM5CRX4FHLDWJ3KD6XRRJ3GJISWQSCYF5ALN6JC","counter_amount":"0.0001000","counter_asset_type":"credit_alphanum4","counter_asset_code":"WTF","counter_asset_issuer":"GAQZKAGUAHCN4OHAMQVQ3PNA5DUHCQ3CEVOSOTPUAXHG3UHTRSSUFHUL","base_is_seller":false,"price":{"n":1000,"d":1}}
+var tradeStreamResponse = `data: {"_links":{"self":{"href":""},"base":{"href":"https://aurora-testnet.diamnet.org/accounts/GCRHQBHX7JNBZE4HHPLNOAAYDRDVAGBJKJ4KPGHIID3CBGVALXBD6TVQ"},"counter":{"href":"https://aurora-testnet.diamnet.org/accounts/GAEETTPUI5CO3CSYXXM5CRX4FHLDWJ3KD6XRRJ3GJISWQSCYF5ALN6JC"},"operation":{"href":"https://aurora-testnet.diamnet.org/operations/76909979385857"}},"id":"76909979385857-0","paging_token":"76909979385857-0","ledger_close_time":"2019-02-28T11:29:40Z","offer_id":"494","base_offer_id":"4611762928406773761","base_account":"GCRHQBHX7JNBZE4HHPLNOAAYDRDVAGBJKJ4KPGHIID3CBGVALXBD6TVQ","base_amount":"0.0000001","base_asset_type":"native","counter_offer_id":"494","counter_account":"GAEETTPUI5CO3CSYXXM5CRX4FHLDWJ3KD6XRRJ3GJISWQSCYF5ALN6JC","counter_amount":"0.0001000","counter_asset_type":"credit_alphanum4","counter_asset_code":"WTF","counter_asset_issuer":"GAQZKAGUAHCN4OHAMQVQ3PNA5DUHCQ3CEVOSOTPUAXHG3UHTRSSUFHUL","base_is_seller":false,"price":{"n":1000,"d":1}}
 `
 
 var firstTradesPage = `{
   "_links": {
     "self": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG/trades?cursor=&limit=2&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG/trades?cursor=&limit=2&order=asc"
     },
     "next": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG/trades?cursor=45122926424065-0&limit=2&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG/trades?cursor=45122926424065-0&limit=2&order=asc"
     },
     "prev": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG/trades?cursor=45097156620289-0&limit=2&order=desc"
+      "href": "https://aurora-testnet.diamnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG/trades?cursor=45097156620289-0&limit=2&order=desc"
     }
   },
   "_embedded": {
@@ -451,13 +451,13 @@ var firstTradesPage = `{
             "href": ""
           },
           "base": {
-            "href": "https://aurora-testnet.hcnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG"
+            "href": "https://aurora-testnet.diamnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG"
           },
           "counter": {
-            "href": "https://aurora-testnet.hcnet.org/accounts/GBH77NK3ZP7RT52YZWGIU5Y6VTIJ52VXUSXDMQ7Z7VAAQO4U4QGGIROV"
+            "href": "https://aurora-testnet.diamnet.org/accounts/GBH77NK3ZP7RT52YZWGIU5Y6VTIJ52VXUSXDMQ7Z7VAAQO4U4QGGIROV"
           },
           "operation": {
-            "href": "https://aurora-testnet.hcnet.org/operations/45097156620289"
+            "href": "https://aurora-testnet.diamnet.org/operations/45097156620289"
           }
         },
         "id": "45097156620289-0",
@@ -488,13 +488,13 @@ var firstTradesPage = `{
             "href": ""
           },
           "base": {
-            "href": "https://aurora-testnet.hcnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG"
+            "href": "https://aurora-testnet.diamnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG"
           },
           "counter": {
-            "href": "https://aurora-testnet.hcnet.org/accounts/GBH77NK3ZP7RT52YZWGIU5Y6VTIJ52VXUSXDMQ7Z7VAAQO4U4QGGIROV"
+            "href": "https://aurora-testnet.diamnet.org/accounts/GBH77NK3ZP7RT52YZWGIU5Y6VTIJ52VXUSXDMQ7Z7VAAQO4U4QGGIROV"
           },
           "operation": {
-            "href": "https://aurora-testnet.hcnet.org/operations/45122926424065"
+            "href": "https://aurora-testnet.diamnet.org/operations/45122926424065"
           }
         },
         "id": "45122926424065-0",
@@ -526,13 +526,13 @@ var firstTradesPage = `{
 var emptyTradesPage = `{
   "_links": {
     "self": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG/trades?cursor=45122926424065-0&limit=2&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG/trades?cursor=45122926424065-0&limit=2&order=asc"
     },
     "next": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG/trades?cursor=59889023983617-0&limit=2&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG/trades?cursor=59889023983617-0&limit=2&order=asc"
     },
     "prev": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG/trades?cursor=45810121191425-0&limit=2&order=desc"
+      "href": "https://aurora-testnet.diamnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG/trades?cursor=45810121191425-0&limit=2&order=desc"
     }
   },
   "_embedded": {

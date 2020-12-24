@@ -5,13 +5,13 @@ import (
 	"strings"
 	"testing"
 
-	hc "github.com/hcnet/go/clients/auroraclient"
-	hProtocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/services/bridge/internal/config"
+	hc "github.com/diamnet/go/clients/auroraclient"
+	hProtocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/services/bridge/internal/config"
 
-	"github.com/hcnet/go/services/bridge/internal/mocks"
-	"github.com/hcnet/go/services/bridge/internal/test"
-	"github.com/hcnet/go/support/http/httptest"
+	"github.com/diamnet/go/services/bridge/internal/mocks"
+	"github.com/diamnet/go/services/bridge/internal/test"
+	"github.com/diamnet/go/support/http/httptest"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,7 +22,7 @@ func TestRequestHandlerBuilder(t *testing.T) {
 	mockHTTPClient := new(mocks.MockHTTPClient)
 	mockTS := new(mocks.MockTransactionSubmitter)
 	mockFederationResolver := new(mocks.MockFederationResolver)
-	mockHcNettomlResolver := new(mocks.MockHcNettomlResolver)
+	mockDiamNettomlResolver := new(mocks.MockDiamNettomlResolver)
 
 	requestHandler := RequestHandler{
 		Config:               c,
@@ -30,7 +30,7 @@ func TestRequestHandlerBuilder(t *testing.T) {
 		Aurora:              mockAurora,
 		TransactionSubmitter: mockTS,
 		FederationResolver:   mockFederationResolver,
-		HcNetTomlResolver:  mockHcNettomlResolver,
+		DiamNetTomlResolver:  mockDiamNettomlResolver,
 	}
 
 	testServer := httptest.NewServer(t, http.HandlerFunc(requestHandler.Builder))
@@ -70,7 +70,7 @@ func TestRequestHandlerBuilder(t *testing.T) {
 	statusCode, response := mocks.JSONGetResponse(testServer, data)
 	responseString := strings.TrimSpace(string(response))
 	assert.Equal(t, 200, statusCode)
-	// https://www.hcnet.org/laboratory/#xdr-viewer?input=AAAAAGySS3ZylffFaVZqZD6lNCUjCizHz7MLPwkN7Mxh4XN5AAAAZAAAAAAAAAB8AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAJxDO5t5ZLJxX7RzBsXbeh04rVEEn71b45PCX3blnyvnAAAAAB3NZQAAAAAAAAAAAZ%2BNtPwAAABAXJ4I9DwPZKt7yO0j8IsIsc6VLUJz%2FyZ3LK%2F%2F%2Bxpxf6Mbbl%2B7cFq7wG776h7VLmDTBrSEQOydKuR0Yup4gFqYAQ%3D%3D&type=TransactionEnvelope&network=test
+	// https://www.diamnet.org/laboratory/#xdr-viewer?input=AAAAAGySS3ZylffFaVZqZD6lNCUjCizHz7MLPwkN7Mxh4XN5AAAAZAAAAAAAAAB8AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAJxDO5t5ZLJxX7RzBsXbeh04rVEEn71b45PCX3blnyvnAAAAAB3NZQAAAAAAAAAAAZ%2BNtPwAAABAXJ4I9DwPZKt7yO0j8IsIsc6VLUJz%2FyZ3LK%2F%2F%2Bxpxf6Mbbl%2B7cFq7wG776h7VLmDTBrSEQOydKuR0Yup4gFqYAQ%3D%3D&type=TransactionEnvelope&network=test
 	expected := test.StringToJSONMap(`{
 		"transaction_envelope": "AAAAAGySS3ZylffFaVZqZD6lNCUjCizHz7MLPwkN7Mxh4XN5AAAAZAAAAAAAAAB8AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAJxDO5t5ZLJxX7RzBsXbeh04rVEEn71b45PCX3blnyvnAAAAAB3NZQAAAAAAAAAAAZ+NtPwAAABAXJ4I9DwPZKt7yO0j8IsIsc6VLUJz/yZ3LK//+xpxf6Mbbl+7cFq7wG776h7VLmDTBrSEQOydKuR0Yup4gFqYAQ=="
 		}`)
@@ -97,7 +97,7 @@ func TestRequestHandlerBuilder(t *testing.T) {
 	statusCode, response = mocks.JSONGetResponse(testServer, data)
 	responseString = strings.TrimSpace(string(response))
 	assert.Equal(t, 200, statusCode)
-	// https://www.hcnet.org/laboratory/#xdr-viewer?input=AAAAAGySS3ZylffFaVZqZD6lNCUjCizHz7MLPwkN7Mxh4XN5AAAAZAAAAAAAAAB7AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAJxDO5t5ZLJxX7RzBsXbeh04rVEEn71b45PCX3blnyvnAAAAAB3NZQAAAAAAAAAAAZ%2BNtPwAAABAN836LQKoUHzAKLTkizVKb9PsFdf73eNOSRKKGd%2BzAB9GrnlsKDLbegtt9eqvYjQ4AHzbeqJBIGX%2FHQFXCadAAw%3D%3D&type=TransactionEnvelope&network=test
+	// https://www.diamnet.org/laboratory/#xdr-viewer?input=AAAAAGySS3ZylffFaVZqZD6lNCUjCizHz7MLPwkN7Mxh4XN5AAAAZAAAAAAAAAB7AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAJxDO5t5ZLJxX7RzBsXbeh04rVEEn71b45PCX3blnyvnAAAAAB3NZQAAAAAAAAAAAZ%2BNtPwAAABAN836LQKoUHzAKLTkizVKb9PsFdf73eNOSRKKGd%2BzAB9GrnlsKDLbegtt9eqvYjQ4AHzbeqJBIGX%2FHQFXCadAAw%3D%3D&type=TransactionEnvelope&network=test
 	expected = test.StringToJSONMap(`{
 		"transaction_envelope": "AAAAAGySS3ZylffFaVZqZD6lNCUjCizHz7MLPwkN7Mxh4XN5AAAAZAAAAAAAAAB7AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAJxDO5t5ZLJxX7RzBsXbeh04rVEEn71b45PCX3blnyvnAAAAAB3NZQAAAAAAAAAAAZ+NtPwAAABAN836LQKoUHzAKLTkizVKb9PsFdf73eNOSRKKGd+zAB9GrnlsKDLbegtt9eqvYjQ4AHzbeqJBIGX/HQFXCadAAw=="
 		}`)
@@ -128,7 +128,7 @@ func TestRequestHandlerBuilder(t *testing.T) {
 	responseString = strings.TrimSpace(string(response))
 	assert.Equal(t, 200, statusCode)
 
-	// https://www.hcnet.org/laboratory/#xdr-viewer?input=AAAAAGySS3ZylffFaVZqZD6lNCUjCizHz7MLPwkN7Mxh4XN5AAAAZAAAAAAAAAB7AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAABAAAAAJxDO5t5ZLJxX7RzBsXbeh04rVEEn71b45PCX3blnyvnAAAAAVVTRAAAAAAABEm552OXLKzdRDY%2FKgNQgAxTE5wOgmPINknKuCMesY8AAAAAO5rKAAAAAAAAAAABn420%2FAAAAEBckKXSMZ9M2sZqbv53XTGw0Mv91MntHbQpn%2FV0TtoVGHBWMLIJ8ePG7E0%2B7Dc06g%2BAUR%2FoTWaoI6WWCe5SKMAL&type=TransactionEnvelope&network=test
+	// https://www.diamnet.org/laboratory/#xdr-viewer?input=AAAAAGySS3ZylffFaVZqZD6lNCUjCizHz7MLPwkN7Mxh4XN5AAAAZAAAAAAAAAB7AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAABAAAAAJxDO5t5ZLJxX7RzBsXbeh04rVEEn71b45PCX3blnyvnAAAAAVVTRAAAAAAABEm552OXLKzdRDY%2FKgNQgAxTE5wOgmPINknKuCMesY8AAAAAO5rKAAAAAAAAAAABn420%2FAAAAEBckKXSMZ9M2sZqbv53XTGw0Mv91MntHbQpn%2FV0TtoVGHBWMLIJ8ePG7E0%2B7Dc06g%2BAUR%2FoTWaoI6WWCe5SKMAL&type=TransactionEnvelope&network=test
 	expected = test.StringToJSONMap(`{
 		"transaction_envelope": "AAAAAGySS3ZylffFaVZqZD6lNCUjCizHz7MLPwkN7Mxh4XN5AAAAZAAAAAAAAAB7AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAABAAAAAJxDO5t5ZLJxX7RzBsXbeh04rVEEn71b45PCX3blnyvnAAAAAVVTRAAAAAAABEm552OXLKzdRDY/KgNQgAxTE5wOgmPINknKuCMesY8AAAAAO5rKAAAAAAAAAAABn420/AAAAEBckKXSMZ9M2sZqbv53XTGw0Mv91MntHbQpn/V0TtoVGHBWMLIJ8ePG7E0+7Dc06g+AUR/oTWaoI6WWCe5SKMAL"
 		}`)
@@ -173,7 +173,7 @@ func TestRequestHandlerBuilder(t *testing.T) {
 	responseString = strings.TrimSpace(string(response))
 	assert.Equal(t, 200, statusCode)
 
-	// https://www.hcnet.org/laboratory/#xdr-viewer?input=AAAAAGySS3ZylffFaVZqZD6lNCUjCizHz7MLPwkN7Mxh4XN5AAAAZAAAAAAAAAB7AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAAAcLoBITmyyoMCAtnMxmB2P8bOUqLNzVVVxojrS7fRyhAAAAACAAAAAVVTRAAAAAAABEm552OXLKzdRDY%2FKgNQgAxTE5wOgmPINknKuCMesY8AAAAAO5rKAAAAAACcQzubeWSycV%2B0cwbF23odOK1RBJ%2B9W%2BOTwl925Z8r5wAAAAFFVVIAAAAAANyWKmNZjLi6UmdDXrLoBDacnBKBaV72wU86ArqXlWpTAAAAASoF8gAAAAACAAAAAkFCQ0RFRkcAAAAAAAAAAAD5FBz6PYPGPS3%2BjaqZcX0uNwytgbw60587JSkXcUQ5SwAAAAAAAAAAAAAAAZ%2BNtPwAAABA1z8yIaQPklvS08JcoyY6puiTzpG9KyCiJPRlLYUYp04xEVsktvBjVZTwy%2Bbt2JvCo03iO0e3xBS7IVVIMwW0Bg%3D%3D&type=TransactionEnvelope&network=test
+	// https://www.diamnet.org/laboratory/#xdr-viewer?input=AAAAAGySS3ZylffFaVZqZD6lNCUjCizHz7MLPwkN7Mxh4XN5AAAAZAAAAAAAAAB7AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAAAcLoBITmyyoMCAtnMxmB2P8bOUqLNzVVVxojrS7fRyhAAAAACAAAAAVVTRAAAAAAABEm552OXLKzdRDY%2FKgNQgAxTE5wOgmPINknKuCMesY8AAAAAO5rKAAAAAACcQzubeWSycV%2B0cwbF23odOK1RBJ%2B9W%2BOTwl925Z8r5wAAAAFFVVIAAAAAANyWKmNZjLi6UmdDXrLoBDacnBKBaV72wU86ArqXlWpTAAAAASoF8gAAAAACAAAAAkFCQ0RFRkcAAAAAAAAAAAD5FBz6PYPGPS3%2BjaqZcX0uNwytgbw60587JSkXcUQ5SwAAAAAAAAAAAAAAAZ%2BNtPwAAABA1z8yIaQPklvS08JcoyY6puiTzpG9KyCiJPRlLYUYp04xEVsktvBjVZTwy%2Bbt2JvCo03iO0e3xBS7IVVIMwW0Bg%3D%3D&type=TransactionEnvelope&network=test
 	expected = test.StringToJSONMap(`{
 		"transaction_envelope": "AAAAAGySS3ZylffFaVZqZD6lNCUjCizHz7MLPwkN7Mxh4XN5AAAAZAAAAAAAAAB7AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAAAcLoBITmyyoMCAtnMxmB2P8bOUqLNzVVVxojrS7fRyhAAAAACAAAAAVVTRAAAAAAABEm552OXLKzdRDY/KgNQgAxTE5wOgmPINknKuCMesY8AAAAAO5rKAAAAAACcQzubeWSycV+0cwbF23odOK1RBJ+9W+OTwl925Z8r5wAAAAFFVVIAAAAAANyWKmNZjLi6UmdDXrLoBDacnBKBaV72wU86ArqXlWpTAAAAASoF8gAAAAACAAAAAkFCQ0RFRkcAAAAAAAAAAAD5FBz6PYPGPS3+jaqZcX0uNwytgbw60587JSkXcUQ5SwAAAAAAAAAAAAAAAZ+NtPwAAABA1z8yIaQPklvS08JcoyY6puiTzpG9KyCiJPRlLYUYp04xEVsktvBjVZTwy+bt2JvCo03iO0e3xBS7IVVIMwW0Bg=="
 		}`)
@@ -194,7 +194,7 @@ func TestRequestHandlerBuilder(t *testing.T) {
 						"low_threshold": 1,
 						"medium_threshold": 2,
 						"high_threshold": 3,
-						"home_domain": "hcnet.org",
+						"home_domain": "diamnet.org",
 						"signer": {
 							"public_key": "GA6VMJJQM2QBPPIXK2UVTAOS4XSSSAKSCOGFQE55IMRBQR65GIVDTTQV",
 							"weight": 5
@@ -211,7 +211,7 @@ func TestRequestHandlerBuilder(t *testing.T) {
 	responseString = strings.TrimSpace(string(response))
 	assert.Equal(t, 200, statusCode)
 
-	// https://www.hcnet.org/laboratory/#xdr-viewer?input=AAAAAGySS3ZylffFaVZqZD6lNCUjCizHz7MLPwkN7Mxh4XN5AAAAZAAAAAAAAAB7AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAFAAAAAQAAAABY%2FNXMT79oBmEVaRGqZl873%2Bv6IaDAJFd8mLcT27vWvwAAAAEAAAAEAAAAAQAAAAMAAAABAAAAZAAAAAEAAAABAAAAAQAAAAIAAAABAAAAAwAAAAEAAAALc3RlbGxhci5vcmcAAAAAAQAAAAA9ViUwZqAXvRdWqVmB0uXlKQFSE4xYE71DIhhH3TIqOQAAAAUAAAAAAAAAAZ%2BNtPwAAABAHYQbLjs%2FAAekVMuuU6cxLxQYG7m396Im%2BSNiSsjSyUdgjjSKt7xzupvgudjBHM1t2akOmx1OCzmlsWCSEWzoCQ%3D%3D&type=TransactionEnvelope&network=test
+	// https://www.diamnet.org/laboratory/#xdr-viewer?input=AAAAAGySS3ZylffFaVZqZD6lNCUjCizHz7MLPwkN7Mxh4XN5AAAAZAAAAAAAAAB7AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAFAAAAAQAAAABY%2FNXMT79oBmEVaRGqZl873%2Bv6IaDAJFd8mLcT27vWvwAAAAEAAAAEAAAAAQAAAAMAAAABAAAAZAAAAAEAAAABAAAAAQAAAAIAAAABAAAAAwAAAAEAAAALc3RlbGxhci5vcmcAAAAAAQAAAAA9ViUwZqAXvRdWqVmB0uXlKQFSE4xYE71DIhhH3TIqOQAAAAUAAAAAAAAAAZ%2BNtPwAAABAHYQbLjs%2FAAekVMuuU6cxLxQYG7m396Im%2BSNiSsjSyUdgjjSKt7xzupvgudjBHM1t2akOmx1OCzmlsWCSEWzoCQ%3D%3D&type=TransactionEnvelope&network=test
 	expected = test.StringToJSONMap(`{
 		"transaction_envelope": "AAAAAGySS3ZylffFaVZqZD6lNCUjCizHz7MLPwkN7Mxh4XN5AAAAZAAAAAAAAAB7AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAFAAAAAQAAAABY/NXMT79oBmEVaRGqZl873+v6IaDAJFd8mLcT27vWvwAAAAEAAAAEAAAAAQAAAAMAAAABAAAAZAAAAAEAAAABAAAAAQAAAAIAAAABAAAAAwAAAAEAAAALc3RlbGxhci5vcmcAAAAAAQAAAAA9ViUwZqAXvRdWqVmB0uXlKQFSE4xYE71DIhhH3TIqOQAAAAUAAAAAAAAAAZ+NtPwAAABAHYQbLjs/AAekVMuuU6cxLxQYG7m396Im+SNiSsjSyUdgjjSKt7xzupvgudjBHM1t2akOmx1OCzmlsWCSEWzoCQ=="
 		}`)
@@ -241,7 +241,7 @@ func TestRequestHandlerBuilder(t *testing.T) {
 	responseString = strings.TrimSpace(string(response))
 	assert.Equal(t, 200, statusCode)
 
-	// https://www.hcnet.org/laboratory/#xdr-viewer?input=AAAAAGySS3ZylffFaVZqZD6lNCUjCizHz7MLPwkN7Mxh4XN5AAAAZAAAAAAAAAB7AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAGAAAAAVVTRAAAAAAAjmjVs7grt12sFIHthoIfgZzfz267zUA%2BMis7mPD3by1%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwAAAAAAAAABn420%2FAAAAEAr4jYveod1stUGiW9Uy99mDz5gjCJp%2FNPTu3P0uVRLEGOAcM9GyEMCvm2VnK4HAtSZiCxrCmcZGTqSd38zUBgC&type=TransactionEnvelope&network=test
+	// https://www.diamnet.org/laboratory/#xdr-viewer?input=AAAAAGySS3ZylffFaVZqZD6lNCUjCizHz7MLPwkN7Mxh4XN5AAAAZAAAAAAAAAB7AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAGAAAAAVVTRAAAAAAAjmjVs7grt12sFIHthoIfgZzfz267zUA%2BMis7mPD3by1%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwAAAAAAAAABn420%2FAAAAEAr4jYveod1stUGiW9Uy99mDz5gjCJp%2FNPTu3P0uVRLEGOAcM9GyEMCvm2VnK4HAtSZiCxrCmcZGTqSd38zUBgC&type=TransactionEnvelope&network=test
 	expected = test.StringToJSONMap(`{
 		"transaction_envelope": "AAAAAGySS3ZylffFaVZqZD6lNCUjCizHz7MLPwkN7Mxh4XN5AAAAZAAAAAAAAAB7AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAGAAAAAVVTRAAAAAAAjmjVs7grt12sFIHthoIfgZzfz267zUA+Mis7mPD3by1//////////wAAAAAAAAABn420/AAAAEAr4jYveod1stUGiW9Uy99mDz5gjCJp/NPTu3P0uVRLEGOAcM9GyEMCvm2VnK4HAtSZiCxrCmcZGTqSd38zUBgC"
 		}`)
@@ -271,7 +271,7 @@ func TestRequestHandlerBuilder(t *testing.T) {
 	responseString = strings.TrimSpace(string(response))
 	assert.Equal(t, 200, statusCode)
 
-	// https://www.hcnet.org/laboratory/#xdr-viewer?input=AAAAAGySS3ZylffFaVZqZD6lNCUjCizHz7MLPwkN7Mxh4XN5AAAAZAAAAAAAAAB7AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAAAbJJLdnKV98VpVmpkPqU0JSMKLMfPsws%2FCQ3szGHhc3kAAAAHAAAAAFZ%2FfnA8WxWSMCIgkbQ10OVnnA9%2FNsCgvx1UD9%2B9A%2BjZAAAAAlVTRFVTRAAAAAAAAAAAAAEAAAAAAAAAAZ%2BNtPwAAABAWROxcSLBvH04%2BZoTD%2BYv47Xv%2Bympi9pC1pYW%2Bh9JKUI9yc49FQLWM3svhyOxF%2BmyCQvt%2Fkb7yrnlPVLlWSvACA%3D%3D&type=TransactionEnvelope&network=test
+	// https://www.diamnet.org/laboratory/#xdr-viewer?input=AAAAAGySS3ZylffFaVZqZD6lNCUjCizHz7MLPwkN7Mxh4XN5AAAAZAAAAAAAAAB7AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAAAbJJLdnKV98VpVmpkPqU0JSMKLMfPsws%2FCQ3szGHhc3kAAAAHAAAAAFZ%2FfnA8WxWSMCIgkbQ10OVnnA9%2FNsCgvx1UD9%2B9A%2BjZAAAAAlVTRFVTRAAAAAAAAAAAAAEAAAAAAAAAAZ%2BNtPwAAABAWROxcSLBvH04%2BZoTD%2BYv47Xv%2Bympi9pC1pYW%2Bh9JKUI9yc49FQLWM3svhyOxF%2BmyCQvt%2Fkb7yrnlPVLlWSvACA%3D%3D&type=TransactionEnvelope&network=test
 	expected = test.StringToJSONMap(`{
 		"transaction_envelope": "AAAAAGySS3ZylffFaVZqZD6lNCUjCizHz7MLPwkN7Mxh4XN5AAAAZAAAAAAAAAB7AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAAAbJJLdnKV98VpVmpkPqU0JSMKLMfPsws/CQ3szGHhc3kAAAAHAAAAAFZ/fnA8WxWSMCIgkbQ10OVnnA9/NsCgvx1UD9+9A+jZAAAAAlVTRFVTRAAAAAAAAAAAAAEAAAAAAAAAAZ+NtPwAAABAWROxcSLBvH04+ZoTD+Yv47Xv+ympi9pC1pYW+h9JKUI9yc49FQLWM3svhyOxF+myCQvt/kb7yrnlPVLlWSvACA=="
 		}`)
@@ -298,7 +298,7 @@ func TestRequestHandlerBuilder(t *testing.T) {
 	responseString = strings.TrimSpace(string(response))
 	assert.Equal(t, 200, statusCode)
 
-	// https://www.hcnet.org/laboratory/#xdr-viewer?input=AAAAAGySS3ZylffFaVZqZD6lNCUjCizHz7MLPwkN7Mxh4XN5AAAAZAAAAAAAAAB7AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAIAAAAAFZ%2FfnA8WxWSMCIgkbQ10OVnnA9%2FNsCgvx1UD9%2B9A%2BjZAAAAAAAAAAGfjbT8AAAAQKC1XKE3ThTPMsc%2Fda80CqkmesOhPa2lrsLLszR2VzbUF%2BsSJSPpq39CdsQj0rRPY61hakf5hv319NpsCmqYNAI%3D&type=TransactionEnvelope&network=test
+	// https://www.diamnet.org/laboratory/#xdr-viewer?input=AAAAAGySS3ZylffFaVZqZD6lNCUjCizHz7MLPwkN7Mxh4XN5AAAAZAAAAAAAAAB7AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAIAAAAAFZ%2FfnA8WxWSMCIgkbQ10OVnnA9%2FNsCgvx1UD9%2B9A%2BjZAAAAAAAAAAGfjbT8AAAAQKC1XKE3ThTPMsc%2Fda80CqkmesOhPa2lrsLLszR2VzbUF%2BsSJSPpq39CdsQj0rRPY61hakf5hv319NpsCmqYNAI%3D&type=TransactionEnvelope&network=test
 	expected = test.StringToJSONMap(`{
 		"transaction_envelope": "AAAAAGySS3ZylffFaVZqZD6lNCUjCizHz7MLPwkN7Mxh4XN5AAAAZAAAAAAAAAB7AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAIAAAAAFZ/fnA8WxWSMCIgkbQ10OVnnA9/NsCgvx1UD9+9A+jZAAAAAAAAAAGfjbT8AAAAQKC1XKE3ThTPMsc/da80CqkmesOhPa2lrsLLszR2VzbUF+sSJSPpq39CdsQj0rRPY61hakf5hv319NpsCmqYNAI="
 		}`)
@@ -323,7 +323,7 @@ func TestRequestHandlerBuilder(t *testing.T) {
 	responseString = strings.TrimSpace(string(response))
 	assert.Equal(t, 200, statusCode)
 
-	//https://www.hcnet.org/laboratory/#xdr-viewer?input=AAAAAGySS3ZylffFaVZqZD6lNCUjCizHz7MLPwkN7Mxh4XN5AAAAZAAAAAAAAAB7AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAJAAAAAAAAAAGfjbT8AAAAQDukGibnqm%2B%2FGQyn0xZH4a%2FyZlUNAolyrhXzsmVeCmxs3ss24RwEST2lSqrwBLnTYbpLrHPlFT2Ye14apwJ8gA4%3D&type=TransactionEnvelope&network=test
+	//https://www.diamnet.org/laboratory/#xdr-viewer?input=AAAAAGySS3ZylffFaVZqZD6lNCUjCizHz7MLPwkN7Mxh4XN5AAAAZAAAAAAAAAB7AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAJAAAAAAAAAAGfjbT8AAAAQDukGibnqm%2B%2FGQyn0xZH4a%2FyZlUNAolyrhXzsmVeCmxs3ss24RwEST2lSqrwBLnTYbpLrHPlFT2Ye14apwJ8gA4%3D&type=TransactionEnvelope&network=test
 	expected = test.StringToJSONMap(`{
 		"transaction_envelope": "AAAAAGySS3ZylffFaVZqZD6lNCUjCizHz7MLPwkN7Mxh4XN5AAAAZAAAAAAAAAB7AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAJAAAAAAAAAAGfjbT8AAAAQDukGibnqm+/GQyn0xZH4a/yZlUNAolyrhXzsmVeCmxs3ss24RwEST2lSqrwBLnTYbpLrHPlFT2Ye14apwJ8gA4="
 		}`)
@@ -351,7 +351,7 @@ func TestRequestHandlerBuilder(t *testing.T) {
 	responseString = strings.TrimSpace(string(response))
 	assert.Equal(t, 200, statusCode)
 
-	//https://www.hcnet.org/laboratory/#xdr-viewer?input=AAAAAGySS3ZylffFaVZqZD6lNCUjCizHz7MLPwkN7Mxh4XN5AAAAZAAAAAAAAAB7AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAKAAAACXRlc3RfZGF0YQAAAAAAAAEAAAAGAQIDBAUGAAAAAAAAAAAAAZ%2BNtPwAAABAHv%2BHVBeU%2B2Cz6xpleNt3sKt%2BK%2FRCEbp349iBKnXbBz3fu4vy0UiZPMDpBJF3weCryacTXP0JxH47eQUmwCm1AA%3D%3D&type=TransactionEnvelope&network=test
+	//https://www.diamnet.org/laboratory/#xdr-viewer?input=AAAAAGySS3ZylffFaVZqZD6lNCUjCizHz7MLPwkN7Mxh4XN5AAAAZAAAAAAAAAB7AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAKAAAACXRlc3RfZGF0YQAAAAAAAAEAAAAGAQIDBAUGAAAAAAAAAAAAAZ%2BNtPwAAABAHv%2BHVBeU%2B2Cz6xpleNt3sKt%2BK%2FRCEbp349iBKnXbBz3fu4vy0UiZPMDpBJF3weCryacTXP0JxH47eQUmwCm1AA%3D%3D&type=TransactionEnvelope&network=test
 	expected = test.StringToJSONMap(`{
 		"transaction_envelope": "AAAAAGySS3ZylffFaVZqZD6lNCUjCizHz7MLPwkN7Mxh4XN5AAAAZAAAAAAAAAB7AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAKAAAACXRlc3RfZGF0YQAAAAAAAAEAAAAGAQIDBAUGAAAAAAAAAAAAAZ+NtPwAAABAHv+HVBeU+2Cz6xpleNt3sKt+K/RCEbp349iBKnXbBz3fu4vy0UiZPMDpBJF3weCryacTXP0JxH47eQUmwCm1AA=="
 		}`)

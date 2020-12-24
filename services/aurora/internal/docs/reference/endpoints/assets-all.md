@@ -30,14 +30,14 @@ GET /assets{?asset_code,asset_issuer,cursor,limit,order}
 
 ```sh
 # Retrieve the 200 newest assets, ordered chronologically:
-curl "https://aurora-testnet.hcnet.org/assets?limit=200&order=desc"
+curl "https://aurora-testnet.diamnet.org/assets?limit=200&order=desc"
 ```
 
 ### JavaScript Example Request
 
 ```javascript
-var HcNetSdk = require('hcnet-sdk');
-var server = new HcNetSdk.Server('https://aurora-testnet.hcnet.org');
+var DiamNetSdk = require('diamnet-sdk');
+var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.assets()
   .call()
@@ -73,7 +73,7 @@ If called normally this endpoint responds with a [page](../resources/page.md) of
       {
         "_links": {
           "toml": {
-            "href": "https://www.hcnet.org/.well-known/hcnet.toml"
+            "href": "https://www.diamnet.org/.well-known/diamnet.toml"
           }
         },
         "asset_type": "credit_alphanum12",
@@ -90,7 +90,7 @@ If called normally this endpoint responds with a [page](../resources/page.md) of
       {
         "_links": {
           "toml": {
-            "href": "https://www.hcnet.org/.well-known/hcnet.toml"
+            "href": "https://www.diamnet.org/.well-known/diamnet.toml"
           }
         },
         "asset_type": "credit_alphanum4",
@@ -107,7 +107,7 @@ If called normally this endpoint responds with a [page](../resources/page.md) of
       {
         "_links": {
           "toml": {
-            "href": "https://www.hcnet.org/.well-known/hcnet.toml"
+            "href": "https://www.diamnet.org/.well-known/diamnet.toml"
           }
         },
         "asset_type": "credit_alphanum4",

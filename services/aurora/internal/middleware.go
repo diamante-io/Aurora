@@ -8,13 +8,13 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
-	"github.com/hcnet/go/services/aurora/internal/errors"
-	"github.com/hcnet/go/services/aurora/internal/hchi"
-	"github.com/hcnet/go/services/aurora/internal/httpx"
-	"github.com/hcnet/go/services/aurora/internal/render"
-	hProblem "github.com/hcnet/go/services/aurora/internal/render/problem"
-	"github.com/hcnet/go/support/log"
-	"github.com/hcnet/go/support/render/problem"
+	"github.com/diamnet/go/services/aurora/internal/errors"
+	"github.com/diamnet/go/services/aurora/internal/hchi"
+	"github.com/diamnet/go/services/aurora/internal/httpx"
+	"github.com/diamnet/go/services/aurora/internal/render"
+	hProblem "github.com/diamnet/go/services/aurora/internal/render/problem"
+	"github.com/diamnet/go/support/log"
+	"github.com/diamnet/go/support/render/problem"
 )
 
 // appContextMiddleware adds the "app" context into every request, so that subsequence appContextMiddleware

@@ -3,9 +3,9 @@ package resourceadapter
 import (
 	"context"
 
-	"github.com/hcnet/go/amount"
-	"github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/services/aurora/internal/paths"
+	"github.com/diamnet/go/amount"
+	"github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/services/aurora/internal/paths"
 )
 
 // PopulatePath converts the paths.Path into a Path

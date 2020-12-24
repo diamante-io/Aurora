@@ -2,7 +2,7 @@
 title: Before History
 ---
 
-A aurora server may be configured to only keep a portion of the hcnet network's history stored
+A aurora server may be configured to only keep a portion of the diamnet network's history stored
 within its database.  This error will be returned when a client requests a piece of information
 (such as a page of transactions or a single operation) that the server can positively identify as
 falling outside the range of recorded history.
@@ -26,12 +26,12 @@ draft specification guide and thus has the following attributes:
 ## Example
 
 ```shell
-$ curl -X GET "https://aurora-testnet.hcnet.org/transactions?cursor=1&order=desc"
+$ curl -X GET "https://aurora-testnet.diamnet.org/transactions?cursor=1&order=desc"
 {
-  "type": "https://hcnet.org/aurora-errors/before_history",
+  "type": "https://diamnet.org/aurora-errors/before_history",
   "title": "Data Requested Is Before Recorded History",
   "status": 410,
-  "detail": "This aurora instance is configured to only track a portion of the hcnet network's latest history. This request is asking for results prior to the recorded history known to this aurora instance."
+  "detail": "This aurora instance is configured to only track a portion of the diamnet network's latest history. This request is asking for results prior to the recorded history known to this aurora instance."
 }
 ```
 

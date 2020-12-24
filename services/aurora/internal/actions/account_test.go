@@ -4,11 +4,11 @@ import (
 	"context"
 	"testing"
 
-	protocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/services/aurora/internal/db2"
-	"github.com/hcnet/go/services/aurora/internal/db2/core"
-	"github.com/hcnet/go/services/aurora/internal/db2/history"
-	"github.com/hcnet/go/services/aurora/internal/test"
+	protocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/services/aurora/internal/db2"
+	"github.com/diamnet/go/services/aurora/internal/db2/core"
+	"github.com/diamnet/go/services/aurora/internal/db2/history"
+	"github.com/diamnet/go/services/aurora/internal/test"
 	"github.com/stretchr/testify/assert"
 )
 

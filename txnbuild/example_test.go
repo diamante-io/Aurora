@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hcnet/go/keypair"
-	"github.com/hcnet/go/network"
-	auroraclient "github.com/hcnet/go/txnbuild/exampleauroraclient"
+	"github.com/diamnet/go/keypair"
+	"github.com/diamnet/go/network"
+	auroraclient "github.com/diamnet/go/txnbuild/exampleauroraclient"
 )
 
 func ExampleInflation() {

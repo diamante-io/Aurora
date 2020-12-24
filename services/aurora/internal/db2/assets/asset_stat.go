@@ -2,7 +2,7 @@ package assets
 
 import (
 	sq "github.com/Masterminds/squirrel"
-	"github.com/hcnet/go/services/aurora/internal/db2"
+	"github.com/diamnet/go/services/aurora/internal/db2"
 )
 
 // AssetStatsR is the result from the AssetStatsQ query

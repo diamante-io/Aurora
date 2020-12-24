@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hcnet/go/support/errors"
+	"github.com/diamnet/go/support/errors"
 )
 
 func TestPutKeys(t *testing.T) {
@@ -22,8 +22,8 @@ func TestPutKeys(t *testing.T) {
 
 	blob := `[{
 		"keyType": "plaintextKey",
-		"publicKey": "hcnet-pubkey",
-		"privateKey": "encrypted-hcnet-privatekey"
+		"publicKey": "diamnet-pubkey",
+		"privateKey": "encrypted-diamnet-privatekey"
 	}]`
 	encodedBlob := base64.RawURLEncoding.EncodeToString([]byte(blob))
 	encrypterName := "identity"
@@ -67,8 +67,8 @@ func TestGetKeys(t *testing.T) {
 
 	blob := `[{
 		"keyType": "plaintextKey",
-		"publicKey": "hcnet-pubkey",
-		"privateKey": "encrypted-hcnet-privatekey"
+		"publicKey": "diamnet-pubkey",
+		"privateKey": "encrypted-diamnet-privatekey"
 	}]`
 	encodedBlob := base64.RawURLEncoding.EncodeToString([]byte(blob))
 	encrypterName := "identity"
@@ -117,8 +117,8 @@ func TestDeleteKeys(t *testing.T) {
 
 	blob := `[{
 		"keyType": "plaintextKey",
-		"publicKey": "hcnet-pubkey",
-		"privateKey": "encrypted-hcnet-privatekey"
+		"publicKey": "diamnet-pubkey",
+		"privateKey": "encrypted-diamnet-privatekey"
 	}]`
 	encodedBlob := base64.RawURLEncoding.EncodeToString([]byte(blob))
 	encrypterName := "identity"

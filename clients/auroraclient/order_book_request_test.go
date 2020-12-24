@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	hProtocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/support/http/httptest"
+	hProtocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/support/http/httptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

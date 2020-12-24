@@ -5,8 +5,8 @@ import (
 	"encoding/base32"
 	"encoding/binary"
 
-	"github.com/hcnet/go/crc16"
-	"github.com/hcnet/go/support/errors"
+	"github.com/diamnet/go/crc16"
+	"github.com/diamnet/go/support/errors"
 )
 
 // ErrInvalidVersionByte is returned when the version byte from a provided
@@ -18,17 +18,17 @@ var ErrInvalidVersionByte = errors.New("invalid version byte")
 type VersionByte byte
 
 const (
-	//VersionByteAccountID is the version byte used for encoded hcnet addresses
+	//VersionByteAccountID is the version byte used for encoded diamnet addresses
 	VersionByteAccountID VersionByte = 6 << 3 // Base32-encodes to 'G...'
 
-	//VersionByteSeed is the version byte used for encoded hcnet seed
+	//VersionByteSeed is the version byte used for encoded diamnet seed
 	VersionByteSeed = 18 << 3 // Base32-encodes to 'S...'
 
-	//VersionByteHashTx is the version byte used for encoded hcnet hashTx
+	//VersionByteHashTx is the version byte used for encoded diamnet hashTx
 	//signer keys.
 	VersionByteHashTx = 19 << 3 // Base32-encodes to 'T...'
 
-	//VersionByteHashX is the version byte used for encoded hcnet hashX
+	//VersionByteHashX is the version byte used for encoded diamnet hashX
 	//signer keys.
 	VersionByteHashX = 23 << 3 // Base32-encodes to 'X...'
 )

@@ -3,10 +3,10 @@ package pipeline
 import (
 	"context"
 
-	"github.com/hcnet/go/exp/ingest/io"
-	supportPipeline "github.com/hcnet/go/exp/support/pipeline"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/exp/ingest/io"
+	supportPipeline "github.com/diamnet/go/exp/support/pipeline"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/xdr"
 )
 
 func (w *stateProcessorWrapper) Process(ctx context.Context, store *supportPipeline.Store, reader supportPipeline.Reader, writer supportPipeline.Writer) error {

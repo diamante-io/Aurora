@@ -5,11 +5,11 @@ import (
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/hcnet/go/services/aurora/internal/db2/core"
-	"github.com/hcnet/go/services/aurora/internal/db2/history"
-	"github.com/hcnet/go/support/db"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/services/aurora/internal/db2/core"
+	"github.com/diamnet/go/services/aurora/internal/db2/history"
+	"github.com/diamnet/go/support/db"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/xdr"
 )
 
 func (assetStats *AssetStats) init() {
@@ -250,7 +250,7 @@ func statAccountInfo(coreSession *db.Session, accountID string) (int8, string, e
 		// It is possible that issuer account has been deleted but issued assets
 		// are still in circulation. In such case we return default values in 0.15.x
 		// but a new field (`deleted`?) should be introduced in 0.16.0.
-		// See: https://github.com/hcnet/hcnet-core/issues/1835
+		// See: https://github.com/diamnet/diamnet-core/issues/1835
 		if err == sql.ErrNoRows {
 			return 0, "", nil
 		}
@@ -263,7 +263,7 @@ func statAccountInfo(coreSession *db.Session, accountID string) (int8, string, e
 	} else {
 		trimmed := strings.TrimSpace(account.HomeDomain.String)
 		if trimmed != "" {
-			toml = "https://" + account.HomeDomain.String + "/.well-known/hcnet.toml"
+			toml = "https://" + account.HomeDomain.String + "/.well-known/diamnet.toml"
 		} else {
 			toml = ""
 		}

@@ -9,12 +9,12 @@ import (
 
 	"github.com/go-chi/chi"
 	log "github.com/sirupsen/logrus"
-	"github.com/hcnet/go/protocols/compliance"
-	"github.com/hcnet/go/services/bridge/internal/db"
-	"github.com/hcnet/go/services/internal/bridge-compliance-shared/http/helpers"
-	"github.com/hcnet/go/services/internal/bridge-compliance-shared/protocols/bridge"
-	callback "github.com/hcnet/go/services/internal/bridge-compliance-shared/protocols/compliance"
-	"github.com/hcnet/go/support/errors"
+	"github.com/diamnet/go/protocols/compliance"
+	"github.com/diamnet/go/services/bridge/internal/db"
+	"github.com/diamnet/go/services/internal/bridge-compliance-shared/http/helpers"
+	"github.com/diamnet/go/services/internal/bridge-compliance-shared/protocols/bridge"
+	callback "github.com/diamnet/go/services/internal/bridge-compliance-shared/protocols/compliance"
+	"github.com/diamnet/go/support/errors"
 )
 
 // AdminReceivedPayment implements /admin/received-payments/{id} endpoint

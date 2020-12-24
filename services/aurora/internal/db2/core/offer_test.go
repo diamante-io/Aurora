@@ -3,8 +3,8 @@ package core
 import (
 	"testing"
 
-	"github.com/hcnet/go/services/aurora/internal/db2"
-	"github.com/hcnet/go/services/aurora/internal/test"
+	"github.com/diamnet/go/services/aurora/internal/db2"
+	"github.com/diamnet/go/services/aurora/internal/test"
 )
 
 func TestOffersByAddress(t *testing.T) {

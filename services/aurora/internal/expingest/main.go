@@ -7,17 +7,17 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hcnet/go/clients/hcnetcore"
-	"github.com/hcnet/go/exp/ingest"
-	"github.com/hcnet/go/exp/ingest/io"
-	"github.com/hcnet/go/exp/ingest/ledgerbackend"
-	"github.com/hcnet/go/exp/orderbook"
-	"github.com/hcnet/go/services/aurora/internal/db2/history"
-	"github.com/hcnet/go/support/db"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/support/historyarchive"
-	ilog "github.com/hcnet/go/support/log"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/clients/diamnetcore"
+	"github.com/diamnet/go/exp/ingest"
+	"github.com/diamnet/go/exp/ingest/io"
+	"github.com/diamnet/go/exp/ingest/ledgerbackend"
+	"github.com/diamnet/go/exp/orderbook"
+	"github.com/diamnet/go/services/aurora/internal/db2/history"
+	"github.com/diamnet/go/support/db"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/support/historyarchive"
+	ilog "github.com/diamnet/go/support/log"
+	"github.com/diamnet/go/xdr"
 )
 
 const (
@@ -36,7 +36,7 @@ var log = ilog.DefaultLogger.WithField("service", "expingest")
 
 type Config struct {
 	CoreSession    *db.Session
-	HcNetCoreURL string
+	DiamNetCoreURL string
 
 	HistorySession    *db.Session
 	HistoryArchiveURL string
@@ -69,8 +69,8 @@ func NewSystem(config Config) (*System, error) {
 		LedgerBackend:  ledgerBackend,
 		StatePipeline:  buildStatePipeline(historyQ, config.OrderBookGraph),
 		LedgerPipeline: buildLedgerPipeline(historyQ, config.OrderBookGraph),
-		HcNetCoreClient: &hcnetcore.Client{
-			URL: config.HcNetCoreURL,
+		DiamNetCoreClient: &diamnetcore.Client{
+			URL: config.DiamNetCoreURL,
 		},
 
 		StateReporter:  &LoggingStateReporter{Log: log, Interval: 100000},

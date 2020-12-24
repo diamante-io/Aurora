@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/hcnet/go/protocols/compliance"
-	"github.com/hcnet/go/services/internal/bridge-compliance-shared/http/helpers"
-	"github.com/hcnet/go/services/internal/bridge-compliance-shared/protocols"
+	"github.com/diamnet/go/protocols/compliance"
+	"github.com/diamnet/go/services/internal/bridge-compliance-shared/http/helpers"
+	"github.com/diamnet/go/services/internal/bridge-compliance-shared/protocols"
 )
 
 // SendRequest represents request sent to /send endpoint of compliance server
@@ -16,25 +16,25 @@ type SendRequest struct {
 	// Payment ID - used to resubmit auth request in case of `pending` response.
 	ID string `form:"id" valid:"required"`
 	// Source account ID
-	Source string `form:"source" valid:"required,hcnet_accountid"`
-	// Sender address (like alice*hcnet.org)
-	Sender string `form:"sender" valid:"required,hcnet_address"`
-	// Destination address (like bob*hcnet.org)
-	Destination string `form:"destination" valid:"required,hcnet_address"`
+	Source string `form:"source" valid:"required,diamnet_accountid"`
+	// Sender address (like alice*diamnet.org)
+	Sender string `form:"sender" valid:"required,diamnet_address"`
+	// Destination address (like bob*diamnet.org)
+	Destination string `form:"destination" valid:"required,diamnet_address"`
 	// ForwardDestination
 	ForwardDestination *protocols.ForwardDestination `form:"forward_destination" valid:"-"`
 	// Amount destination should receive
-	Amount string `form:"amount" valid:"required,hcnet_amount"`
+	Amount string `form:"amount" valid:"required,diamnet_amount"`
 	// Code of the asset destination should receive
-	AssetCode string `form:"asset_code" valid:"optional,hcnet_asset_code"`
+	AssetCode string `form:"asset_code" valid:"optional,diamnet_asset_code"`
 	// Issuer of the asset destination should receive
-	AssetIssuer string `form:"asset_issuer" valid:"optional,hcnet_accountid"`
+	AssetIssuer string `form:"asset_issuer" valid:"optional,diamnet_accountid"`
 	// Only for path_payment
-	SendMax string `form:"send_max" valid:"optional,hcnet_amount"`
+	SendMax string `form:"send_max" valid:"optional,diamnet_amount"`
 	// Only for path_payment
-	SendAssetCode string `form:"send_asset_code" valid:"optional,hcnet_asset_code"`
+	SendAssetCode string `form:"send_asset_code" valid:"optional,diamnet_asset_code"`
 	// Only for path_payment
-	SendAssetIssuer string `form:"send_asset_issuer" valid:"optional,hcnet_accountid"`
+	SendAssetIssuer string `form:"send_asset_issuer" valid:"optional,diamnet_accountid"`
 	// path[n][asset_code] path[n][asset_issuer]
 	Path []protocols.Asset `form:"path" valid:"-"`
 	// Extra memo

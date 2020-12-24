@@ -6,13 +6,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/services/aurora/internal/db2"
-	"github.com/hcnet/go/services/aurora/internal/db2/core"
-	"github.com/hcnet/go/services/aurora/internal/db2/history"
-	"github.com/hcnet/go/services/aurora/internal/test"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/support/render/hal"
+	"github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/services/aurora/internal/db2"
+	"github.com/diamnet/go/services/aurora/internal/db2/core"
+	"github.com/diamnet/go/services/aurora/internal/db2/history"
+	"github.com/diamnet/go/services/aurora/internal/test"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/support/render/hal"
 )
 
 var defaultPage db2.PageQuery = db2.PageQuery{

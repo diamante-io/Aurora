@@ -8,7 +8,7 @@ import (
 // ID represents the total order of Ledgers, Transactions and
 // Operations.
 //
-// Operations within the hcnet network have a total order, expressed by three
+// Operations within the diamnet network have a total order, expressed by three
 // pieces of information:  the ledger sequence the operation was validated in,
 // the order which the operation's containing transaction was applied in
 // that ledger, and the index of the operation within that parent transaction.

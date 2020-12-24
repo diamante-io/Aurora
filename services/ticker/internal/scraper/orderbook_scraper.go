@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	auroraclient "github.com/hcnet/go/clients/auroraclient"
-	hProtocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/services/ticker/internal/utils"
+	auroraclient "github.com/diamnet/go/clients/auroraclient"
+	hProtocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/services/ticker/internal/utils"
 )
 
 // fetchOrderbook fetches the orderbook stats for the base and counter assets provided in the parameters
@@ -80,7 +80,7 @@ func calcOrderbookStats(obStats *OrderbookStats, summary hProtocol.OrderBookSumm
 
 		// On Aurora, Ask prices are in units of counter, but
 		// amount is in units of base. Therefore, real amount = amount * price
-		// See: https://github.com/hcnet/go/issues/612
+		// See: https://github.com/diamnet/go/issues/612
 		obStats.AskVolume += pricef * amountf
 		if pricef < obStats.LowestAsk {
 			obStats.LowestAsk = pricef
@@ -118,7 +118,7 @@ func createOrderbookRequest(bType, bCode, bIssuer, cType, cCode, cIssuer string)
 	// when an Asset is native. As we store "XLM" as the asset code for native,
 	// we should only add Code and Issuer info in case we're dealing with
 	// non-native assets.
-	// See: https://www.hcnet.org/developers/aurora/reference/endpoints/orderbook-details.html
+	// See: https://www.diamnet.org/developers/aurora/reference/endpoints/orderbook-details.html
 	if bType != string(auroraclient.AssetTypeNative) {
 		r.SellingAssetCode = bCode
 		r.SellingAssetIssuer = bIssuer

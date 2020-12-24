@@ -1,16 +1,16 @@
 package server
 
 import (
-	"github.com/hcnet/go/services/bifrost/bitcoin"
-	"github.com/hcnet/go/services/bifrost/database"
-	"github.com/hcnet/go/services/bifrost/queue"
-	"github.com/hcnet/go/services/bifrost/sse"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/support/log"
+	"github.com/diamnet/go/services/bifrost/bitcoin"
+	"github.com/diamnet/go/services/bifrost/database"
+	"github.com/diamnet/go/services/bifrost/queue"
+	"github.com/diamnet/go/services/bifrost/sse"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/support/log"
 )
 
 // onNewBitcoinTransaction checks if transaction is valid and adds it to
-// the transactions queue for HcNetAccountConfigurator to consume.
+// the transactions queue for DiamNetAccountConfigurator to consume.
 //
 // Transaction added to transactions queue should be in a format described in
 // queue.Transaction (especialy amounts). Pooling service should not have to deal with any
@@ -58,8 +58,8 @@ func (s *Server) onNewBitcoinTransaction(transaction bitcoin.Transaction) error 
 		TransactionID: transaction.Hash,
 		AssetCode:     queue.AssetCodeBTC,
 		// Amount in the base unit of currency.
-		Amount:           transaction.ValueToHcNet(),
-		HcNetPublicKey: addressAssociation.HcNetPublicKey,
+		Amount:           transaction.ValueToDiamNet(),
+		DiamNetPublicKey: addressAssociation.DiamNetPublicKey,
 	}
 
 	err = s.TransactionsQueue.QueueAdd(queueTx)

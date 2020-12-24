@@ -4,16 +4,16 @@ require 'pry'
 
 namespace :xdr do
 
-  # As hcnet-core adds more .x files, we'll need to update this array
+  # As diamnet-core adds more .x files, we'll need to update this array
   # Prior to launch, we should be separating our .x files into a separate
   # repo, and should be able to improve this integration.
   HAYASHI_XDR = [
-                 "src/xdr/HcNet-types.x",
-                 "src/xdr/HcNet-ledger-entries.x",
-                 "src/xdr/HcNet-transaction.x",
-                 "src/xdr/HcNet-ledger.x",
-                 "src/xdr/HcNet-overlay.x",
-                 "src/xdr/HcNet-SCP.x",
+                 "src/xdr/DiamNet-types.x",
+                 "src/xdr/DiamNet-ledger-entries.x",
+                 "src/xdr/DiamNet-transaction.x",
+                 "src/xdr/DiamNet-ledger.x",
+                 "src/xdr/DiamNet-overlay.x",
+                 "src/xdr/DiamNet-SCP.x",
                 ]
   LOCAL_XDR_PATHS = HAYASHI_XDR.map{ |src| "xdr/" + File.basename(src) }
 
@@ -29,7 +29,7 @@ namespace :xdr do
 
     HAYASHI_XDR.each do |src|
       local_path = "xdr/" + File.basename(src)
-      encoded    = client.contents("hcnet/hcnet-core", path: src).content
+      encoded    = client.contents("diamnet/diamnet-core", path: src).content
       decoded    = Base64.decode64 encoded
 
       IO.write(local_path, decoded)

@@ -5,8 +5,8 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/hcnet/go/clients/aurora"
-	"github.com/hcnet/go/services/aurora/internal/ledger"
+	"github.com/diamnet/go/clients/aurora"
+	"github.com/diamnet/go/services/aurora/internal/ledger"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -26,7 +26,7 @@ func TestPopulateRoot(t *testing.T) {
 	assert.Equal(t, int32(2), res.HistoryElderSequence)
 	assert.Equal(t, int32(3), res.AuroraSequence)
 	assert.Equal(t, "hVersion", res.AuroraVersion)
-	assert.Equal(t, "cVersion", res.HcNetCoreVersion)
+	assert.Equal(t, "cVersion", res.DiamNetCoreVersion)
 	assert.Equal(t, "passphrase", res.NetworkPassphrase)
 	assert.Equal(t, "https://friendbot.example.com/{?addr}", res.Links.Friendbot.Href)
 
@@ -46,7 +46,7 @@ func TestPopulateRoot(t *testing.T) {
 	assert.Equal(t, int32(2), res.HistoryElderSequence)
 	assert.Equal(t, int32(3), res.AuroraSequence)
 	assert.Equal(t, "hVersion", res.AuroraVersion)
-	assert.Equal(t, "cVersion", res.HcNetCoreVersion)
+	assert.Equal(t, "cVersion", res.DiamNetCoreVersion)
 	assert.Equal(t, "passphrase", res.NetworkPassphrase)
 	assert.Empty(t, res.Links.Friendbot)
 }

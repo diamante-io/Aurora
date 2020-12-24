@@ -14,16 +14,16 @@ import (
 	"encoding/base64"
 
 	"github.com/sirupsen/logrus"
-	hc "github.com/hcnet/go/clients/auroraclient"
-	"github.com/hcnet/go/protocols/compliance"
-	"github.com/hcnet/go/protocols/aurora/effects"
-	"github.com/hcnet/go/protocols/aurora/operations"
-	"github.com/hcnet/go/services/bridge/internal/config"
-	"github.com/hcnet/go/services/bridge/internal/db"
-	"github.com/hcnet/go/services/internal/bridge-compliance-shared/protocols/bridge"
-	callback "github.com/hcnet/go/services/internal/bridge-compliance-shared/protocols/compliance"
-	"github.com/hcnet/go/strkey"
-	"github.com/hcnet/go/support/errors"
+	hc "github.com/diamnet/go/clients/auroraclient"
+	"github.com/diamnet/go/protocols/compliance"
+	"github.com/diamnet/go/protocols/aurora/effects"
+	"github.com/diamnet/go/protocols/aurora/operations"
+	"github.com/diamnet/go/services/bridge/internal/config"
+	"github.com/diamnet/go/services/bridge/internal/db"
+	"github.com/diamnet/go/services/internal/bridge-compliance-shared/protocols/bridge"
+	callback "github.com/diamnet/go/services/internal/bridge-compliance-shared/protocols/compliance"
+	"github.com/diamnet/go/strkey"
+	"github.com/diamnet/go/support/errors"
 )
 
 // PaymentListener is listening for a new payments received by ReceivingAccount

@@ -1,6 +1,6 @@
 package auroraclient
 
-import "github.com/hcnet/go/support/errors"
+import "github.com/diamnet/go/support/errors"
 
 // BuildURL returns the url for getting metrics about a running aurora instance
 func (mr metricsRequest) BuildURL() (endpoint string, err error) {

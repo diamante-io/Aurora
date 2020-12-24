@@ -1,4 +1,4 @@
-// Package network contains functions that deal with hcnet network passphrases
+// Package network contains functions that deal with diamnet network passphrases
 // and IDs.
 package network
 
@@ -7,14 +7,14 @@ import (
 
 	"strings"
 
-	"github.com/hcnet/go/hash"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/hash"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/xdr"
 )
 
 const (
-	// PublicNetworkPassphrase is the pass phrase used for every transaction intended for the public hcnet network
-	PublicNetworkPassphrase = "Public Global HcNet Network ; September 2015"
+	// PublicNetworkPassphrase is the pass phrase used for every transaction intended for the public diamnet network
+	PublicNetworkPassphrase = "Public Global DiamNet Network ; September 2015"
 	// TestNetworkPassphrase is the pass phrase used for every transaction intended for the SDF-run test network
 	TestNetworkPassphrase = "Test SDF Network ; September 2015"
 )
@@ -28,8 +28,8 @@ func ID(passphrase string) [32]byte {
 
 // HashTransaction derives the network specific hash for the provided
 // transaction using the network identified by the supplied passphrase.  The
-// resulting hash is the value that can be signed by hcnet secret key to
-// authorize the transaction identified by the hash to hcnet validators.
+// resulting hash is the value that can be signed by diamnet secret key to
+// authorize the transaction identified by the hash to diamnet validators.
 func HashTransaction(tx *xdr.Transaction, passphrase string) ([32]byte, error) {
 	var txBytes bytes.Buffer
 

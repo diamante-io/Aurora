@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/xdr"
 )
 
 func (tl Trustline) IsAuthorized() bool {

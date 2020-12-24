@@ -6,12 +6,12 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/hcnet/go/exp/ingest/ledgerbackend"
+	"github.com/diamnet/go/exp/ingest/ledgerbackend"
 
-	ingestadapters "github.com/hcnet/go/exp/ingest/adapters"
+	ingestadapters "github.com/diamnet/go/exp/ingest/adapters"
 )
 
-const dbURI = "postgres://hcnet:postgres@localhost:8002/core"
+const dbURI = "postgres://diamnet:postgres@localhost:8002/core"
 
 func main() {
 	// useBackend()

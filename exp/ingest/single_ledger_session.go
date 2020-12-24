@@ -1,9 +1,9 @@
 package ingest
 
 import (
-	"github.com/hcnet/go/exp/ingest/adapters"
-	"github.com/hcnet/go/exp/ingest/io"
-	"github.com/hcnet/go/support/errors"
+	"github.com/diamnet/go/exp/ingest/adapters"
+	"github.com/diamnet/go/exp/ingest/io"
+	"github.com/diamnet/go/support/errors"
 )
 
 var _ Session = &SingleLedgerSession{}

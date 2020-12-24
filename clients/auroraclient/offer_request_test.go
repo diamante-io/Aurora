@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	hProtocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/support/http/httptest"
+	hProtocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/support/http/httptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -140,7 +140,7 @@ func TestNextOffersPage(t *testing.T) {
 
 	hmock.On(
 		"GET",
-		"https://aurora-testnet.hcnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG/offers?cursor=2946581&limit=2&order=asc",
+		"https://aurora-testnet.diamnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG/offers?cursor=2946581&limit=2&order=asc",
 	).ReturnString(200, emptyOffersPage)
 
 	nextPage, err := client.NextOffersPage(offers)
@@ -196,19 +196,19 @@ func TestOfferRequestStreamOffers(t *testing.T) {
 	}
 }
 
-var offerStreamResponse = `data: {"_links":{"self":{"href":"https://aurora-testnet.hcnet.org/offers/5269100"},"offer_maker":{"href":"https://aurora-testnet.hcnet.org/accounts/GAQHWQYBBW272OOXNQMMLCA5WY2XAZPODGB7Q3S5OKKIXVESKO55ZQ7C"}},"id":5269100,"paging_token":"5269100","seller":"GAQHWQYBBW272OOXNQMMLCA5WY2XAZPODGB7Q3S5OKKIXVESKO55ZQ7C","selling":{"asset_type":"credit_alphanum4","asset_code":"DSQ","asset_issuer":"GBDQPTQJDATT7Z7EO4COS4IMYXH44RDLLI6N6WIL5BZABGMUOVMLWMQF"},"buying":{"asset_type":"credit_alphanum4","asset_code":"XCS6","asset_issuer":"GBH2V47NOZRC56QAYCPV5JUBG5NVFJQF5AQTUNFNWNDHSWWTKH2MWR2L"},"amount":"20.4266087","price_r":{"n":24819,"d":10000000},"price":"0.0024819","last_modified_ledger":674449,"last_modified_time":"2019-04-08T11:56:41Z"}
+var offerStreamResponse = `data: {"_links":{"self":{"href":"https://aurora-testnet.diamnet.org/offers/5269100"},"offer_maker":{"href":"https://aurora-testnet.diamnet.org/accounts/GAQHWQYBBW272OOXNQMMLCA5WY2XAZPODGB7Q3S5OKKIXVESKO55ZQ7C"}},"id":5269100,"paging_token":"5269100","seller":"GAQHWQYBBW272OOXNQMMLCA5WY2XAZPODGB7Q3S5OKKIXVESKO55ZQ7C","selling":{"asset_type":"credit_alphanum4","asset_code":"DSQ","asset_issuer":"GBDQPTQJDATT7Z7EO4COS4IMYXH44RDLLI6N6WIL5BZABGMUOVMLWMQF"},"buying":{"asset_type":"credit_alphanum4","asset_code":"XCS6","asset_issuer":"GBH2V47NOZRC56QAYCPV5JUBG5NVFJQF5AQTUNFNWNDHSWWTKH2MWR2L"},"amount":"20.4266087","price_r":{"n":24819,"d":10000000},"price":"0.0024819","last_modified_ledger":674449,"last_modified_time":"2019-04-08T11:56:41Z"}
 `
 
 var firstOffersPage = `{
   "_links": {
     "self": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG/offers?cursor=&limit=2&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG/offers?cursor=&limit=2&order=asc"
     },
     "next": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG/offers?cursor=2946581&limit=2&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG/offers?cursor=2946581&limit=2&order=asc"
     },
     "prev": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG/offers?cursor=2946580&limit=2&order=desc"
+      "href": "https://aurora-testnet.diamnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG/offers?cursor=2946580&limit=2&order=desc"
     }
   },
   "_embedded": {
@@ -216,10 +216,10 @@ var firstOffersPage = `{
       {
         "_links": {
           "self": {
-            "href": "https://aurora-testnet.hcnet.org/offers/2946580"
+            "href": "https://aurora-testnet.diamnet.org/offers/2946580"
           },
           "offer_maker": {
-            "href": "https://aurora-testnet.hcnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG"
+            "href": "https://aurora-testnet.diamnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG"
           }
         },
         "id": 2946580,
@@ -247,10 +247,10 @@ var firstOffersPage = `{
       {
         "_links": {
           "self": {
-            "href": "https://aurora-testnet.hcnet.org/offers/2946581"
+            "href": "https://aurora-testnet.diamnet.org/offers/2946581"
           },
           "offer_maker": {
-            "href": "https://aurora-testnet.hcnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG"
+            "href": "https://aurora-testnet.diamnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG"
           }
         },
         "id": 2946581,
@@ -282,13 +282,13 @@ var firstOffersPage = `{
 var emptyOffersPage = `{
   "_links": {
     "self": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG/offers?cursor=2946581&limit=2&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG/offers?cursor=2946581&limit=2&order=asc"
     },
     "next": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG/offers?cursor=2946583&limit=2&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG/offers?cursor=2946583&limit=2&order=asc"
     },
     "prev": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG/offers?cursor=2946582&limit=2&order=desc"
+      "href": "https://aurora-testnet.diamnet.org/accounts/GBZ5OD56VRTRQKMNADD6VUZUG3FCILMAMYQY5ZSC3AW3GBXNEPIK76IG/offers?cursor=2946582&limit=2&order=desc"
     }
   },
   "_embedded": {

@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/hcnet/go/protocols/aurora/effects"
-	"github.com/hcnet/go/support/errors"
+	"github.com/diamnet/go/protocols/aurora/effects"
+	"github.com/diamnet/go/support/errors"
 )
 
 // EffectHandler is a function that is called when a new effect is received

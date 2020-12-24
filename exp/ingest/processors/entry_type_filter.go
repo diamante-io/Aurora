@@ -5,9 +5,9 @@ import (
 	"fmt"
 	stdio "io"
 
-	"github.com/hcnet/go/exp/ingest/io"
-	ingestpipeline "github.com/hcnet/go/exp/ingest/pipeline"
-	"github.com/hcnet/go/exp/support/pipeline"
+	"github.com/diamnet/go/exp/ingest/io"
+	ingestpipeline "github.com/diamnet/go/exp/ingest/pipeline"
+	"github.com/diamnet/go/exp/support/pipeline"
 )
 
 func (p *EntryTypeFilter) ProcessState(ctx context.Context, store *pipeline.Store, r io.StateReader, w io.StateWriter) error {

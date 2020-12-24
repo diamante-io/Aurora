@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	migrate "github.com/rubenv/sql-migrate"
-	"github.com/hcnet/go/support/db/dbtest"
+	"github.com/diamnet/go/support/db/dbtest"
 )
 
 //TODO: creating a DB for every single test is inefficient. Maybe we can

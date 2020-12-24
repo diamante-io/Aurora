@@ -14,16 +14,16 @@ import (
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/rs/cors"
 	"github.com/sebest/xff"
-	"github.com/hcnet/go/services/aurora/internal/db2"
-	"github.com/hcnet/go/services/aurora/internal/db2/core"
-	"github.com/hcnet/go/services/aurora/internal/db2/history"
-	"github.com/hcnet/go/services/aurora/internal/ledger"
-	hProblem "github.com/hcnet/go/services/aurora/internal/render/problem"
-	"github.com/hcnet/go/services/aurora/internal/render/sse"
-	"github.com/hcnet/go/services/aurora/internal/txsub/sequence"
-	"github.com/hcnet/go/support/db"
-	"github.com/hcnet/go/support/log"
-	"github.com/hcnet/go/support/render/problem"
+	"github.com/diamnet/go/services/aurora/internal/db2"
+	"github.com/diamnet/go/services/aurora/internal/db2/core"
+	"github.com/diamnet/go/services/aurora/internal/db2/history"
+	"github.com/diamnet/go/services/aurora/internal/ledger"
+	hProblem "github.com/diamnet/go/services/aurora/internal/render/problem"
+	"github.com/diamnet/go/services/aurora/internal/render/sse"
+	"github.com/diamnet/go/services/aurora/internal/txsub/sequence"
+	"github.com/diamnet/go/support/db"
+	"github.com/diamnet/go/support/log"
+	"github.com/diamnet/go/support/render/problem"
 	"github.com/throttled/throttled"
 )
 
@@ -258,7 +258,7 @@ func (w *web) auroraSession(ctx context.Context) (*db.Session, error) {
 	return &db.Session{DB: w.historyQ.Session.DB, Ctx: ctx}, nil
 }
 
-// coreSession returns a new session that loads data from the hcnet core
+// coreSession returns a new session that loads data from the diamnet core
 // database. The returned session is bound to `ctx`.
 func (w *web) coreSession(ctx context.Context) *db.Session {
 	return &db.Session{DB: w.coreQ.Session.DB, Ctx: ctx}

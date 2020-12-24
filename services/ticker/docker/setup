@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 set -e
 
-useradd --uid 10011001 --home-dir /home/hcnet --no-log-init hcnet \
-    && mkdir -p /home/hcnet \
-    && chown -R hcnet:hcnet /home/hcnet
+useradd --uid 10011001 --home-dir /home/diamnet --no-log-init diamnet \
+    && mkdir -p /home/diamnet \
+    && chown -R diamnet:diamnet /home/diamnet
 
-mkdir -p /opt/hcnet/bin
-mkdir -p /opt/hcnet/www
-chown -R hcnet:hcnet /opt/hcnet/www
-mkdir -p /opt/hcnet/postgresql/data
+mkdir -p /opt/diamnet/bin
+mkdir -p /opt/diamnet/www
+chown -R diamnet:diamnet /opt/diamnet/www
+mkdir -p /opt/diamnet/postgresql/data
 
 export TICKER="ticker-v1.1.0"
 export TICKER_PATH="$TICKER-linux-amd64"
-wget -O ticker.tar.gz https://github.com/hcnet/go/releases/download/$TICKER/$TICKER_PATH.tar.gz
+wget -O ticker.tar.gz https://github.com/diamnet/go/releases/download/$TICKER/$TICKER_PATH.tar.gz
 tar -xvzf ticker.tar.gz
-mv $TICKER_PATH/ticker /opt/hcnet/bin/ticker
-chmod +x /opt/hcnet/bin/ticker
+mv $TICKER_PATH/ticker /opt/diamnet/bin/ticker
+chmod +x /opt/diamnet/bin/ticker

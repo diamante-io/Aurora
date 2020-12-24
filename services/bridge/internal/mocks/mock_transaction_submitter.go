@@ -1,9 +1,9 @@
 package mocks
 
 import (
-	hProtocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/txnbuild"
-	"github.com/hcnet/go/xdr"
+	hProtocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/txnbuild"
+	"github.com/diamnet/go/xdr"
 	"github.com/stretchr/testify/mock"
 )
 

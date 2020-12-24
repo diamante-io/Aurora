@@ -1,7 +1,7 @@
 package processors
 
 import (
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/xdr"
 )
 
 // RootProcessor is useful when a pipeline needs to be split stream into
@@ -13,7 +13,7 @@ type RootProcessor struct {
 
 // CSVPrinter prints ledger entries to a file or stdout (when Filename is empty).
 // Can be used both for processing state and ledgers.
-// The state output matches the format of data in hcnet-core DB so can be
+// The state output matches the format of data in diamnet-core DB so can be
 // used for diff-testing the state readers.
 type CSVPrinter struct {
 	noStateProcessor

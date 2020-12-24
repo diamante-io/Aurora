@@ -12,9 +12,9 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
-	"github.com/hcnet/go/services/aurora/internal/logmetrics"
-	tdb "github.com/hcnet/go/services/aurora/internal/test/db"
-	"github.com/hcnet/go/support/log"
+	"github.com/diamnet/go/services/aurora/internal/logmetrics"
+	tdb "github.com/diamnet/go/services/aurora/internal/test/db"
+	"github.com/diamnet/go/support/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -67,7 +67,7 @@ func LoadScenario(scenarioName string) {
 	loadScenario(scenarioName, true)
 }
 
-// LoadScenarioWithoutAurora populates the test HcNet core database a with
+// LoadScenarioWithoutAurora populates the test DiamNet core database a with
 // pre-created scenario.  Unlike `LoadScenario`, this
 func LoadScenarioWithoutAurora(scenarioName string) {
 	loadScenario(scenarioName, false)
@@ -113,26 +113,26 @@ func Start(t *testing.T) *T {
 
 	result.Ctx = log.Set(context.Background(), result.Logger)
 	result.AuroraDB = Database(t)
-	result.CoreDB = HcNetCoreDatabase(t)
+	result.CoreDB = DiamNetCoreDatabase(t)
 	result.Assert = assert.New(t)
 	result.Require = require.New(t)
 
 	return result
 }
 
-// HcNetCoreDatabase returns a connection to the hcnet core test database
+// DiamNetCoreDatabase returns a connection to the diamnet core test database
 //
-// DEPRECATED:  use `HcNetCore()` from test/db package
-func HcNetCoreDatabase(t *testing.T) *sqlx.DB {
-	return tdb.HcNetCore(t)
+// DEPRECATED:  use `DiamNetCore()` from test/db package
+func DiamNetCoreDatabase(t *testing.T) *sqlx.DB {
+	return tdb.DiamNetCore(t)
 }
 
-// HcNetCoreDatabaseURL returns the database connection the url any test
-// use when connecting to the hcnet-core database
+// DiamNetCoreDatabaseURL returns the database connection the url any test
+// use when connecting to the diamnet-core database
 //
-// DEPRECATED:  use `HcNetCoreURL()` from test/db package
-func HcNetCoreDatabaseURL() string {
-	return tdb.HcNetCoreURL()
+// DEPRECATED:  use `DiamNetCoreURL()` from test/db package
+func DiamNetCoreDatabaseURL() string {
+	return tdb.DiamNetCoreURL()
 }
 
 var oldDefault *log.Entry = nil

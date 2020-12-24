@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hcnet/go/price"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/price"
+	"github.com/diamnet/go/xdr"
 	"github.com/stretchr/testify/assert"
 )
 

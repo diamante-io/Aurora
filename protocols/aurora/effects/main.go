@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/hcnet/go/protocols/aurora/base"
-	"github.com/hcnet/go/support/render/hal"
+	"github.com/diamnet/go/protocols/aurora/base"
+	"github.com/diamnet/go/support/render/hal"
 )
 
-// Peter 30-04-2019: this is copied from the history package "github.com/hcnet/go/services/aurora/internal/db2/history"
+// Peter 30-04-2019: this is copied from the history package "github.com/diamnet/go/services/aurora/internal/db2/history"
 // Could not import this because internal package imports must share the same path prefix as the importer.
 // Maybe this should be housed here and imported into internal packages?
 
@@ -109,7 +109,7 @@ const (
 )
 
 // Peter 30-04-2019: this is copied from the resourcadapter package
-// "github.com/hcnet/go/services/aurora/internal/resourceadapter"
+// "github.com/diamnet/go/services/aurora/internal/resourceadapter"
 // Could not import this because internal package imports must share the same path prefix as the importer.
 
 // EffectTypeNames stores a map of effect type ID and names

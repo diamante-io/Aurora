@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	hlog "github.com/hcnet/go/support/log"
+	hlog "github.com/diamnet/go/support/log"
 )
 
 // PanicIfError is an utility function that panics if err != nil

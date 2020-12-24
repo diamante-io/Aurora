@@ -1,11 +1,11 @@
 // Package participants contains functions to derive a set of "participant"
-// addresses for various data structures in the HcNet network's ledger.
+// addresses for various data structures in the DiamNet network's ledger.
 package participants
 
 import (
 	"fmt"
 
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/xdr"
 )
 
 // ForOperation returns all the participating accounts from the

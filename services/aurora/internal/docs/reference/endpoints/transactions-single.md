@@ -1,7 +1,7 @@
 ---
 title: Transaction Details
 clientData:
-  laboratoryUrl: https://www.hcnet.org/laboratory/#explorer?resource=transactions&endpoint=single
+  laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=transactions&endpoint=single
 ---
 
 The transaction details endpoint provides information on a single
@@ -10,7 +10,7 @@ specifies which transaction to load.
 
 ### Warning - failed transactions
 
-Transaction can be successful or failed (failed transactions are also included in HcNet ledger).
+Transaction can be successful or failed (failed transactions are also included in DiamNet ledger).
 Always check it's status using `successful` field!
 
 ## Request
@@ -28,14 +28,14 @@ GET /transactions/{hash}
 ### curl Example Request
 
 ```sh
-curl "https://aurora-testnet.hcnet.org/transactions/264226cb06af3b86299031884175155e67a02e0a8ad0b3ab3a88b409a8c09d5c"
+curl "https://aurora-testnet.diamnet.org/transactions/264226cb06af3b86299031884175155e67a02e0a8ad0b3ab3a88b409a8c09d5c"
 ```
 
 ### JavaScript Example Request
 
 ```javascript
-var HcNetSdk = require('hcnet-sdk');
-var server = new HcNetSdk.Server('https://aurora-testnet.hcnet.org');
+var DiamNetSdk = require('diamnet-sdk');
+var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.transactions()
   .transaction("264226cb06af3b86299031884175155e67a02e0a8ad0b3ab3a88b409a8c09d5c")
@@ -58,27 +58,27 @@ This endpoint responds with a single Transaction.  See [transaction resource](..
 {
   "_links": {
     "self": {
-      "href": "https://aurora-testnet.hcnet.org/transactions/264226cb06af3b86299031884175155e67a02e0a8ad0b3ab3a88b409a8c09d5c"
+      "href": "https://aurora-testnet.diamnet.org/transactions/264226cb06af3b86299031884175155e67a02e0a8ad0b3ab3a88b409a8c09d5c"
     },
     "account": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GAIH3ULLFQ4DGSECF2AR555KZ4KNDGEKN4AFI4SU2M7B43MGK3QJZNSR"
+      "href": "https://aurora-testnet.diamnet.org/accounts/GAIH3ULLFQ4DGSECF2AR555KZ4KNDGEKN4AFI4SU2M7B43MGK3QJZNSR"
     },
     "ledger": {
-      "href": "https://aurora-testnet.hcnet.org/ledgers/697121"
+      "href": "https://aurora-testnet.diamnet.org/ledgers/697121"
     },
     "operations": {
-      "href": "https://aurora-testnet.hcnet.org/transactions/264226cb06af3b86299031884175155e67a02e0a8ad0b3ab3a88b409a8c09d5c/operations{?cursor,limit,order}",
+      "href": "https://aurora-testnet.diamnet.org/transactions/264226cb06af3b86299031884175155e67a02e0a8ad0b3ab3a88b409a8c09d5c/operations{?cursor,limit,order}",
       "templated": true
     },
     "effects": {
-      "href": "https://aurora-testnet.hcnet.org/transactions/264226cb06af3b86299031884175155e67a02e0a8ad0b3ab3a88b409a8c09d5c/effects{?cursor,limit,order}",
+      "href": "https://aurora-testnet.diamnet.org/transactions/264226cb06af3b86299031884175155e67a02e0a8ad0b3ab3a88b409a8c09d5c/effects{?cursor,limit,order}",
       "templated": true
     },
     "precedes": {
-      "href": "https://aurora-testnet.hcnet.org/transactions?order=asc&cursor=2994111896358912"
+      "href": "https://aurora-testnet.diamnet.org/transactions?order=asc&cursor=2994111896358912"
     },
     "succeeds": {
-      "href": "https://aurora-testnet.hcnet.org/transactions?order=desc&cursor=2994111896358912"
+      "href": "https://aurora-testnet.diamnet.org/transactions?order=desc&cursor=2994111896358912"
     }
   },
   "id": "264226cb06af3b86299031884175155e67a02e0a8ad0b3ab3a88b409a8c09d5c",

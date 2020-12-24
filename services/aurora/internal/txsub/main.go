@@ -5,13 +5,13 @@ import (
 
 	"context"
 
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/xdr"
 )
 
 // ResultProvider represents an abstract store that can lookup Result objects
 // by transaction hash or by [address,sequence] pairs.  A ResultProvider is
 // used within the transaction submission system to decide whether a submission should
-// be submitted to the backing hcnet-core process, as well as looking up the status
+// be submitted to the backing diamnet-core process, as well as looking up the status
 // of each transaction in the open submission list at each tick (i.e. ledger close)
 type ResultProvider interface {
 	// Look up a result by transaction hash
@@ -54,10 +54,10 @@ type OpenSubmissionList interface {
 	Pending(context.Context) []string
 }
 
-// Submitter represents the low-level "submit a transaction to hcnet-core"
+// Submitter represents the low-level "submit a transaction to diamnet-core"
 // provider.
 type Submitter interface {
-	// Submit sends the provided transaction envelope to hcnet-core
+	// Submit sends the provided transaction envelope to diamnet-core
 	Submit(context.Context, string) SubmissionResult
 }
 
@@ -89,7 +89,7 @@ type Result struct {
 
 // SubmissionResult gets returned in response to a call to Submitter.Submit.
 // It represents a single discrete submission of a transaction envelope to
-// the hcnet network.
+// the diamnet network.
 type SubmissionResult struct {
 	// Any error that occurred during the attempted submission.  A nil value
 	// indicates that the submission will or already is being considered for
@@ -97,7 +97,7 @@ type SubmissionResult struct {
 	Err error
 
 	// Duration records the time it took to submit a transaction
-	// to hcnet-core
+	// to diamnet-core
 	Duration time.Duration
 }
 

@@ -7,8 +7,8 @@ import (
 	"net/url"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/hcnet/go/protocols/compliance"
-	"github.com/hcnet/go/services/internal/bridge-compliance-shared/http/helpers"
+	"github.com/diamnet/go/protocols/compliance"
+	"github.com/diamnet/go/services/internal/bridge-compliance-shared/http/helpers"
 )
 
 // HandlerTxStatus implements /tx_status endpoint

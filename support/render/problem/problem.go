@@ -7,12 +7,12 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/support/log"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/support/log"
 )
 
 var (
-	ServiceHost     = "https://hcnet.org/aurora-errors/"
+	ServiceHost     = "https://diamnet.org/aurora-errors/"
 	errToProblemMap = map[error]P{}
 )
 
@@ -25,7 +25,7 @@ var (
 		Detail: "An error occurred while processing this request.  This is usually due " +
 			"to a bug within the server software.  Trying this request again may " +
 			"succeed if the bug is transient, otherwise please report this issue " +
-			"to the issue tracker at: https://github.com/hcnet/go/issues." +
+			"to the issue tracker at: https://github.com/diamnet/go/issues." +
 			" Please include this response in your issue.",
 	}
 
@@ -79,7 +79,7 @@ func RegisterError(err error, p P) {
 // RegisterHost registers the service host url. It is used to prepend the host
 // url to the error type. If you don't wish to prepend anything to the error
 // type, register host as an empty string.
-// The default service host points to `https://hcnet.org/aurora-errors/`.
+// The default service host points to `https://diamnet.org/aurora-errors/`.
 func RegisterHost(host string) {
 	ServiceHost = host
 }

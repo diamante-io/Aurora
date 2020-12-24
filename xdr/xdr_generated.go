@@ -2,12 +2,12 @@
 //lint:file-ignore U1000 fmtTest is not needed anywhere, should be removed in xdrgen.
 // Package xdr is generated from:
 //
-//  HcNet-SCP.x
-//  HcNet-ledger-entries.x
-//  HcNet-ledger.x
-//  HcNet-overlay.x
-//  HcNet-transaction.x
-//  HcNet-types.x
+//  DiamNet-SCP.x
+//  DiamNet-ledger-entries.x
+//  DiamNet-ledger.x
+//  DiamNet-overlay.x
+//  DiamNet-transaction.x
+//  DiamNet-types.x
 //
 // DO NOT EDIT or your changes may be overwritten
 package xdr
@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/hcnet/go-xdr/xdr3"
+	"github.com/swetakedia/go-xdr/xdr3"
 )
 
 // Unmarshal reads an xdr element from `r` into `v`.
@@ -2621,55 +2621,55 @@ var (
 	_ encoding.BinaryUnmarshaler = (*UpgradeType)(nil)
 )
 
-// HcNetValueType is an XDR Enum defines as:
+// DiamNetValueType is an XDR Enum defines as:
 //
-//   enum HcNetValueType
+//   enum DiamNetValueType
 //    {
 //        HCNET_VALUE_BASIC = 0,
 //        HCNET_VALUE_SIGNED = 1
 //    };
 //
-type HcNetValueType int32
+type DiamNetValueType int32
 
 const (
-	HcNetValueTypeHcNetValueBasic  HcNetValueType = 0
-	HcNetValueTypeHcNetValueSigned HcNetValueType = 1
+	DiamNetValueTypeDiamNetValueBasic  DiamNetValueType = 0
+	DiamNetValueTypeDiamNetValueSigned DiamNetValueType = 1
 )
 
-var hcnetValueTypeMap = map[int32]string{
-	0: "HcNetValueTypeHcNetValueBasic",
-	1: "HcNetValueTypeHcNetValueSigned",
+var diamnetValueTypeMap = map[int32]string{
+	0: "DiamNetValueTypeDiamNetValueBasic",
+	1: "DiamNetValueTypeDiamNetValueSigned",
 }
 
 // ValidEnum validates a proposed value for this enum.  Implements
-// the Enum interface for HcNetValueType
-func (e HcNetValueType) ValidEnum(v int32) bool {
-	_, ok := hcnetValueTypeMap[v]
+// the Enum interface for DiamNetValueType
+func (e DiamNetValueType) ValidEnum(v int32) bool {
+	_, ok := diamnetValueTypeMap[v]
 	return ok
 }
 
 // String returns the name of `e`
-func (e HcNetValueType) String() string {
-	name, _ := hcnetValueTypeMap[int32(e)]
+func (e DiamNetValueType) String() string {
+	name, _ := diamnetValueTypeMap[int32(e)]
 	return name
 }
 
 // MarshalBinary implements encoding.BinaryMarshaler.
-func (s HcNetValueType) MarshalBinary() ([]byte, error) {
+func (s DiamNetValueType) MarshalBinary() ([]byte, error) {
 	b := new(bytes.Buffer)
 	_, err := Marshal(b, s)
 	return b.Bytes(), err
 }
 
 // UnmarshalBinary implements encoding.BinaryUnmarshaler.
-func (s *HcNetValueType) UnmarshalBinary(inp []byte) error {
+func (s *DiamNetValueType) UnmarshalBinary(inp []byte) error {
 	_, err := Unmarshal(bytes.NewReader(inp), s)
 	return err
 }
 
 var (
-	_ encoding.BinaryMarshaler   = (*HcNetValueType)(nil)
-	_ encoding.BinaryUnmarshaler = (*HcNetValueType)(nil)
+	_ encoding.BinaryMarshaler   = (*DiamNetValueType)(nil)
+	_ encoding.BinaryUnmarshaler = (*DiamNetValueType)(nil)
 )
 
 // LedgerCloseValueSignature is an XDR Struct defines as:
@@ -2703,7 +2703,7 @@ var (
 	_ encoding.BinaryUnmarshaler = (*LedgerCloseValueSignature)(nil)
 )
 
-// HcNetValueExt is an XDR NestedUnion defines as:
+// DiamNetValueExt is an XDR NestedUnion defines as:
 //
 //   union switch (int v)
 //        {
@@ -2713,36 +2713,36 @@ var (
 //            LedgerCloseValueSignature lcValueSignature;
 //        }
 //
-type HcNetValueExt struct {
+type DiamNetValueExt struct {
 	V                int32
 	LcValueSignature *LedgerCloseValueSignature
 }
 
 // SwitchFieldName returns the field name in which this union's
 // discriminant is stored
-func (u HcNetValueExt) SwitchFieldName() string {
+func (u DiamNetValueExt) SwitchFieldName() string {
 	return "V"
 }
 
 // ArmForSwitch returns which field name should be used for storing
-// the value for an instance of HcNetValueExt
-func (u HcNetValueExt) ArmForSwitch(sw int32) (string, bool) {
+// the value for an instance of DiamNetValueExt
+func (u DiamNetValueExt) ArmForSwitch(sw int32) (string, bool) {
 	switch int32(sw) {
-	case int32(HcNetValueTypeHcNetValueBasic):
+	case int32(DiamNetValueTypeDiamNetValueBasic):
 		return "", true
-	case int32(HcNetValueTypeHcNetValueSigned):
+	case int32(DiamNetValueTypeDiamNetValueSigned):
 		return "LcValueSignature", true
 	}
 	return "-", false
 }
 
-// NewHcNetValueExt creates a new  HcNetValueExt.
-func NewHcNetValueExt(v int32, value interface{}) (result HcNetValueExt, err error) {
+// NewDiamNetValueExt creates a new  DiamNetValueExt.
+func NewDiamNetValueExt(v int32, value interface{}) (result DiamNetValueExt, err error) {
 	result.V = v
 	switch int32(v) {
-	case int32(HcNetValueTypeHcNetValueBasic):
+	case int32(DiamNetValueTypeDiamNetValueBasic):
 		// void
-	case int32(HcNetValueTypeHcNetValueSigned):
+	case int32(DiamNetValueTypeDiamNetValueSigned):
 		tv, ok := value.(LedgerCloseValueSignature)
 		if !ok {
 			err = fmt.Errorf("invalid value, must be LedgerCloseValueSignature")
@@ -2755,7 +2755,7 @@ func NewHcNetValueExt(v int32, value interface{}) (result HcNetValueExt, err err
 
 // MustLcValueSignature retrieves the LcValueSignature value from the union,
 // panicing if the value is not set.
-func (u HcNetValueExt) MustLcValueSignature() LedgerCloseValueSignature {
+func (u DiamNetValueExt) MustLcValueSignature() LedgerCloseValueSignature {
 	val, ok := u.GetLcValueSignature()
 
 	if !ok {
@@ -2767,7 +2767,7 @@ func (u HcNetValueExt) MustLcValueSignature() LedgerCloseValueSignature {
 
 // GetLcValueSignature retrieves the LcValueSignature value from the union,
 // returning ok if the union's switch indicated the value is valid.
-func (u HcNetValueExt) GetLcValueSignature() (result LedgerCloseValueSignature, ok bool) {
+func (u DiamNetValueExt) GetLcValueSignature() (result LedgerCloseValueSignature, ok bool) {
 	armName, _ := u.ArmForSwitch(int32(u.V))
 
 	if armName == "LcValueSignature" {
@@ -2779,26 +2779,26 @@ func (u HcNetValueExt) GetLcValueSignature() (result LedgerCloseValueSignature, 
 }
 
 // MarshalBinary implements encoding.BinaryMarshaler.
-func (s HcNetValueExt) MarshalBinary() ([]byte, error) {
+func (s DiamNetValueExt) MarshalBinary() ([]byte, error) {
 	b := new(bytes.Buffer)
 	_, err := Marshal(b, s)
 	return b.Bytes(), err
 }
 
 // UnmarshalBinary implements encoding.BinaryUnmarshaler.
-func (s *HcNetValueExt) UnmarshalBinary(inp []byte) error {
+func (s *DiamNetValueExt) UnmarshalBinary(inp []byte) error {
 	_, err := Unmarshal(bytes.NewReader(inp), s)
 	return err
 }
 
 var (
-	_ encoding.BinaryMarshaler   = (*HcNetValueExt)(nil)
-	_ encoding.BinaryUnmarshaler = (*HcNetValueExt)(nil)
+	_ encoding.BinaryMarshaler   = (*DiamNetValueExt)(nil)
+	_ encoding.BinaryUnmarshaler = (*DiamNetValueExt)(nil)
 )
 
-// HcNetValue is an XDR Struct defines as:
+// DiamNetValue is an XDR Struct defines as:
 //
-//   struct HcNetValue
+//   struct DiamNetValue
 //    {
 //        Hash txSetHash;      // transaction set to apply to previous ledger
 //        TimePoint closeTime; // network close time
@@ -2821,29 +2821,29 @@ var (
 //        ext;
 //    };
 //
-type HcNetValue struct {
+type DiamNetValue struct {
 	TxSetHash Hash
 	CloseTime TimePoint
 	Upgrades  []UpgradeType `xdrmaxsize:"6"`
-	Ext       HcNetValueExt
+	Ext       DiamNetValueExt
 }
 
 // MarshalBinary implements encoding.BinaryMarshaler.
-func (s HcNetValue) MarshalBinary() ([]byte, error) {
+func (s DiamNetValue) MarshalBinary() ([]byte, error) {
 	b := new(bytes.Buffer)
 	_, err := Marshal(b, s)
 	return b.Bytes(), err
 }
 
 // UnmarshalBinary implements encoding.BinaryUnmarshaler.
-func (s *HcNetValue) UnmarshalBinary(inp []byte) error {
+func (s *DiamNetValue) UnmarshalBinary(inp []byte) error {
 	_, err := Unmarshal(bytes.NewReader(inp), s)
 	return err
 }
 
 var (
-	_ encoding.BinaryMarshaler   = (*HcNetValue)(nil)
-	_ encoding.BinaryUnmarshaler = (*HcNetValue)(nil)
+	_ encoding.BinaryMarshaler   = (*DiamNetValue)(nil)
+	_ encoding.BinaryUnmarshaler = (*DiamNetValue)(nil)
 )
 
 // LedgerHeaderExt is an XDR NestedUnion defines as:
@@ -2908,7 +2908,7 @@ var (
 //    {
 //        uint32 ledgerVersion;    // the protocol version of the ledger
 //        Hash previousLedgerHash; // hash of the previous ledger header
-//        HcNetValue scpValue;   // what consensus agreed to
+//        DiamNetValue scpValue;   // what consensus agreed to
 //        Hash txSetResultHash;    // the TransactionResultSet that led to this ledger
 //        Hash bucketListHash;     // hash of the ledger state
 //
@@ -2945,7 +2945,7 @@ var (
 type LedgerHeader struct {
 	LedgerVersion      Uint32
 	PreviousLedgerHash Hash
-	ScpValue           HcNetValue
+	ScpValue           DiamNetValue
 	TxSetResultHash    Hash
 	BucketListHash     Hash
 	LedgerSeq          Uint32
@@ -5425,9 +5425,9 @@ var (
 	_ encoding.BinaryUnmarshaler = (*DontHave)(nil)
 )
 
-// HcNetMessage is an XDR Union defines as:
+// DiamNetMessage is an XDR Union defines as:
 //
-//   union HcNetMessage switch (MessageType type)
+//   union DiamNetMessage switch (MessageType type)
 //    {
 //    case ERROR_MSG:
 //        Error error;
@@ -5461,7 +5461,7 @@ var (
 //        uint32 getSCPLedgerSeq; // ledger seq requested ; if 0, requests the latest
 //    };
 //
-type HcNetMessage struct {
+type DiamNetMessage struct {
 	Type            MessageType
 	Error           *Error
 	Hello           *Hello
@@ -5479,13 +5479,13 @@ type HcNetMessage struct {
 
 // SwitchFieldName returns the field name in which this union's
 // discriminant is stored
-func (u HcNetMessage) SwitchFieldName() string {
+func (u DiamNetMessage) SwitchFieldName() string {
 	return "Type"
 }
 
 // ArmForSwitch returns which field name should be used for storing
-// the value for an instance of HcNetMessage
-func (u HcNetMessage) ArmForSwitch(sw int32) (string, bool) {
+// the value for an instance of DiamNetMessage
+func (u DiamNetMessage) ArmForSwitch(sw int32) (string, bool) {
 	switch MessageType(sw) {
 	case MessageTypeErrorMsg:
 		return "Error", true
@@ -5517,8 +5517,8 @@ func (u HcNetMessage) ArmForSwitch(sw int32) (string, bool) {
 	return "-", false
 }
 
-// NewHcNetMessage creates a new  HcNetMessage.
-func NewHcNetMessage(aType MessageType, value interface{}) (result HcNetMessage, err error) {
+// NewDiamNetMessage creates a new  DiamNetMessage.
+func NewDiamNetMessage(aType MessageType, value interface{}) (result DiamNetMessage, err error) {
 	result.Type = aType
 	switch MessageType(aType) {
 	case MessageTypeErrorMsg:
@@ -5613,7 +5613,7 @@ func NewHcNetMessage(aType MessageType, value interface{}) (result HcNetMessage,
 
 // MustError retrieves the Error value from the union,
 // panicing if the value is not set.
-func (u HcNetMessage) MustError() Error {
+func (u DiamNetMessage) MustError() Error {
 	val, ok := u.GetError()
 
 	if !ok {
@@ -5625,7 +5625,7 @@ func (u HcNetMessage) MustError() Error {
 
 // GetError retrieves the Error value from the union,
 // returning ok if the union's switch indicated the value is valid.
-func (u HcNetMessage) GetError() (result Error, ok bool) {
+func (u DiamNetMessage) GetError() (result Error, ok bool) {
 	armName, _ := u.ArmForSwitch(int32(u.Type))
 
 	if armName == "Error" {
@@ -5638,7 +5638,7 @@ func (u HcNetMessage) GetError() (result Error, ok bool) {
 
 // MustHello retrieves the Hello value from the union,
 // panicing if the value is not set.
-func (u HcNetMessage) MustHello() Hello {
+func (u DiamNetMessage) MustHello() Hello {
 	val, ok := u.GetHello()
 
 	if !ok {
@@ -5650,7 +5650,7 @@ func (u HcNetMessage) MustHello() Hello {
 
 // GetHello retrieves the Hello value from the union,
 // returning ok if the union's switch indicated the value is valid.
-func (u HcNetMessage) GetHello() (result Hello, ok bool) {
+func (u DiamNetMessage) GetHello() (result Hello, ok bool) {
 	armName, _ := u.ArmForSwitch(int32(u.Type))
 
 	if armName == "Hello" {
@@ -5663,7 +5663,7 @@ func (u HcNetMessage) GetHello() (result Hello, ok bool) {
 
 // MustAuth retrieves the Auth value from the union,
 // panicing if the value is not set.
-func (u HcNetMessage) MustAuth() Auth {
+func (u DiamNetMessage) MustAuth() Auth {
 	val, ok := u.GetAuth()
 
 	if !ok {
@@ -5675,7 +5675,7 @@ func (u HcNetMessage) MustAuth() Auth {
 
 // GetAuth retrieves the Auth value from the union,
 // returning ok if the union's switch indicated the value is valid.
-func (u HcNetMessage) GetAuth() (result Auth, ok bool) {
+func (u DiamNetMessage) GetAuth() (result Auth, ok bool) {
 	armName, _ := u.ArmForSwitch(int32(u.Type))
 
 	if armName == "Auth" {
@@ -5688,7 +5688,7 @@ func (u HcNetMessage) GetAuth() (result Auth, ok bool) {
 
 // MustDontHave retrieves the DontHave value from the union,
 // panicing if the value is not set.
-func (u HcNetMessage) MustDontHave() DontHave {
+func (u DiamNetMessage) MustDontHave() DontHave {
 	val, ok := u.GetDontHave()
 
 	if !ok {
@@ -5700,7 +5700,7 @@ func (u HcNetMessage) MustDontHave() DontHave {
 
 // GetDontHave retrieves the DontHave value from the union,
 // returning ok if the union's switch indicated the value is valid.
-func (u HcNetMessage) GetDontHave() (result DontHave, ok bool) {
+func (u DiamNetMessage) GetDontHave() (result DontHave, ok bool) {
 	armName, _ := u.ArmForSwitch(int32(u.Type))
 
 	if armName == "DontHave" {
@@ -5713,7 +5713,7 @@ func (u HcNetMessage) GetDontHave() (result DontHave, ok bool) {
 
 // MustPeers retrieves the Peers value from the union,
 // panicing if the value is not set.
-func (u HcNetMessage) MustPeers() []PeerAddress {
+func (u DiamNetMessage) MustPeers() []PeerAddress {
 	val, ok := u.GetPeers()
 
 	if !ok {
@@ -5725,7 +5725,7 @@ func (u HcNetMessage) MustPeers() []PeerAddress {
 
 // GetPeers retrieves the Peers value from the union,
 // returning ok if the union's switch indicated the value is valid.
-func (u HcNetMessage) GetPeers() (result []PeerAddress, ok bool) {
+func (u DiamNetMessage) GetPeers() (result []PeerAddress, ok bool) {
 	armName, _ := u.ArmForSwitch(int32(u.Type))
 
 	if armName == "Peers" {
@@ -5738,7 +5738,7 @@ func (u HcNetMessage) GetPeers() (result []PeerAddress, ok bool) {
 
 // MustTxSetHash retrieves the TxSetHash value from the union,
 // panicing if the value is not set.
-func (u HcNetMessage) MustTxSetHash() Uint256 {
+func (u DiamNetMessage) MustTxSetHash() Uint256 {
 	val, ok := u.GetTxSetHash()
 
 	if !ok {
@@ -5750,7 +5750,7 @@ func (u HcNetMessage) MustTxSetHash() Uint256 {
 
 // GetTxSetHash retrieves the TxSetHash value from the union,
 // returning ok if the union's switch indicated the value is valid.
-func (u HcNetMessage) GetTxSetHash() (result Uint256, ok bool) {
+func (u DiamNetMessage) GetTxSetHash() (result Uint256, ok bool) {
 	armName, _ := u.ArmForSwitch(int32(u.Type))
 
 	if armName == "TxSetHash" {
@@ -5763,7 +5763,7 @@ func (u HcNetMessage) GetTxSetHash() (result Uint256, ok bool) {
 
 // MustTxSet retrieves the TxSet value from the union,
 // panicing if the value is not set.
-func (u HcNetMessage) MustTxSet() TransactionSet {
+func (u DiamNetMessage) MustTxSet() TransactionSet {
 	val, ok := u.GetTxSet()
 
 	if !ok {
@@ -5775,7 +5775,7 @@ func (u HcNetMessage) MustTxSet() TransactionSet {
 
 // GetTxSet retrieves the TxSet value from the union,
 // returning ok if the union's switch indicated the value is valid.
-func (u HcNetMessage) GetTxSet() (result TransactionSet, ok bool) {
+func (u DiamNetMessage) GetTxSet() (result TransactionSet, ok bool) {
 	armName, _ := u.ArmForSwitch(int32(u.Type))
 
 	if armName == "TxSet" {
@@ -5788,7 +5788,7 @@ func (u HcNetMessage) GetTxSet() (result TransactionSet, ok bool) {
 
 // MustTransaction retrieves the Transaction value from the union,
 // panicing if the value is not set.
-func (u HcNetMessage) MustTransaction() TransactionEnvelope {
+func (u DiamNetMessage) MustTransaction() TransactionEnvelope {
 	val, ok := u.GetTransaction()
 
 	if !ok {
@@ -5800,7 +5800,7 @@ func (u HcNetMessage) MustTransaction() TransactionEnvelope {
 
 // GetTransaction retrieves the Transaction value from the union,
 // returning ok if the union's switch indicated the value is valid.
-func (u HcNetMessage) GetTransaction() (result TransactionEnvelope, ok bool) {
+func (u DiamNetMessage) GetTransaction() (result TransactionEnvelope, ok bool) {
 	armName, _ := u.ArmForSwitch(int32(u.Type))
 
 	if armName == "Transaction" {
@@ -5813,7 +5813,7 @@ func (u HcNetMessage) GetTransaction() (result TransactionEnvelope, ok bool) {
 
 // MustQSetHash retrieves the QSetHash value from the union,
 // panicing if the value is not set.
-func (u HcNetMessage) MustQSetHash() Uint256 {
+func (u DiamNetMessage) MustQSetHash() Uint256 {
 	val, ok := u.GetQSetHash()
 
 	if !ok {
@@ -5825,7 +5825,7 @@ func (u HcNetMessage) MustQSetHash() Uint256 {
 
 // GetQSetHash retrieves the QSetHash value from the union,
 // returning ok if the union's switch indicated the value is valid.
-func (u HcNetMessage) GetQSetHash() (result Uint256, ok bool) {
+func (u DiamNetMessage) GetQSetHash() (result Uint256, ok bool) {
 	armName, _ := u.ArmForSwitch(int32(u.Type))
 
 	if armName == "QSetHash" {
@@ -5838,7 +5838,7 @@ func (u HcNetMessage) GetQSetHash() (result Uint256, ok bool) {
 
 // MustQSet retrieves the QSet value from the union,
 // panicing if the value is not set.
-func (u HcNetMessage) MustQSet() ScpQuorumSet {
+func (u DiamNetMessage) MustQSet() ScpQuorumSet {
 	val, ok := u.GetQSet()
 
 	if !ok {
@@ -5850,7 +5850,7 @@ func (u HcNetMessage) MustQSet() ScpQuorumSet {
 
 // GetQSet retrieves the QSet value from the union,
 // returning ok if the union's switch indicated the value is valid.
-func (u HcNetMessage) GetQSet() (result ScpQuorumSet, ok bool) {
+func (u DiamNetMessage) GetQSet() (result ScpQuorumSet, ok bool) {
 	armName, _ := u.ArmForSwitch(int32(u.Type))
 
 	if armName == "QSet" {
@@ -5863,7 +5863,7 @@ func (u HcNetMessage) GetQSet() (result ScpQuorumSet, ok bool) {
 
 // MustEnvelope retrieves the Envelope value from the union,
 // panicing if the value is not set.
-func (u HcNetMessage) MustEnvelope() ScpEnvelope {
+func (u DiamNetMessage) MustEnvelope() ScpEnvelope {
 	val, ok := u.GetEnvelope()
 
 	if !ok {
@@ -5875,7 +5875,7 @@ func (u HcNetMessage) MustEnvelope() ScpEnvelope {
 
 // GetEnvelope retrieves the Envelope value from the union,
 // returning ok if the union's switch indicated the value is valid.
-func (u HcNetMessage) GetEnvelope() (result ScpEnvelope, ok bool) {
+func (u DiamNetMessage) GetEnvelope() (result ScpEnvelope, ok bool) {
 	armName, _ := u.ArmForSwitch(int32(u.Type))
 
 	if armName == "Envelope" {
@@ -5888,7 +5888,7 @@ func (u HcNetMessage) GetEnvelope() (result ScpEnvelope, ok bool) {
 
 // MustGetScpLedgerSeq retrieves the GetScpLedgerSeq value from the union,
 // panicing if the value is not set.
-func (u HcNetMessage) MustGetScpLedgerSeq() Uint32 {
+func (u DiamNetMessage) MustGetScpLedgerSeq() Uint32 {
 	val, ok := u.GetGetScpLedgerSeq()
 
 	if !ok {
@@ -5900,7 +5900,7 @@ func (u HcNetMessage) MustGetScpLedgerSeq() Uint32 {
 
 // GetGetScpLedgerSeq retrieves the GetScpLedgerSeq value from the union,
 // returning ok if the union's switch indicated the value is valid.
-func (u HcNetMessage) GetGetScpLedgerSeq() (result Uint32, ok bool) {
+func (u DiamNetMessage) GetGetScpLedgerSeq() (result Uint32, ok bool) {
 	armName, _ := u.ArmForSwitch(int32(u.Type))
 
 	if armName == "GetScpLedgerSeq" {
@@ -5912,21 +5912,21 @@ func (u HcNetMessage) GetGetScpLedgerSeq() (result Uint32, ok bool) {
 }
 
 // MarshalBinary implements encoding.BinaryMarshaler.
-func (s HcNetMessage) MarshalBinary() ([]byte, error) {
+func (s DiamNetMessage) MarshalBinary() ([]byte, error) {
 	b := new(bytes.Buffer)
 	_, err := Marshal(b, s)
 	return b.Bytes(), err
 }
 
 // UnmarshalBinary implements encoding.BinaryUnmarshaler.
-func (s *HcNetMessage) UnmarshalBinary(inp []byte) error {
+func (s *DiamNetMessage) UnmarshalBinary(inp []byte) error {
 	_, err := Unmarshal(bytes.NewReader(inp), s)
 	return err
 }
 
 var (
-	_ encoding.BinaryMarshaler   = (*HcNetMessage)(nil)
-	_ encoding.BinaryUnmarshaler = (*HcNetMessage)(nil)
+	_ encoding.BinaryMarshaler   = (*DiamNetMessage)(nil)
+	_ encoding.BinaryUnmarshaler = (*DiamNetMessage)(nil)
 )
 
 // AuthenticatedMessageV0 is an XDR NestedStruct defines as:
@@ -5934,13 +5934,13 @@ var (
 //   struct
 //    {
 //       uint64 sequence;
-//       HcNetMessage message;
+//       DiamNetMessage message;
 //       HmacSha256Mac mac;
 //        }
 //
 type AuthenticatedMessageV0 struct {
 	Sequence Uint64
-	Message  HcNetMessage
+	Message  DiamNetMessage
 	Mac      HmacSha256Mac
 }
 
@@ -5970,7 +5970,7 @@ var (
 //        struct
 //    {
 //       uint64 sequence;
-//       HcNetMessage message;
+//       DiamNetMessage message;
 //       HmacSha256Mac mac;
 //        } v0;
 //    };

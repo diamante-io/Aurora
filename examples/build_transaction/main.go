@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 
-	b "github.com/hcnet/go/build"
-	"github.com/hcnet/go/clients/aurora"
-	"github.com/hcnet/go/network"
+	b "github.com/diamnet/go/build"
+	"github.com/diamnet/go/clients/aurora"
+	"github.com/diamnet/go/network"
 )
 
 func main() {

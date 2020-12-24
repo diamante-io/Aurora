@@ -5,7 +5,7 @@ import (
 
 	"github.com/lib/pq"
 	"github.com/spf13/cobra"
-	"github.com/hcnet/go/services/ticker/internal/tickerdb"
+	"github.com/diamnet/go/services/ticker/internal/tickerdb"
 )
 
 var DaysToKeep int

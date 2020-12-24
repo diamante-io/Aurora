@@ -1,10 +1,10 @@
 package bridge
 
 import (
-	"github.com/hcnet/go/amount"
-	shared "github.com/hcnet/go/services/internal/bridge-compliance-shared"
-	"github.com/hcnet/go/services/internal/bridge-compliance-shared/http/helpers"
-	"github.com/hcnet/go/txnbuild"
+	"github.com/diamnet/go/amount"
+	shared "github.com/diamnet/go/services/internal/bridge-compliance-shared"
+	"github.com/diamnet/go/services/internal/bridge-compliance-shared/http/helpers"
+	"github.com/diamnet/go/txnbuild"
 )
 
 // CreateAccountOperationBody represents create_account operation

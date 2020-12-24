@@ -1,7 +1,7 @@
 package txnbuild
 
 import (
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/xdr"
 )
 
 // SimpleAccount is a minimal implementation of an Account.

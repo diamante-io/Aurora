@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	protocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/services/aurora/internal/db2/core"
-	"github.com/hcnet/go/services/aurora/internal/httpx"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/support/render/hal"
+	protocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/services/aurora/internal/db2/core"
+	"github.com/diamnet/go/services/aurora/internal/httpx"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/support/render/hal"
 )
 
 // PopulateAccount fills out the resource's fields

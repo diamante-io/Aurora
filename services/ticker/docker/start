@@ -2,7 +2,7 @@
 set -e
 
 
-export HCNET_HOME="/opt/hcnet"
+export HCNET_HOME="/opt/diamnet"
 export HCNET_BIN="$HCNET_HOME/bin"
 export CONF_HOME="$HCNET_HOME/conf"
 export WWW_HOME="$HCNET_HOME/www"
@@ -10,7 +10,7 @@ export WWW_HOME="$HCNET_HOME/www"
 export PGHOME="$HCNET_HOME/postgresql"
 export PGBIN="/usr/lib/postgresql/9.5/bin"
 export PGDATA="$PGHOME/data"
-export PGUSER="hcnet"
+export PGUSER="diamnet"
 export PGDB="ticker"
 export PGURL="postgres://127.0.0.1:5432/$PGDB"
 
@@ -41,7 +41,7 @@ function migrate_db() {
 	echo ""
 	echo "Upgrading database to latest version"
 	echo ""
-	sudo -u hcnet $HCNET_BIN/ticker migrate --db-url=$PGURL
+	sudo -u diamnet $HCNET_BIN/ticker migrate --db-url=$PGURL
 }
 
 
@@ -53,7 +53,7 @@ function populate_assets() {
 	echo ""
 	echo "Populating initial asset database"
 	echo ""
-	sudo -u hcnet $HCNET_BIN/ticker ingest assets --db-url=$PGURL
+	sudo -u diamnet $HCNET_BIN/ticker ingest assets --db-url=$PGURL
 	touch $PGHOME/.assets-populated
 }
 
@@ -66,7 +66,7 @@ function populate_trades() {
 	echo ""
 	echo "Populating initial trade database"
 	echo ""
-	sudo -u hcnet $HCNET_BIN/ticker ingest trades --db-url=$PGURL
+	sudo -u diamnet $HCNET_BIN/ticker ingest trades --db-url=$PGURL
 	touch $PGHOME/.trades-populated
 }
 
@@ -79,7 +79,7 @@ function populate_orderbooks() {
 	echo ""
 	echo "Populating initial orderbook database"
 	echo ""
-	sudo -u hcnet $HCNET_BIN/ticker ingest orderbooks --db-url=$PGURL
+	sudo -u diamnet $HCNET_BIN/ticker ingest orderbooks --db-url=$PGURL
 	touch $PGHOME/.orderbooks-populated
 }
 
@@ -92,7 +92,7 @@ function generate_assets_file() {
 	echo ""
 	echo "Creating assets.json file"
 	echo ""
-	sudo -u hcnet $HCNET_BIN/ticker generate asset-data --db-url=$PGURL -o $WWW_HOME/assets.json
+	sudo -u diamnet $HCNET_BIN/ticker generate asset-data --db-url=$PGURL -o $WWW_HOME/assets.json
 }
 
 
@@ -104,7 +104,7 @@ function generate_markets_file() {
 	echo ""
 	echo "Creating markets.json file"
 	echo ""
-	sudo -u hcnet $HCNET_BIN/ticker generate market-data --db-url=$PGURL -o $WWW_HOME/markets.json
+	sudo -u diamnet $HCNET_BIN/ticker generate market-data --db-url=$PGURL -o $WWW_HOME/markets.json
 }
 
 
@@ -155,9 +155,9 @@ function set_pg_password() {
 
 
 function copy_pgpass() {
-	cp $PGHOME/.pgpass /home/hcnet
-	chmod 0600 /home/hcnet/.pgpass
-	chown hcnet:hcnet /home/hcnet/.pgpass
+	cp $PGHOME/.pgpass /home/diamnet
+	chmod 0600 /home/diamnet/.pgpass
+	chown diamnet:diamnet /home/diamnet/.pgpass
 }
 
 
@@ -184,7 +184,7 @@ function init_db() {
 
 	start_postgres
 	run_silent "create-ticker-db" sudo -u postgres createdb $PGDB
-	run_silent "hcnet-postgres-user" sudo -u postgres psql <<-SQL
+	run_silent "diamnet-postgres-user" sudo -u postgres psql <<-SQL
 		CREATE USER $PGUSER WITH PASSWORD '$PGPASS';
 		GRANT ALL PRIVILEGES ON DATABASE $PGDB to $PGUSER;
 	SQL

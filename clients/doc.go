@@ -1,3 +1,3 @@
 // Package clients contains sub-packages that provide client access to the
-// various hcnet services.
+// various diamnet services.
 package clients

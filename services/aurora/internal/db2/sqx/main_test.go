@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/hcnet/go/services/aurora/internal/test"
+	"github.com/diamnet/go/services/aurora/internal/test"
 )
 
 func TestStringArray(t *testing.T) {

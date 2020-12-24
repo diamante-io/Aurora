@@ -12,13 +12,13 @@
 // Xor constant to output CRC : 0000
 // Output for "123456789"     : 31C3
 //
-// ported from the c++ code in the hcnet-core codebase
-// (https://github.com/hcnet/hcnet-core).  The code is licensed
+// ported from the c++ code in the diamnet-core codebase
+// (https://github.com/diamnet/diamnet-core).  The code is licensed
 // as:
 /*
  * Copyright 2001-2010 Georges Menie (www.menie.org)
  * Copyright 2010-2012 Salvatore Sanfilippo (adapted to Redis coding style)
- * Copyright 2015 HcNet Development Foundation (ported to go)
+ * Copyright 2015 DiamNet Development Foundation (ported to go)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

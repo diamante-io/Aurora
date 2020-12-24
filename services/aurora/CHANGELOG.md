@@ -21,13 +21,13 @@ bumps.  A breaking change will get clearly notified in this log.
 
 ### Scheduled Breaking Changes
 
-* `fee_paid` field on Transaction resource has been deprecated and will be removed in 0.22.0. Please use new fields added in 0.18.0: `max_fee` that defines the maximum fee the source account is willing to pay and `fee_charged` that defines the fee that was actually paid for a transaction. See [CAP-0005](https://github.com/hcnet/hcnet-protocol/blob/master/core/cap-0005.md) for more information. This change has been previously scheduled for 0.19.0 release.
+* `fee_paid` field on Transaction resource has been deprecated and will be removed in 0.22.0. Please use new fields added in 0.18.0: `max_fee` that defines the maximum fee the source account is willing to pay and `fee_charged` that defines the fee that was actually paid for a transaction. See [CAP-0005](https://github.com/diamnet/diamnet-protocol/blob/master/core/cap-0005.md) for more information. This change has been previously scheduled for 0.19.0 release.
 * The following operation type names have been deprecated: `manage_offer` and `create_passive_offer`. The names will be changed to: `manage_sell_offer` and `create_passive_offer` in 0.22.0. This has been previously scheduled for 0.19.0 release.
 * The type for the following attributes will be changed from `int64` to `string` in 0.22.0:
-  - Attribute `offer_id` in [manage buy offer](https://www.hcnet.org/developers/aurora/reference/resources/operation.html#manage-buy-offer) and [manage sell offer](https://www.hcnet.org/developers/aurora/reference/resources/operation.html#manage-sell-offer) operations.
+  - Attribute `offer_id` in [manage buy offer](https://www.diamnet.org/developers/aurora/reference/resources/operation.html#manage-buy-offer) and [manage sell offer](https://www.diamnet.org/developers/aurora/reference/resources/operation.html#manage-sell-offer) operations.
   - Attribute `offer_id` in `Trade` effect.
-  - Attribute `id` in [Offer](https://www.hcnet.org/developers/aurora/reference/resources/offer.html) resource.
-  - Attribute `timestamp` and `trade_count` in [Trade Aggregation](https://www.hcnet.org/developers/aurora/reference/resources/trade_aggregation.html) resource.
+  - Attribute `id` in [Offer](https://www.diamnet.org/developers/aurora/reference/resources/offer.html) resource.
+  - Attribute `timestamp` and `trade_count` in [Trade Aggregation](https://www.diamnet.org/developers/aurora/reference/resources/trade_aggregation.html) resource.
 
 If you are an SDK maintainer, update your code to prepare for this change.
 
@@ -51,7 +51,7 @@ If you are an SDK maintainer, update your code to prepare for this change.
 
 ### Deprecations
 
-* `fee_paid` field on Transaction resource has been deprecated and will be removed in 0.19.0. Two new fields have been added: `max_fee` that defines the maximum fee the source account is willing to pay and `fee_charged` that defines the fee that was actually paid for a transaction. See [CAP-0005](https://github.com/hcnet/hcnet-protocol/blob/master/core/cap-0005.md) for more information.
+* `fee_paid` field on Transaction resource has been deprecated and will be removed in 0.19.0. Two new fields have been added: `max_fee` that defines the maximum fee the source account is willing to pay and `fee_charged` that defines the fee that was actually paid for a transaction. See [CAP-0005](https://github.com/diamnet/diamnet-protocol/blob/master/core/cap-0005.md) for more information.
 * The following operation type names have been deprecated: `manage_offer` and `create_passive_offer`. The names will be changed to: `manage_sell_offer` and `create_passive_offer` in 0.19.0.
 
 ### Changes
@@ -72,7 +72,7 @@ If you are an SDK maintainer, update your code to prepare for this change.
 
 ## v0.17.5 - 2019-04-24
 
-* Support for hcnet-core [v11.0.0](https://github.com/hcnet/hcnet-core/releases/tag/v11.0.0).
+* Support for diamnet-core [v11.0.0](https://github.com/diamnet/diamnet-core/releases/tag/v11.0.0).
 * Display trustline authorization state in the balances list.
 * Improved actions code.
 * Improved `aurora db reingest` command handling code.
@@ -80,7 +80,7 @@ If you are an SDK maintainer, update your code to prepare for this change.
 
 ## v0.17.4 - 2019-03-14
 
-* Support for HcNet-Core 10.3.0 (new database schema v9).
+* Support for DiamNet-Core 10.3.0 (new database schema v9).
 * Fix a bug in `aurora db reingest` command (no log output).
 * Multiple code improvements.
 
@@ -184,9 +184,9 @@ DB migrations add a new fields and indexes on `history_trades` table. This is a 
 This release contains several bug fixes and improvements:
 
 * New `/operation_fee_stats` endpoint includes fee stats for the last 5 ledgers.
-* ["Trades"](https://www.hcnet.org/developers/aurora/reference/endpoints/trades.html) endpoint can now be streamed.
-* In ["Trade Aggregations"](https://www.hcnet.org/developers/aurora/reference/endpoints/trade_aggregations.html) endpoint, `offset` parameter has been added.
-* Path finding bugs have been fixed and the algorithm has been improved. Check [#719](https://github.com/hcnet/go/pull/719) for more information.
+* ["Trades"](https://www.diamnet.org/developers/aurora/reference/endpoints/trades.html) endpoint can now be streamed.
+* In ["Trade Aggregations"](https://www.diamnet.org/developers/aurora/reference/endpoints/trade_aggregations.html) endpoint, `offset` parameter has been added.
+* Path finding bugs have been fixed and the algorithm has been improved. Check [#719](https://github.com/diamnet/go/pull/719) for more information.
 * Connections (including streams) are closed after timeout defined using `--connection-timeout` CLI param or `CONNECTION_TIMEOUT` environment variable. If Aurora is behind a load balancer with idle timeout set, it is recommended to set this to a value equal a few seconds less than idle timeout so streams can be properly closed by Aurora.
 * Streams have been improved to check for updates every `--sse-update-frequency` CLI param or `SSE_UPDATE_FREQUENCY` environment variable seconds. If a new ledger has been closed in this period, new events will be sent to a stream. Previously streams checked for new events every 1 second, even when there were no new ledgers.
 * Rate limiting algorithm has been changed to [GCRA](https://brandur.org/rate-limiting#gcra).
@@ -198,8 +198,8 @@ This release contains several bug fixes and improvements:
 ### Breaking changes
 
 * Assets stats are disabled by default. This can be changed using an environment variable (`ENABLE_ASSET_STATS=true`) or CLI parameter (`--enable-asset-stats=true`). Please note that it has a negative impact on a DB and ingestion time.
-* In ["Offers for Account"](https://www.hcnet.org/developers/aurora/reference/endpoints/offers-for-account.html), `last_modified_time` field  endpoint can be `null` when ledger data is not available (has not been ingested yet).
-* ["Trades for Offer"](https://www.hcnet.org/developers/aurora/reference/endpoints/trades-for-offer.html) endpoint will query for trades that match the given offer on either side of trades, rather than just the "sell" offer. Offer IDs are now [synthetic](https://www.hcnet.org/developers/aurora/reference/resources/trade.html#synthetic-offer-ids). You have to reingest history to update offer IDs.
+* In ["Offers for Account"](https://www.diamnet.org/developers/aurora/reference/endpoints/offers-for-account.html), `last_modified_time` field  endpoint can be `null` when ledger data is not available (has not been ingested yet).
+* ["Trades for Offer"](https://www.diamnet.org/developers/aurora/reference/endpoints/trades-for-offer.html) endpoint will query for trades that match the given offer on either side of trades, rather than just the "sell" offer. Offer IDs are now [synthetic](https://www.diamnet.org/developers/aurora/reference/resources/trade.html#synthetic-offer-ids). You have to reingest history to update offer IDs.
 
 ### Other bug fixes
 
@@ -220,7 +220,7 @@ This release contains several bug fixes and improvements:
 
 This release contains several bug fixes:
 
-* Assets stats can cause high CPU usage on hcnet-core DB. If this slows down the database it's now possible to turn off this feature by setting `DISABLE_ASSET_STATS` feature flag. This can be set as environment variable (`DISABLE_ASSET_STATS=true`) or CLI parameter (`--disable-asset-stats=true`).
+* Assets stats can cause high CPU usage on diamnet-core DB. If this slows down the database it's now possible to turn off this feature by setting `DISABLE_ASSET_STATS` feature flag. This can be set as environment variable (`DISABLE_ASSET_STATS=true`) or CLI parameter (`--disable-asset-stats=true`).
 * Sometimes `/accounts/{id}/offers` returns `500 Internal Server Error` response when ledger data is not available yet (for new ledgers) or no longer available (`CATCHUP_RECENT` deployments). It's possible to set `ALLOW_EMPTY_LEDGER_DATA_RESPONSES` feature flag as environment variable (`ALLOW_EMPTY_LEDGER_DATA_RESPONSES=true`) or CLI parameter (`--allow-empty-ledger-data-responses=true`). With the flag set to `true` "Offers for Account" endpoint will return `null` in `last_modified_time` field when ledger data is not available, instead of `500 Internal Server Error` error.
 
 ### Bug fixes
@@ -246,13 +246,13 @@ This release contains several bug fixes:
 ### Changes
 
 * Protocol V10 features:
-  * New `bump_sequence` operation (as in [CAP-0001](https://github.com/hcnet/hcnet-protocol/blob/master/core/cap-0001.md)).
-    * New [`bump_sequence`](https://www.hcnet.org/developers/aurora/reference/resources/operation.html#bump-sequence) operation.
+  * New `bump_sequence` operation (as in [CAP-0001](https://github.com/diamnet/diamnet-protocol/blob/master/core/cap-0001.md)).
+    * New [`bump_sequence`](https://www.diamnet.org/developers/aurora/reference/resources/operation.html#bump-sequence) operation.
     * New `sequence_bumped` effect.
-    * Please check [CAP-0001](https://github.com/hcnet/hcnet-protocol/blob/master/core/cap-0001.md) for new error codes for transaction submission.
-  * Offer liabilities (as in [CAP-0003](https://github.com/hcnet/hcnet-protocol/blob/master/core/cap-0003.md)):
+    * Please check [CAP-0001](https://github.com/diamnet/diamnet-protocol/blob/master/core/cap-0001.md) for new error codes for transaction submission.
+  * Offer liabilities (as in [CAP-0003](https://github.com/diamnet/diamnet-protocol/blob/master/core/cap-0003.md)):
     * `/accounts/{id}` resources contain new fields: `buying_liabilities` and `selling_liabilities` for each entry in `balances`.
-    * Please check [CAP-0003](https://github.com/hcnet/hcnet-protocol/blob/master/core/cap-0003.md) for new error codes for transaction submission.
+    * Please check [CAP-0003](https://github.com/diamnet/diamnet-protocol/blob/master/core/cap-0003.md) for new error codes for transaction submission.
 * Added `source_amount` field to `path_payment` operations.
 * Added `account_credited` and `account_debited` effects for `path_payment` operations.
 * Friendbot link in Root endpoint is empty if not set in configuration.
@@ -291,7 +291,7 @@ This release contains several bug fixes:
 
 ### Breaking changes
 
-- `amount` field in `/assets` is now a String (to support HcNet amounts larger than `int64`).
+- `amount` field in `/assets` is now a String (to support DiamNet amounts larger than `int64`).
 
 ### Changes
 
@@ -330,7 +330,7 @@ This release is a bug fix release for v0.12.0.  *Please see the upgrade notes be
 
 ### Bug fixes
 
-- Fixed an issue caused by un-migrated trade rows. (https://github.com/hcnet/go/issues/357)
+- Fixed an issue caused by un-migrated trade rows. (https://github.com/diamnet/go/issues/357)
 - Command line flags are now useable for subcommands of aurora.
 
 
@@ -350,14 +350,14 @@ Since this release changes both the schema and the data ingestion system, we rec
 ### Added
 
 - Operation and payment resources were changed to add `transaction_hash` and `created_at` properties.
-- The ledger resource was changed to add a `header_xdr` property.  Existing aurora installations should re-ingest all ledgers to populate the history database tables with the data.  In future versions of aurora we will disallow null values in this column.  Going forward, this change reduces the coupling of aurora to hcnet-core, ensuring that aurora can re-import history even when the data is no longer stored within hcnet-core's database.
+- The ledger resource was changed to add a `header_xdr` property.  Existing aurora installations should re-ingest all ledgers to populate the history database tables with the data.  In future versions of aurora we will disallow null values in this column.  Going forward, this change reduces the coupling of aurora to diamnet-core, ensuring that aurora can re-import history even when the data is no longer stored within diamnet-core's database.
 - All Assets endpoint (`/assets`) that returns a list of all the assets in the system along with some stats per asset. The filters allow you to narrow down to any specific asset of interest.
 - Trade Aggregations endpoint (`/trade_aggregations`) allow for efficient gathering of historical trade data. This is done by dividing a given time range into segments and aggregate statistics, for a given asset pair (`base`, `counter`) over each of these segments.
 
 ### Bug fixes
 
 - Ingestion performance and stability has been improved. 
-- Changes to an account's inflation destination no longer produce erroneous "signer_updated" effects. (https://github.com/hcnet/aurora/issues/390)
+- Changes to an account's inflation destination no longer produce erroneous "signer_updated" effects. (https://github.com/diamnet/aurora/issues/390)
 
 
 ### Changed
@@ -380,7 +380,7 @@ Since this release changes both the schema and the data ingestion system, we rec
 - The ingestion system can now properly import envelopes that contain signatures that are zero-length strings.
 - BREAKING CHANGE: specifying a `limit` of `0` now triggers an error instead of interpreting the value to mean "use the default limit".
 - Requests that ask for more records than the maximum page size now trigger a bad request error, instead of an internal server error.
-- Upstream bug fixes to xdr decoding from `github.com/hcnet/go`.
+- Upstream bug fixes to xdr decoding from `github.com/diamnet/go`.
 
 ### Changed
 
@@ -392,7 +392,7 @@ Since this release changes both the schema and the data ingestion system, we rec
 ## [v0.10.1] - 2017-03-29
 
 ### Fixed
-- Ingestion was fixed to protect against text memos that contain null bytes.  While memos with null bytes are legal in hcnet-core, PostgreSQL does not support such values in string columns.  Aurora now strips those null bytes to fix the issue. 
+- Ingestion was fixed to protect against text memos that contain null bytes.  While memos with null bytes are legal in diamnet-core, PostgreSQL does not support such values in string columns.  Aurora now strips those null bytes to fix the issue. 
 
 ## [v0.10.0] - 2017-03-20
 
@@ -417,12 +417,12 @@ This is a fix release for v0.9.0 and v0.9.1
 This release was retracted due to a bug discovered after release.
 
 ### Added
-- Aurora now exposes the hcnet network protocol in several places:  It shows the currently reported protocol version (as returned by the hcnet-core `info` command) on the root endpoint, and it reports the protocol version of each ledger resource.
+- Aurora now exposes the diamnet network protocol in several places:  It shows the currently reported protocol version (as returned by the diamnet-core `info` command) on the root endpoint, and it reports the protocol version of each ledger resource.
 - Trade resources now include a `created_at` timestamp.
 
 ### Fixed
 
-- BREAKING CHANGE: The reingestion process has been updated.  Prior versions of aurora would enter a failed state when a gap between the imported history and the hcnet-core database formed or when a previously imported ledger was no longer found in the hcnet-core database.  This usually occurs when running hcnet-core with the `CATCHUP_RECENT` config option.  With these changed, aurora will automatically trim "abandonded" ledgers: ledgers that are older than the core elder ledger.
+- BREAKING CHANGE: The reingestion process has been updated.  Prior versions of aurora would enter a failed state when a gap between the imported history and the diamnet-core database formed or when a previously imported ledger was no longer found in the diamnet-core database.  This usually occurs when running diamnet-core with the `CATCHUP_RECENT` config option.  With these changed, aurora will automatically trim "abandonded" ledgers: ledgers that are older than the core elder ledger.
 
 
 ## [v0.8.0] - 2017-02-07
@@ -474,14 +474,14 @@ This release was retracted due to a bug discovered after release.
 
 ## [v0.6.0] - 2016-07-20
 
-This release contains the initial implementation of the "Abridged History System".  It allows a aurora system to be operated without complete knowledge of the ledger's history.  With this release, aurora will start ingesting data from the earliest point known to the connected hcnet-core instance, rather than ledger 1 as it behaved previously.  See the admin guide section titled "Ingesting hcnet-core data" for more details.
+This release contains the initial implementation of the "Abridged History System".  It allows a aurora system to be operated without complete knowledge of the ledger's history.  With this release, aurora will start ingesting data from the earliest point known to the connected diamnet-core instance, rather than ledger 1 as it behaved previously.  See the admin guide section titled "Ingesting diamnet-core data" for more details.
 
 ### Added
 
-- *Elder* ledgers have been introduced:  An elder ledger is the oldest ledger known to a db.  For example, the `core_elder_ledger` attribute on the root endpoint refers to the oldest known ledger stored in the connected hcnet-core database.
+- *Elder* ledgers have been introduced:  An elder ledger is the oldest ledger known to a db.  For example, the `core_elder_ledger` attribute on the root endpoint refers to the oldest known ledger stored in the connected diamnet-core database.
 - Added the `history-retention-count` command line flag, used to specify the amount of historical data to keep in the history db.  This is expressed as a number of ledgers, for example a value of `362880` would retain roughly 6 weeks of data given an average of 10 seconds per ledger.
 - Added the `history-stale-threshold` command line flag to enable stale history protection.  See the admin guide for more info.
-- Aurora now reports the last ledger ingested to hcnet-core using the `setcursor` command.
+- Aurora now reports the last ledger ingested to diamnet-core using the `setcursor` command.
 - Requests for data that precede the recorded window of history stored by aurora will receive a `410 Gone` http response to allow software to differentiate from other "not found" situations.
 - The new `db reap` command will manually trigger the deletion of unretained historical data
 - A background process on the server now deletes unretained historical once per hour.
@@ -511,7 +511,7 @@ This release contains the initial implementation of the "Abridged History System
 
 ### Added
 
-- BREAKING: Aurora can now import data from hcnet-core without the aid of the aurora-importer project.  This process is now known as "ingestion", and is enabled by either setting the `INGEST` environment variable to "true" or specifying "--ingest" on the launch arguments for the aurora process.  Only one process should be running in this mode for any given aurora database.
+- BREAKING: Aurora can now import data from diamnet-core without the aid of the aurora-importer project.  This process is now known as "ingestion", and is enabled by either setting the `INGEST` environment variable to "true" or specifying "--ingest" on the launch arguments for the aurora process.  Only one process should be running in this mode for any given aurora database.
 - Add `aurora db init`, used to install the latest bundled schema for the aurora database.
 - Add `aurora db reingest` command, used to update outdated or corrupt aurora database information.  Admins may now use `aurora db reingest outdated` to migrate any old data when updated aurora.
 - Added `network_passphrase` field to root resource.
@@ -551,20 +551,20 @@ This release contains the initial implementation of the "Abridged History System
 ### Added
 - Github releases are created from tagged travis builds automatically
 
-[v0.11.0]: https://github.com/hcnet/aurora/compare/v0.10.1...v0.11.0
-[v0.10.1]: https://github.com/hcnet/aurora/compare/v0.10.0...v0.10.1
-[v0.10.0]: https://github.com/hcnet/aurora/compare/v0.9.1...v0.10.0
-[v0.9.1]: https://github.com/hcnet/aurora/compare/v0.9.0...v0.9.1
-[v0.9.0]: https://github.com/hcnet/aurora/compare/v0.8.0...v0.9.0
-[v0.8.0]: https://github.com/hcnet/aurora/compare/v0.7.1...v0.8.0
-[v0.7.1]: https://github.com/hcnet/aurora/compare/v0.7.0...v0.7.1
-[v0.7.0]: https://github.com/hcnet/aurora/compare/v0.6.2...v0.7.0
-[v0.6.2]: https://github.com/hcnet/aurora/compare/v0.6.1...v0.6.2
-[v0.6.1]: https://github.com/hcnet/aurora/compare/v0.6.0...v0.6.1
-[v0.6.0]: https://github.com/hcnet/aurora/compare/v0.5.1...v0.6.0
-[v0.5.1]: https://github.com/hcnet/aurora/compare/v0.5.0...v0.5.1
-[v0.5.0]: https://github.com/hcnet/aurora/compare/v0.4.0...v0.5.0
-[v0.4.0]: https://github.com/hcnet/aurora/compare/v0.3.0...v0.4.0
-[v0.3.0]: https://github.com/hcnet/aurora/compare/v0.2.0...v0.3.0
-[v0.2.0]: https://github.com/hcnet/aurora/compare/v0.1.1...v0.2.0
-[v0.1.1]: https://github.com/hcnet/aurora/compare/v0.1.0...v0.1.1
+[v0.11.0]: https://github.com/diamnet/aurora/compare/v0.10.1...v0.11.0
+[v0.10.1]: https://github.com/diamnet/aurora/compare/v0.10.0...v0.10.1
+[v0.10.0]: https://github.com/diamnet/aurora/compare/v0.9.1...v0.10.0
+[v0.9.1]: https://github.com/diamnet/aurora/compare/v0.9.0...v0.9.1
+[v0.9.0]: https://github.com/diamnet/aurora/compare/v0.8.0...v0.9.0
+[v0.8.0]: https://github.com/diamnet/aurora/compare/v0.7.1...v0.8.0
+[v0.7.1]: https://github.com/diamnet/aurora/compare/v0.7.0...v0.7.1
+[v0.7.0]: https://github.com/diamnet/aurora/compare/v0.6.2...v0.7.0
+[v0.6.2]: https://github.com/diamnet/aurora/compare/v0.6.1...v0.6.2
+[v0.6.1]: https://github.com/diamnet/aurora/compare/v0.6.0...v0.6.1
+[v0.6.0]: https://github.com/diamnet/aurora/compare/v0.5.1...v0.6.0
+[v0.5.1]: https://github.com/diamnet/aurora/compare/v0.5.0...v0.5.1
+[v0.5.0]: https://github.com/diamnet/aurora/compare/v0.4.0...v0.5.0
+[v0.4.0]: https://github.com/diamnet/aurora/compare/v0.3.0...v0.4.0
+[v0.3.0]: https://github.com/diamnet/aurora/compare/v0.2.0...v0.3.0
+[v0.2.0]: https://github.com/diamnet/aurora/compare/v0.1.1...v0.2.0
+[v0.1.1]: https://github.com/diamnet/aurora/compare/v0.1.0...v0.1.1

@@ -2,7 +2,7 @@
 package exampleauroraclient
 
 import (
-	hProtocol "github.com/hcnet/go/protocols/aurora"
+	hProtocol "github.com/diamnet/go/protocols/aurora"
 )
 
 // AccountRequest is a simple mock

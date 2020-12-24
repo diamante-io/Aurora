@@ -3,7 +3,7 @@ package aurora
 import (
 	"encoding/hex"
 
-	"github.com/hcnet/go/support/errors"
+	"github.com/diamnet/go/support/errors"
 )
 
 func countNonEmpty(params ...interface{}) (int, error) {

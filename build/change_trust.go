@@ -1,9 +1,9 @@
 package build
 
 import (
-	"github.com/hcnet/go/amount"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/amount"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/xdr"
 )
 
 // ChangeTrust groups the creation of a new ChangeTrustBuilder with a call to Mutate.

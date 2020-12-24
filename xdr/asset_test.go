@@ -5,7 +5,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/hcnet/go/xdr"
+	. "github.com/diamnet/go/xdr"
 	"github.com/stretchr/testify/assert"
 )
 

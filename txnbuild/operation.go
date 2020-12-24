@@ -1,10 +1,10 @@
 package txnbuild
 
 import (
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/xdr"
 )
 
-// Operation represents the operation types of the HcNet network.
+// Operation represents the operation types of the DiamNet network.
 type Operation interface {
 	BuildXDR() (xdr.Operation, error)
 }

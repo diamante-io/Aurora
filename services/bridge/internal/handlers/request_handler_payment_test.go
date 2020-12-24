@@ -6,16 +6,16 @@ import (
 	"strings"
 	"testing"
 
-	hc "github.com/hcnet/go/clients/auroraclient"
-	"github.com/hcnet/go/protocols/federation"
-	hProtocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/services/bridge/internal/config"
-	"github.com/hcnet/go/services/bridge/internal/mocks"
-	"github.com/hcnet/go/services/bridge/internal/test"
-	"github.com/hcnet/go/services/internal/bridge-compliance-shared/protocols"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/support/http/httptest"
-	"github.com/hcnet/go/txnbuild"
+	hc "github.com/diamnet/go/clients/auroraclient"
+	"github.com/diamnet/go/protocols/federation"
+	hProtocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/services/bridge/internal/config"
+	"github.com/diamnet/go/services/bridge/internal/mocks"
+	"github.com/diamnet/go/services/bridge/internal/test"
+	"github.com/diamnet/go/services/internal/bridge-compliance-shared/protocols"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/support/http/httptest"
+	"github.com/diamnet/go/txnbuild"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -37,7 +37,7 @@ var mockDatabase = new(mocks.MockDatabase)
 var mockHTTPClient = new(mocks.MockHTTPClient)
 var mockTransactionSubmitter = new(mocks.MockTransactionSubmitter)
 var mockFederationResolver = new(mocks.MockFederationResolver)
-var mockHcNettomlResolver = new(mocks.MockHcNettomlResolver)
+var mockDiamNettomlResolver = new(mocks.MockDiamNettomlResolver)
 
 func TestRequestHandlerPaymentInvalidParameter(t *testing.T) {
 	requestHandler := RequestHandler{
@@ -47,7 +47,7 @@ func TestRequestHandlerPaymentInvalidParameter(t *testing.T) {
 		Database:             mockDatabase,
 		TransactionSubmitter: mockTransactionSubmitter,
 		FederationResolver:   mockFederationResolver,
-		HcNetTomlResolver:  mockHcNettomlResolver,
+		DiamNetTomlResolver:  mockDiamNettomlResolver,
 	}
 
 	testServer := httptest.NewServer(t, http.HandlerFunc(requestHandler.Payment))
@@ -176,7 +176,7 @@ func TestRequestHandlerPaymentErrorResponse(t *testing.T) {
 		Database:             mockDatabase,
 		TransactionSubmitter: mockTransactionSubmitter,
 		FederationResolver:   mockFederationResolver,
-		HcNetTomlResolver:  mockHcNettomlResolver,
+		DiamNetTomlResolver:  mockDiamNettomlResolver,
 	}
 
 	testServer := httptest.NewServer(t, http.HandlerFunc(requestHandler.Payment))
@@ -185,16 +185,16 @@ func TestRequestHandlerPaymentErrorResponse(t *testing.T) {
 	// When federation response is an error it should return error
 	params := url.Values{
 		"source":      {"SDRAS7XIQNX25UDCCX725R4EYGBFYGJE4HJ2A3DFCWJIHMRSMS7CXX42"},
-		"destination": {"bob*hcnet.org"},
+		"destination": {"bob*diamnet.org"},
 		"amount":      {"20.0"},
 	}
 
 	mockFederationResolver.On(
 		"LookupByAddress",
-		"bob*hcnet.org",
+		"bob*diamnet.org",
 	).Return(
 		&federation.NameResponse{},
-		errors.New("hcnet.toml response status code indicates error"),
+		errors.New("diamnet.toml response status code indicates error"),
 	).Once()
 
 	statusCode, response := mocks.GetResponse(testServer, params)
@@ -202,14 +202,14 @@ func TestRequestHandlerPaymentErrorResponse(t *testing.T) {
 	assert.Equal(t, 400, statusCode)
 	expected := test.StringToJSONMap(`{
 		"code": "cannot_resolve_destination",
-		"message": "Cannot resolve federated HcNet address."
+		"message": "Cannot resolve federated DiamNet address."
 	}`)
 	assert.Equal(t, expected, test.StringToJSONMap(responseString))
 
 	// When using foward destination with federation error. It should return error
 	params = url.Values{
 		"source":                      {"SDRAS7XIQNX25UDCCX725R4EYGBFYGJE4HJ2A3DFCWJIHMRSMS7CXX42"},
-		"forward_destination[domain]": {"hcnet.org"},
+		"forward_destination[domain]": {"diamnet.org"},
 		"forward_destination[fields][federation_type]": {"bank_account"},
 		"forward_destination[fields][swift]":           {"BOPBPHMM"},
 		"forward_destination[fields][acct]":            {"2382376"},
@@ -218,7 +218,7 @@ func TestRequestHandlerPaymentErrorResponse(t *testing.T) {
 
 	mockFederationResolver.On(
 		"ForwardRequest",
-		"hcnet.org",
+		"diamnet.org",
 		url.Values{
 			"federation_type": {"bank_account"},
 			"swift":           {"BOPBPHMM"},
@@ -226,7 +226,7 @@ func TestRequestHandlerPaymentErrorResponse(t *testing.T) {
 		},
 	).Return(
 		&federation.NameResponse{},
-		errors.New("hcnet.toml response status code indicates error"),
+		errors.New("diamnet.toml response status code indicates error"),
 	).Once()
 
 	statusCode, response = mocks.GetResponse(testServer, params)
@@ -234,7 +234,7 @@ func TestRequestHandlerPaymentErrorResponse(t *testing.T) {
 	assert.Equal(t, 400, statusCode)
 	expected = test.StringToJSONMap(`{
 		"code": "cannot_resolve_destination",
-		"message": "Cannot resolve federated HcNet address."
+		"message": "Cannot resolve federated DiamNet address."
 	}`)
 	assert.Equal(t, expected, test.StringToJSONMap(responseString))
 
@@ -248,7 +248,7 @@ func TestRequestHandlerPaymentSuccessResponse(t *testing.T) {
 		Database:             mockDatabase,
 		TransactionSubmitter: mockTransactionSubmitter,
 		FederationResolver:   mockFederationResolver,
-		HcNetTomlResolver:  mockHcNettomlResolver,
+		DiamNetTomlResolver:  mockDiamNettomlResolver,
 	}
 
 	testServer := httptest.NewServer(t, http.HandlerFunc(requestHandler.Payment))
@@ -293,16 +293,16 @@ func TestRequestHandlerPaymentSuccessResponse(t *testing.T) {
 					}`)
 	assert.Equal(t, expected, test.StringToJSONMap(responseString, "envelope_xdr", "_links", "result_meta_xdr", "result_xdr"))
 
-	// When destination is a hcnet address it should return success
+	// When destination is a diamnet address it should return success
 	params = url.Values{
 		"source":      {"SDRAS7XIQNX25UDCCX725R4EYGBFYGJE4HJ2A3DFCWJIHMRSMS7CXX42"},
-		"destination": {"bob*hcnet.org"},
+		"destination": {"bob*diamnet.org"},
 		"amount":      {"20.0"},
 	}
 
 	mockFederationResolver.On(
 		"LookupByAddress",
-		"bob*hcnet.org",
+		"bob*diamnet.org",
 	).Return(
 		&federation.NameResponse{AccountID: "GDSIKW43UA6JTOA47WVEBCZ4MYC74M3GNKNXTVDXFHXYYTNO5GGVN632"},
 		nil,
@@ -334,7 +334,7 @@ func TestRequestHandlerPaymentSuccessResponse(t *testing.T) {
 	// When federation response has memo it should return success
 	mockFederationResolver.On(
 		"LookupByAddress",
-		"bob*hcnet.org",
+		"bob*diamnet.org",
 	).Return(
 		&federation.NameResponse{
 			AccountID: "GDSIKW43UA6JTOA47WVEBCZ4MYC74M3GNKNXTVDXFHXYYTNO5GGVN632",
@@ -377,7 +377,7 @@ func TestRequestHandlerPaymentSuccessResponse(t *testing.T) {
 	// When using foward destination with memo. It should return success
 	params = url.Values{
 		"source":                      {"SDRAS7XIQNX25UDCCX725R4EYGBFYGJE4HJ2A3DFCWJIHMRSMS7CXX42"},
-		"forward_destination[domain]": {"hcnet.org"},
+		"forward_destination[domain]": {"diamnet.org"},
 		"forward_destination[fields][federation_type]": {"bank_account"},
 		"forward_destination[fields][swift]":           {"BOPBPHMM"},
 		"forward_destination[fields][acct]":            {"2382376"},
@@ -386,7 +386,7 @@ func TestRequestHandlerPaymentSuccessResponse(t *testing.T) {
 
 	mockFederationResolver.On(
 		"ForwardRequest",
-		"hcnet.org",
+		"diamnet.org",
 		url.Values{
 			"federation_type": {"bank_account"},
 			"swift":           {"BOPBPHMM"},
@@ -431,7 +431,7 @@ func TestRequestHandlerPaymentSuccessResponse(t *testing.T) {
 	// When using foward destination without memo. It should return success
 	mockFederationResolver.On(
 		"ForwardRequest",
-		"hcnet.org",
+		"diamnet.org",
 		url.Values{
 			"federation_type": {"bank_account"},
 			"swift":           {"BOPBPHMM"},

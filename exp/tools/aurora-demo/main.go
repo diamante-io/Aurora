@@ -3,13 +3,13 @@ package main
 import (
 	"fmt"
 
-	"github.com/hcnet/go/clients/hcnetcore"
-	"github.com/hcnet/go/exp/ingest"
-	"github.com/hcnet/go/exp/ingest/io"
-	"github.com/hcnet/go/exp/ingest/ledgerbackend"
-	"github.com/hcnet/go/exp/orderbook"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/support/historyarchive"
+	"github.com/diamnet/go/clients/diamnetcore"
+	"github.com/diamnet/go/exp/ingest"
+	"github.com/diamnet/go/exp/ingest/io"
+	"github.com/diamnet/go/exp/ingest/ledgerbackend"
+	"github.com/diamnet/go/exp/orderbook"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/support/historyarchive"
 )
 
 func main() {
@@ -30,7 +30,7 @@ func main() {
 	session := &ingest.LiveSession{
 		Archive:       archive(),
 		LedgerBackend: ledgerBackend,
-		HcNetCoreClient: &hcnetcore.Client{
+		DiamNetCoreClient: &diamnetcore.Client{
 			URL: "http://localhost:11620",
 		},
 
@@ -67,7 +67,7 @@ func main() {
 
 func archive() *historyarchive.Archive {
 	a, err := historyarchive.Connect(
-		fmt.Sprintf("s3://history.hcnet.org/prd/core-live/core_live_001/"),
+		fmt.Sprintf("s3://history.diamnet.org/prd/core-live/core_live_001/"),
 		historyarchive.ConnectOptions{
 			S3Region:         "eu-west-1",
 			UnsignedRequests: true,

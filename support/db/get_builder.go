@@ -1,7 +1,7 @@
 package db
 
 import (
-	"github.com/hcnet/go/support/errors"
+	"github.com/diamnet/go/support/errors"
 )
 
 // Exec executes the query represented by the builder, populating the

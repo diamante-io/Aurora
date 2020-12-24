@@ -1,7 +1,7 @@
 package federation
 
-import "github.com/hcnet/go/support/db"
-import "github.com/hcnet/go/support/errors"
+import "github.com/diamnet/go/support/db"
+import "github.com/diamnet/go/support/errors"
 
 // LookupRecord implements `Driver` by performing `drv.LookupRecordQuery`
 // against `drv.DB` using the provided parameters

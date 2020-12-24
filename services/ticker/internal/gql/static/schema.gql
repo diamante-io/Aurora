@@ -3,10 +3,10 @@ schema {
 }
 
 type Query {
-	# retrieve all validated assets on the HcNet network.
+	# retrieve all validated assets on the DiamNet network.
 	assets: [Asset!]!
 
-	# retrieve all validated issuers on the HcNet network.
+	# retrieve all validated issuers on the DiamNet network.
 	issuers: [Issuer!]!
 
 	# retrieve trade stats from the last <numHoursAgo> hours

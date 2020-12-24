@@ -3,10 +3,10 @@ package auroraclient
 import (
 	"context"
 
-	hProtocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/protocols/aurora/effects"
-	"github.com/hcnet/go/protocols/aurora/operations"
-	"github.com/hcnet/go/txnbuild"
+	hProtocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/protocols/aurora/effects"
+	"github.com/diamnet/go/protocols/aurora/operations"
+	"github.com/diamnet/go/txnbuild"
 	"github.com/stretchr/testify/mock"
 )
 

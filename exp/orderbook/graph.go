@@ -4,8 +4,8 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/xdr"
 )
 
 var (
@@ -24,7 +24,7 @@ type tradingPair struct {
 	sellingAsset string
 }
 
-// OrderBookGraph is an in memory graph representation of all the offers in the hcnet ledger
+// OrderBookGraph is an in memory graph representation of all the offers in the diamnet ledger
 type OrderBookGraph struct {
 	// edgesForSellingAsset maps an asset to all offers which sell that asset
 	// note that each key in the map is obtained by calling offer.Selling.String()

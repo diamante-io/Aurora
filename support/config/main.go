@@ -8,9 +8,9 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/asaskevich/govalidator"
-	"github.com/hcnet/go/amount"
-	"github.com/hcnet/go/strkey"
-	"github.com/hcnet/go/support/errors"
+	"github.com/diamnet/go/amount"
+	"github.com/diamnet/go/strkey"
+	"github.com/diamnet/go/support/errors"
 )
 
 // TLS represents a common configuration snippet for configuring TLS in a server process
@@ -63,13 +63,13 @@ func decode(content string, dest interface{}) error {
 
 func init() {
 	govalidator.SetFieldsRequiredByDefault(true)
-	govalidator.CustomTypeTagMap.Set("hcnet_accountid", govalidator.CustomTypeValidator(isHcNetAccountID))
-	govalidator.CustomTypeTagMap.Set("hcnet_seed", govalidator.CustomTypeValidator(isHcNetSeed))
-	govalidator.CustomTypeTagMap.Set("hcnet_amount", govalidator.CustomTypeValidator(isHcNetAmount))
+	govalidator.CustomTypeTagMap.Set("diamnet_accountid", govalidator.CustomTypeValidator(isDiamNetAccountID))
+	govalidator.CustomTypeTagMap.Set("diamnet_seed", govalidator.CustomTypeValidator(isDiamNetSeed))
+	govalidator.CustomTypeTagMap.Set("diamnet_amount", govalidator.CustomTypeValidator(isDiamNetAmount))
 
 }
 
-func isHcNetAmount(i interface{}, context interface{}) bool {
+func isDiamNetAmount(i interface{}, context interface{}) bool {
 	enc, ok := i.(string)
 
 	if !ok {
@@ -81,7 +81,7 @@ func isHcNetAmount(i interface{}, context interface{}) bool {
 	return err == nil
 }
 
-func isHcNetAccountID(i interface{}, context interface{}) bool {
+func isDiamNetAccountID(i interface{}, context interface{}) bool {
 	enc, ok := i.(string)
 
 	if !ok {
@@ -93,7 +93,7 @@ func isHcNetAccountID(i interface{}, context interface{}) bool {
 	return err == nil
 }
 
-func isHcNetSeed(i interface{}, context interface{}) bool {
+func isDiamNetSeed(i interface{}, context interface{}) bool {
 	enc, ok := i.(string)
 
 	if !ok {

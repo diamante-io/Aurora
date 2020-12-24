@@ -4,13 +4,13 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/hcnet/go/services/aurora/internal/actions"
-	"github.com/hcnet/go/services/aurora/internal/db2"
-	"github.com/hcnet/go/services/aurora/internal/hchi"
-	"github.com/hcnet/go/services/aurora/internal/ledger"
-	"github.com/hcnet/go/services/aurora/internal/toid"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/support/render/problem"
+	"github.com/diamnet/go/services/aurora/internal/actions"
+	"github.com/diamnet/go/services/aurora/internal/db2"
+	"github.com/diamnet/go/services/aurora/internal/hchi"
+	"github.com/diamnet/go/services/aurora/internal/ledger"
+	"github.com/diamnet/go/services/aurora/internal/toid"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/support/render/problem"
 )
 
 // getCursor gets the param cursor from either the request URL or the request

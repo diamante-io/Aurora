@@ -7,17 +7,17 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/support/http/httptest"
-	"github.com/hcnet/go/txnbuild"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/support/http/httptest"
+	"github.com/diamnet/go/txnbuild"
 	"github.com/stretchr/testify/assert"
 
-	hProtocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/services/bridge/internal/config"
-	"github.com/hcnet/go/services/bridge/internal/mocks"
-	"github.com/hcnet/go/services/bridge/internal/test"
-	"github.com/hcnet/go/services/internal/bridge-compliance-shared/protocols"
-	"github.com/hcnet/go/services/internal/bridge-compliance-shared/protocols/bridge"
+	hProtocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/services/bridge/internal/config"
+	"github.com/diamnet/go/services/bridge/internal/mocks"
+	"github.com/diamnet/go/services/bridge/internal/test"
+	"github.com/diamnet/go/services/internal/bridge-compliance-shared/protocols"
+	"github.com/diamnet/go/services/internal/bridge-compliance-shared/protocols/bridge"
 )
 
 func TestRequestHandlerAuthorize(t *testing.T) {

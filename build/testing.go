@@ -3,7 +3,7 @@ package build
 import (
 	"fmt"
 
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/xdr"
 )
 
 // MockSequenceProvider is a mock sequence provider.

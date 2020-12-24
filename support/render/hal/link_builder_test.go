@@ -16,17 +16,17 @@ func TestLinkBuilder(t *testing.T) {
 	}
 
 	check("/root", "", "/root")
-	check("/root", "//hcnet.org", "//hcnet.org/root")
-	check("/root", "https://hcnet.org", "https://hcnet.org/root")
+	check("/root", "//diamnet.org", "//diamnet.org/root")
+	check("/root", "https://diamnet.org", "https://diamnet.org/root")
 	check("//else.org/root", "", "//else.org/root")
-	check("//else.org/root", "//hcnet.org", "//else.org/root")
-	check("//else.org/root", "https://hcnet.org", "//else.org/root")
+	check("//else.org/root", "//diamnet.org", "//else.org/root")
+	check("//else.org/root", "https://diamnet.org", "//else.org/root")
 	check("https://else.org/root", "", "https://else.org/root")
-	check("https://else.org/root", "//hcnet.org", "https://else.org/root")
-	check("https://else.org/root", "https://hcnet.org", "https://else.org/root")
+	check("https://else.org/root", "//diamnet.org", "https://else.org/root")
+	check("https://else.org/root", "https://diamnet.org", "https://else.org/root")
 
 	// Regression: ensure that parameters are not escaped
-	check("/accounts/{id}", "https://hcnet.org", "https://hcnet.org/accounts/{id}")
+	check("/accounts/{id}", "https://diamnet.org", "https://diamnet.org/accounts/{id}")
 }
 
 func mustParseURL(base string) *url.URL {

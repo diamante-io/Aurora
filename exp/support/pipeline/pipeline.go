@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hcnet/go/support/errors"
+	"github.com/diamnet/go/support/errors"
 )
 
 func New(rootProcessor *PipelineNode) *Pipeline {

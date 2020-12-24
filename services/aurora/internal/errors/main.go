@@ -22,7 +22,7 @@ func FromPanic(rec interface{}) error {
 // specifying a non-nil `r` will include information in the report about the
 // current http request.
 func ReportToSentry(err error, r *http.Request) {
-	st := raven.NewStacktrace(4, 3, []string{"github.org/hcnet"})
+	st := raven.NewStacktrace(4, 3, []string{"github.org/diamnet"})
 	exc := raven.NewException(err, st)
 
 	var packet *raven.Packet

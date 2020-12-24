@@ -5,8 +5,8 @@ import (
 	"net/url"
 	"regexp"
 
-	"github.com/hcnet/go/keypair"
-	"github.com/hcnet/go/services/internal/bridge-compliance-shared/protocols"
+	"github.com/diamnet/go/keypair"
+	"github.com/diamnet/go/services/internal/bridge-compliance-shared/protocols"
 )
 
 // Config contains config params of the bridge server

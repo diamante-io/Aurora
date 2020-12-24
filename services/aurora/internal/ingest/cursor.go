@@ -3,10 +3,10 @@ package ingest
 import (
 	"time"
 
-	"github.com/hcnet/go/meta"
-	"github.com/hcnet/go/services/aurora/internal/db2/core"
-	"github.com/hcnet/go/services/aurora/internal/toid"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/meta"
+	"github.com/diamnet/go/services/aurora/internal/db2/core"
+	"github.com/diamnet/go/services/aurora/internal/toid"
+	"github.com/diamnet/go/xdr"
 )
 
 // BeforeAndAfter loads the ledger entry for `target` before the current

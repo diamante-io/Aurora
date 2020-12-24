@@ -5,12 +5,12 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/hcnet/go/clients/auroraclient"
-	"github.com/hcnet/go/keypair"
-	"github.com/hcnet/go/services/friendbot/internal"
-	"github.com/hcnet/go/strkey"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/txnbuild"
+	"github.com/diamnet/go/clients/auroraclient"
+	"github.com/diamnet/go/keypair"
+	"github.com/diamnet/go/services/friendbot/internal"
+	"github.com/diamnet/go/strkey"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/txnbuild"
 )
 
 func initFriendbot(

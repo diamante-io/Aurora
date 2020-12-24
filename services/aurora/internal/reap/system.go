@@ -3,10 +3,10 @@ package reap
 import (
 	"time"
 
-	"github.com/hcnet/go/services/aurora/internal/errors"
-	"github.com/hcnet/go/services/aurora/internal/ledger"
-	"github.com/hcnet/go/services/aurora/internal/toid"
-	"github.com/hcnet/go/support/log"
+	"github.com/diamnet/go/services/aurora/internal/errors"
+	"github.com/diamnet/go/services/aurora/internal/ledger"
+	"github.com/diamnet/go/services/aurora/internal/toid"
+	"github.com/diamnet/go/support/log"
 )
 
 // DeleteUnretainedHistory removes all data associated with unretained ledgers.

@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"encoding/hex"
 
-	"github.com/hcnet/go/exp/ingest/io"
-	"github.com/hcnet/go/support/db"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/exp/ingest/io"
+	"github.com/diamnet/go/support/db"
+	"github.com/diamnet/go/xdr"
 )
 
 /* Schema:

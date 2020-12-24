@@ -1,8 +1,8 @@
 source 'https://rubygems.org'
 
-gem 'xdrgen', git:'https://github.com/hcnet/xdrgen.git', branch: 'master'
+gem 'xdrgen', git:'https://github.com/diamnet/xdrgen.git', branch: 'master'
 gem 'pry'
 gem 'octokit'
 gem 'netrc'
 gem 'rake'
-#gem 'hcnet_core_commander', git: 'https://github.com/hcnet/hcnet_core_commander.git', branch: 'master'
+#gem 'diamnet_core_commander', git: 'https://github.com/diamnet/diamnet_core_commander.git', branch: 'master'

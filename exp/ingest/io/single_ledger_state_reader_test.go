@@ -8,8 +8,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/hcnet/go/support/historyarchive"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/support/historyarchive"
+	"github.com/diamnet/go/xdr"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )

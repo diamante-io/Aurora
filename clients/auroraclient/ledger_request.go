@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"net/url"
 
-	hProtocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/support/errors"
+	hProtocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/support/errors"
 )
 
 // BuildURL creates the endpoint to be queried based on the data in the LedgerRequest struct.
@@ -43,7 +43,7 @@ func (lr LedgerRequest) BuildURL() (endpoint string, err error) {
 // LedgerHandler is a function that is called when a new ledger is received
 type LedgerHandler func(hProtocol.Ledger)
 
-// StreamLedgers streams hcnet ledgers. It can be used to stream all ledgers. Use context.WithCancel
+// StreamLedgers streams diamnet ledgers. It can be used to stream all ledgers. Use context.WithCancel
 // to stop streaming or context.Background() if you want to stream indefinitely.
 // LedgerHandler is a user-supplied function that is executed for each streamed ledger received.
 func (lr LedgerRequest) StreamLedgers(ctx context.Context, client *Client,

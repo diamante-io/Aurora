@@ -9,18 +9,18 @@ import (
 	"unicode/utf8"
 
 	"github.com/go-chi/chi"
-	"github.com/hcnet/go/amount"
-	"github.com/hcnet/go/services/aurora/internal/assets"
-	"github.com/hcnet/go/services/aurora/internal/db2"
-	"github.com/hcnet/go/services/aurora/internal/httpx"
-	"github.com/hcnet/go/services/aurora/internal/ledger"
-	hProblem "github.com/hcnet/go/services/aurora/internal/render/problem"
-	"github.com/hcnet/go/services/aurora/internal/toid"
-	"github.com/hcnet/go/strkey"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/support/render/problem"
-	"github.com/hcnet/go/support/time"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/amount"
+	"github.com/diamnet/go/services/aurora/internal/assets"
+	"github.com/diamnet/go/services/aurora/internal/db2"
+	"github.com/diamnet/go/services/aurora/internal/httpx"
+	"github.com/diamnet/go/services/aurora/internal/ledger"
+	hProblem "github.com/diamnet/go/services/aurora/internal/render/problem"
+	"github.com/diamnet/go/services/aurora/internal/toid"
+	"github.com/diamnet/go/strkey"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/support/render/problem"
+	"github.com/diamnet/go/support/time"
+	"github.com/diamnet/go/xdr"
 )
 
 // TODO: move these constants to urlparam.go as we should parse the params with http handlers
@@ -263,8 +263,8 @@ func (base *Base) GetPageQuery(opts ...Opt) db2.PageQuery {
 	return r
 }
 
-// GetAddress retrieves a hcnet address.  It confirms the value loaded is a
-// valid hcnet address, setting an invalid field error if it is not.
+// GetAddress retrieves a diamnet address.  It confirms the value loaded is a
+// valid diamnet address, setting an invalid field error if it is not.
 func (base *Base) GetAddress(name string, opts ...Opt) (result string) {
 	if base.Err != nil {
 		return
@@ -291,7 +291,7 @@ func (base *Base) GetAddress(name string, opts ...Opt) (result string) {
 	return result
 }
 
-// GetAccountID retireves an xdr.AccountID by attempting to decode a hcnet
+// GetAccountID retireves an xdr.AccountID by attempting to decode a diamnet
 // address at the provided name.
 func (base *Base) GetAccountID(name string) (result xdr.AccountId) {
 	if base.Err != nil {
@@ -317,7 +317,7 @@ func (base *Base) GetAccountID(name string) (result xdr.AccountId) {
 }
 
 // GetAmount returns a native amount (i.e. 64-bit integer) by parsing
-// the string at the provided name in accordance with the hcnet client
+// the string at the provided name in accordance with the diamnet client
 // conventions
 func (base *Base) GetAmount(name string) (result xdr.Int64) {
 	if base.Err != nil {
@@ -335,7 +335,7 @@ func (base *Base) GetAmount(name string) (result xdr.Int64) {
 }
 
 // GetPositiveAmount returns a native amount (i.e. 64-bit integer) by parsing
-// the string at the provided name in accordance with the hcnet client
+// the string at the provided name in accordance with the diamnet client
 // conventions. Renders error for negative amounts and zero.
 func (base *Base) GetPositiveAmount(name string) (result xdr.Int64) {
 	if base.Err != nil {

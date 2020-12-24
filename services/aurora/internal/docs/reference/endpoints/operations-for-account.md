@@ -1,7 +1,7 @@
 ---
 title: Operations for Account
 clientData:
-  laboratoryUrl: https://www.hcnet.org/laboratory/#explorer?resource=operations&endpoint=for_account
+  laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=operations&endpoint=for_account
 ---
 
 This endpoint represents successful [operations](../resources/operation.md) that were included in valid [transactions](../resources/transaction.md) that affected a particular [account](../resources/account.md).
@@ -29,14 +29,14 @@ GET /accounts/{account}/operations{?cursor,limit,order,include_failed}
 ### curl Example Request
 
 ```sh
-curl "https://aurora-testnet.hcnet.org/accounts/GA2HGBJIJKI6O4XEM7CZWY5PS6GKSXL6D34ERAJYQSPYA6X6AI7HYW36/operations"
+curl "https://aurora-testnet.diamnet.org/accounts/GA2HGBJIJKI6O4XEM7CZWY5PS6GKSXL6D34ERAJYQSPYA6X6AI7HYW36/operations"
 ```
 
 ### JavaScript Example Request
 
 ```js
-var HcNetSdk = require('hcnet-sdk');
-var server = new HcNetSdk.Server('https://aurora-testnet.hcnet.org');
+var DiamNetSdk = require('diamnet-sdk');
+var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.operations()
   .forAccount("GAKLBGHNHFQ3BMUYG5KU4BEWO6EYQHZHAXEWC33W34PH2RBHZDSQBD75")
@@ -52,8 +52,8 @@ server.operations()
 ### JavaScript Streaming Example
 
 ```javascript
-var HcNetSdk = require('hcnet-sdk')
-var server = new HcNetSdk.Server('https://aurora-testnet.hcnet.org');
+var DiamNetSdk = require('diamnet-sdk')
+var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
 
 var operationHandler = function (operationResponse) {
     console.log(operationResponse);

@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"net/url"
 
-	hc "github.com/hcnet/go/clients/auroraclient"
-	"github.com/hcnet/go/clients/hcnettoml"
-	proto "github.com/hcnet/go/protocols/federation"
+	hc "github.com/diamnet/go/clients/auroraclient"
+	"github.com/diamnet/go/clients/diamnettoml"
+	proto "github.com/diamnet/go/protocols/federation"
 )
 
 // FederationResponseMaxSize is the maximum size of response from a federation server
@@ -16,20 +16,20 @@ const FederationResponseMaxSize = 100 * 1024
 var DefaultTestNetClient = &Client{
 	HTTP:        http.DefaultClient,
 	Aurora:     hc.DefaultTestNetClient,
-	HcNetTOML: hcnettoml.DefaultClient,
+	DiamNetTOML: diamnettoml.DefaultClient,
 }
 
 // DefaultPublicNetClient is a default federation client for pubnet
 var DefaultPublicNetClient = &Client{
 	HTTP:        http.DefaultClient,
 	Aurora:     hc.DefaultPublicNetClient,
-	HcNetTOML: hcnettoml.DefaultClient,
+	DiamNetTOML: diamnettoml.DefaultClient,
 }
 
 // Client represents a client that is capable of resolving a federation request
 // using the internet.
 type Client struct {
-	HcNetTOML HcNetTOML
+	DiamNetTOML DiamNetTOML
 	HTTP        HTTP
 	Aurora     Aurora
 	AllowHTTP   bool
@@ -53,14 +53,14 @@ type HTTP interface {
 	Get(url string) (*http.Response, error)
 }
 
-// HcNetTOML represents a client that can resolve a given domain name to
-// hcnet.toml file.  The response is used to find the federation server that a
+// DiamNetTOML represents a client that can resolve a given domain name to
+// diamnet.toml file.  The response is used to find the federation server that a
 // query should be made against.
-type HcNetTOML interface {
-	GetHcNetToml(domain string) (*hcnettoml.Response, error)
+type DiamNetTOML interface {
+	GetDiamNetToml(domain string) (*diamnettoml.Response, error)
 }
 
 // confirm interface conformity
-var _ HcNetTOML = hcnettoml.DefaultClient
+var _ DiamNetTOML = diamnettoml.DefaultClient
 var _ HTTP = http.DefaultClient
 var _ ClientInterface = &Client{}

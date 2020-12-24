@@ -4,7 +4,7 @@ title: Effect
 
 A successful operation will yield zero or more **effects**.  These effects
 represent specific changes that occur in the ledger, but are not necessarily
-directly reflected in the [ledger](https://www.hcnet.org/developers/learn/concepts/ledger.html) or [history](https://github.com/hcnet/hcnet-core/blob/master/docs/history.md), as [transactions](https://www.hcnet.org/developers/learn/concepts/transactions.html) and [operations](https://www.hcnet.org/developers/learn/concepts/operations.html) are.
+directly reflected in the [ledger](https://www.diamnet.org/developers/learn/concepts/ledger.html) or [history](https://github.com/diamnet/diamnet-core/blob/master/docs/history.md), as [transactions](https://www.diamnet.org/developers/learn/concepts/transactions.html) and [operations](https://www.diamnet.org/developers/learn/concepts/operations.html) are.
 
 ## Effect types
 

@@ -1,5 +1,5 @@
 // Package operationfeestats provides useful utilities concerning operation fee
-// stats within hcnet,specifically as a central location to store a cached snapshot
+// stats within diamnet,specifically as a central location to store a cached snapshot
 // of the state of network per operation fees and surge pricing. This package is
 // intended to be at the lowest levels of aurora's dependency tree, please keep
 // it free of dependencies to other aurora packages.

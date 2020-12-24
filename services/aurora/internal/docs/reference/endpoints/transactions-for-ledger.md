@@ -1,7 +1,7 @@
 ---
 title: Transactions for Ledger
 clientData:
-  laboratoryUrl: https://www.hcnet.org/laboratory/#explorer?resource=transactions&endpoint=for_ledger
+  laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=transactions&endpoint=for_ledger
 ---
 
 This endpoint represents successful [transactions](../resources/transaction.md) in a given [ledger](../resources/ledger.md).
@@ -25,14 +25,14 @@ GET /ledgers/{id}/transactions{?cursor,limit,order,include_failed}
 ### curl Example Request
 
 ```sh
-curl "https://aurora-testnet.hcnet.org/ledgers/697121/transactions?limit=1"
+curl "https://aurora-testnet.diamnet.org/ledgers/697121/transactions?limit=1"
 ```
 
 ### JavaScript Example Request
 
 ```javascript
-var HcNetSdk = require('hcnet-sdk');
-var server = new HcNetSdk.Server('https://aurora-testnet.hcnet.org');
+var DiamNetSdk = require('diamnet-sdk');
+var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.transactions()
   .forLedger("697121")
@@ -57,13 +57,13 @@ resource](../resources/transaction.md) for reference.
 {
   "_links": {
     "self": {
-      "href": "https://aurora-testnet.hcnet.org/ledgers/697121/transactions?cursor=&limit=10&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/ledgers/697121/transactions?cursor=&limit=10&order=asc"
     },
     "next": {
-      "href": "https://aurora-testnet.hcnet.org/ledgers/697121/transactions?cursor=2994111896367104&limit=10&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/ledgers/697121/transactions?cursor=2994111896367104&limit=10&order=asc"
     },
     "prev": {
-      "href": "https://aurora-testnet.hcnet.org/ledgers/697121/transactions?cursor=2994111896358912&limit=10&order=desc"
+      "href": "https://aurora-testnet.diamnet.org/ledgers/697121/transactions?cursor=2994111896358912&limit=10&order=desc"
     }
   },
   "_embedded": {
@@ -71,27 +71,27 @@ resource](../resources/transaction.md) for reference.
       {
         "_links": {
           "self": {
-            "href": "https://aurora-testnet.hcnet.org/transactions/264226cb06af3b86299031884175155e67a02e0a8ad0b3ab3a88b409a8c09d5c"
+            "href": "https://aurora-testnet.diamnet.org/transactions/264226cb06af3b86299031884175155e67a02e0a8ad0b3ab3a88b409a8c09d5c"
           },
           "account": {
-            "href": "https://aurora-testnet.hcnet.org/accounts/GAIH3ULLFQ4DGSECF2AR555KZ4KNDGEKN4AFI4SU2M7B43MGK3QJZNSR"
+            "href": "https://aurora-testnet.diamnet.org/accounts/GAIH3ULLFQ4DGSECF2AR555KZ4KNDGEKN4AFI4SU2M7B43MGK3QJZNSR"
           },
           "ledger": {
-            "href": "https://aurora-testnet.hcnet.org/ledgers/697121"
+            "href": "https://aurora-testnet.diamnet.org/ledgers/697121"
           },
           "operations": {
-            "href": "https://aurora-testnet.hcnet.org/transactions/264226cb06af3b86299031884175155e67a02e0a8ad0b3ab3a88b409a8c09d5c/operations{?cursor,limit,order}",
+            "href": "https://aurora-testnet.diamnet.org/transactions/264226cb06af3b86299031884175155e67a02e0a8ad0b3ab3a88b409a8c09d5c/operations{?cursor,limit,order}",
             "templated": true
           },
           "effects": {
-            "href": "https://aurora-testnet.hcnet.org/transactions/264226cb06af3b86299031884175155e67a02e0a8ad0b3ab3a88b409a8c09d5c/effects{?cursor,limit,order}",
+            "href": "https://aurora-testnet.diamnet.org/transactions/264226cb06af3b86299031884175155e67a02e0a8ad0b3ab3a88b409a8c09d5c/effects{?cursor,limit,order}",
             "templated": true
           },
           "precedes": {
-            "href": "https://aurora-testnet.hcnet.org/transactions?order=asc&cursor=2994111896358912"
+            "href": "https://aurora-testnet.diamnet.org/transactions?order=asc&cursor=2994111896358912"
           },
           "succeeds": {
-            "href": "https://aurora-testnet.hcnet.org/transactions?order=desc&cursor=2994111896358912"
+            "href": "https://aurora-testnet.diamnet.org/transactions?order=desc&cursor=2994111896358912"
           }
         },
         "id": "264226cb06af3b86299031884175155e67a02e0a8ad0b3ab3a88b409a8c09d5c",
@@ -117,27 +117,27 @@ resource](../resources/transaction.md) for reference.
         "memo": "2A1V6J5703G47XHY",
         "_links": {
           "self": {
-            "href": "https://aurora-testnet.hcnet.org/transactions/f175108e5c64619705b112a99fa32884dfa0511d9a8986aade87905b08eabe5b"
+            "href": "https://aurora-testnet.diamnet.org/transactions/f175108e5c64619705b112a99fa32884dfa0511d9a8986aade87905b08eabe5b"
           },
           "account": {
-            "href": "https://aurora-testnet.hcnet.org/accounts/GAZ4A54KE6MTMXYEPM7T3IDLZWGNCCKB5ME422NZ3MAMTHWWP37RPEBW"
+            "href": "https://aurora-testnet.diamnet.org/accounts/GAZ4A54KE6MTMXYEPM7T3IDLZWGNCCKB5ME422NZ3MAMTHWWP37RPEBW"
           },
           "ledger": {
-            "href": "https://aurora-testnet.hcnet.org/ledgers/697121"
+            "href": "https://aurora-testnet.diamnet.org/ledgers/697121"
           },
           "operations": {
-            "href": "https://aurora-testnet.hcnet.org/transactions/f175108e5c64619705b112a99fa32884dfa0511d9a8986aade87905b08eabe5b/operations{?cursor,limit,order}",
+            "href": "https://aurora-testnet.diamnet.org/transactions/f175108e5c64619705b112a99fa32884dfa0511d9a8986aade87905b08eabe5b/operations{?cursor,limit,order}",
             "templated": true
           },
           "effects": {
-            "href": "https://aurora-testnet.hcnet.org/transactions/f175108e5c64619705b112a99fa32884dfa0511d9a8986aade87905b08eabe5b/effects{?cursor,limit,order}",
+            "href": "https://aurora-testnet.diamnet.org/transactions/f175108e5c64619705b112a99fa32884dfa0511d9a8986aade87905b08eabe5b/effects{?cursor,limit,order}",
             "templated": true
           },
           "precedes": {
-            "href": "https://aurora-testnet.hcnet.org/transactions?order=asc&cursor=2994111896363008"
+            "href": "https://aurora-testnet.diamnet.org/transactions?order=asc&cursor=2994111896363008"
           },
           "succeeds": {
-            "href": "https://aurora-testnet.hcnet.org/transactions?order=desc&cursor=2994111896363008"
+            "href": "https://aurora-testnet.diamnet.org/transactions?order=desc&cursor=2994111896363008"
           }
         },
         "id": "f175108e5c64619705b112a99fa32884dfa0511d9a8986aade87905b08eabe5b",
@@ -163,27 +163,27 @@ resource](../resources/transaction.md) for reference.
         "memo": "WHALE",
         "_links": {
           "self": {
-            "href": "https://aurora-testnet.hcnet.org/transactions/83b6ebf4b3aec5b36cab14ae0f438a23487746857903a9e0bb002564b4641e25"
+            "href": "https://aurora-testnet.diamnet.org/transactions/83b6ebf4b3aec5b36cab14ae0f438a23487746857903a9e0bb002564b4641e25"
           },
           "account": {
-            "href": "https://aurora-testnet.hcnet.org/accounts/GABRMXDIJCTDSMPC67J64NSAMWRSYXVCXYTXVFC73DTHBKELHNKWANXP"
+            "href": "https://aurora-testnet.diamnet.org/accounts/GABRMXDIJCTDSMPC67J64NSAMWRSYXVCXYTXVFC73DTHBKELHNKWANXP"
           },
           "ledger": {
-            "href": "https://aurora-testnet.hcnet.org/ledgers/697121"
+            "href": "https://aurora-testnet.diamnet.org/ledgers/697121"
           },
           "operations": {
-            "href": "https://aurora-testnet.hcnet.org/transactions/83b6ebf4b3aec5b36cab14ae0f438a23487746857903a9e0bb002564b4641e25/operations{?cursor,limit,order}",
+            "href": "https://aurora-testnet.diamnet.org/transactions/83b6ebf4b3aec5b36cab14ae0f438a23487746857903a9e0bb002564b4641e25/operations{?cursor,limit,order}",
             "templated": true
           },
           "effects": {
-            "href": "https://aurora-testnet.hcnet.org/transactions/83b6ebf4b3aec5b36cab14ae0f438a23487746857903a9e0bb002564b4641e25/effects{?cursor,limit,order}",
+            "href": "https://aurora-testnet.diamnet.org/transactions/83b6ebf4b3aec5b36cab14ae0f438a23487746857903a9e0bb002564b4641e25/effects{?cursor,limit,order}",
             "templated": true
           },
           "precedes": {
-            "href": "https://aurora-testnet.hcnet.org/transactions?order=asc&cursor=2994111896367104"
+            "href": "https://aurora-testnet.diamnet.org/transactions?order=asc&cursor=2994111896367104"
           },
           "succeeds": {
-            "href": "https://aurora-testnet.hcnet.org/transactions?order=desc&cursor=2994111896367104"
+            "href": "https://aurora-testnet.diamnet.org/transactions?order=desc&cursor=2994111896367104"
           }
         },
         "id": "83b6ebf4b3aec5b36cab14ae0f438a23487746857903a9e0bb002564b4641e25",

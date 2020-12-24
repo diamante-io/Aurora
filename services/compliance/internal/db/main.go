@@ -4,7 +4,7 @@ import (
 	"time"
 
 	migrate "github.com/rubenv/sql-migrate"
-	"github.com/hcnet/go/support/db"
+	"github.com/diamnet/go/support/db"
 )
 
 //go:generate go-bindata -ignore .+\.go$ -pkg db -o bindata.go ./...

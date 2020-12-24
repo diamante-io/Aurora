@@ -6,9 +6,9 @@ import (
 	stdio "io"
 	"log"
 
-	"github.com/hcnet/go/exp/ingest/adapters"
-	"github.com/hcnet/go/exp/ingest/io"
-	"github.com/hcnet/go/support/historyarchive"
+	"github.com/diamnet/go/exp/ingest/adapters"
+	"github.com/diamnet/go/exp/ingest/io"
+	"github.com/diamnet/go/support/historyarchive"
 )
 
 func main() {
@@ -64,7 +64,7 @@ func main() {
 
 func archive() (*historyarchive.Archive, error) {
 	return historyarchive.Connect(
-		fmt.Sprintf("s3://history.hcnet.org/prd/core-live/core_live_001/"),
+		fmt.Sprintf("s3://history.diamnet.org/prd/core-live/core_live_001/"),
 		historyarchive.ConnectOptions{
 			S3Region:         "eu-west-1",
 			UnsignedRequests: true,

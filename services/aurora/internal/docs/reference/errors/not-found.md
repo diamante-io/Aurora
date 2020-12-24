@@ -26,9 +26,9 @@ draft specification guide and thus has the following attributes:
 ## Example
 
 ```shell
-$ curl -X GET "https://aurora-testnet.hcnet.org/accounts/accountthatdoesntexist"
+$ curl -X GET "https://aurora-testnet.diamnet.org/accounts/accountthatdoesntexist"
 {
-  "type": "https://hcnet.org/aurora-errors/bad_request",
+  "type": "https://diamnet.org/aurora-errors/bad_request",
   "title": "Bad Request",
   "status": 400,
   "detail": "The request you sent was invalid in some way",

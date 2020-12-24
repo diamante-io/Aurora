@@ -6,14 +6,14 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hcnet/go/exp/orderbook"
-	"github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/services/aurora/internal/db2"
-	"github.com/hcnet/go/services/aurora/internal/db2/core"
-	"github.com/hcnet/go/services/aurora/internal/render/problem"
-	"github.com/hcnet/go/services/aurora/internal/simplepath"
-	"github.com/hcnet/go/services/aurora/internal/test"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/exp/orderbook"
+	"github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/services/aurora/internal/db2"
+	"github.com/diamnet/go/services/aurora/internal/db2/core"
+	"github.com/diamnet/go/services/aurora/internal/render/problem"
+	"github.com/diamnet/go/services/aurora/internal/simplepath"
+	"github.com/diamnet/go/services/aurora/internal/test"
+	"github.com/diamnet/go/xdr"
 )
 
 func TestPathActions_Index(t *testing.T) {

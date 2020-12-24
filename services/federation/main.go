@@ -6,13 +6,13 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/spf13/cobra"
-	"github.com/hcnet/go/handlers/federation"
-	"github.com/hcnet/go/support/app"
-	"github.com/hcnet/go/support/config"
-	"github.com/hcnet/go/support/db"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/support/http"
-	"github.com/hcnet/go/support/log"
+	"github.com/diamnet/go/handlers/federation"
+	"github.com/diamnet/go/support/app"
+	"github.com/diamnet/go/support/config"
+	"github.com/diamnet/go/support/db"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/support/http"
+	"github.com/diamnet/go/support/log"
 )
 
 // Config represents the configuration of a federation server
@@ -32,9 +32,9 @@ type Config struct {
 func main() {
 	rootCmd := &cobra.Command{
 		Use:   "federation",
-		Short: "hcnet federation server",
+		Short: "diamnet federation server",
 		Long: `
-The hcnet federation server let's you easily integrate the hcnet federation
+The diamnet federation server let's you easily integrate the diamnet federation
 protocol with your organization.  This is achieved by connecting the
 application to your customer database and providing the appropriate queries in
 the config file.

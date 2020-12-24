@@ -32,7 +32,7 @@ draft specification guide and thus has the following attributes:
 
 ```json
 {
-  "type": "https://hcnet.org/aurora-errors/rate_limit_exceeded",
+  "type": "https://diamnet.org/aurora-errors/rate_limit_exceeded",
   "title": "Rate Limit Exceeded",
   "status": 429,
   "details": "The rate limit for the requesting IP address is over its alloted limit.  The allowed limit and requests left per time period are communicated to clients via the http response headers 'X-RateLimit-*' headers."

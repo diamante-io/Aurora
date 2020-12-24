@@ -59,7 +59,7 @@ commands:
       - save_cache:
           key: v1-pkg-cache
           paths:
-            - "/go/src/github.com/hcnet/go/vendor"
+            - "/go/src/github.com/diamnet/go/vendor"
             - "/go/src/pkg/dep"
 
   # test_packages performs tests on all packages of the monorepo.
@@ -97,7 +97,7 @@ commands:
 jobs:
   # check_code_1_10 performs code checks using Go 1.10 (gofmt is only run for 1.12).
   check_code_1_10:
-    working_directory: /go/src/github.com/hcnet/go
+    working_directory: /go/src/github.com/diamnet/go
     docker:
       - image: circleci/golang:1.10-stretch
     steps:
@@ -105,7 +105,7 @@ jobs:
 
   # check_code_1_11 performs code checks using Go 1.11 (gofmt is only run for 1.12).
   check_code_1_11:
-    working_directory: /go/src/github.com/hcnet/go
+    working_directory: /go/src/github.com/diamnet/go
     docker:
       - image: circleci/golang:1.11-stretch
     steps:
@@ -113,7 +113,7 @@ jobs:
 
   # check_code_1_12 performs code checks using Go 1.12.
   check_code_1_12:
-    working_directory: /go/src/github.com/hcnet/go
+    working_directory: /go/src/github.com/diamnet/go
     docker:
       - image: circleci/golang:1.12-stretch
     steps:
@@ -124,7 +124,7 @@ jobs:
 
   # test_code_1_10 performs all package tests using Go 1.10.
   test_code_1_10:
-    working_directory: /go/src/github.com/hcnet/go
+    working_directory: /go/src/github.com/diamnet/go
     docker:
       - image: circleci/golang:1.10-stretch
         environment:
@@ -144,7 +144,7 @@ jobs:
 
   # test_code_1_11 performs all package tests using Go 1.11.
   test_code_1_11:
-    working_directory: /go/src/github.com/hcnet/go
+    working_directory: /go/src/github.com/diamnet/go
     docker:
       - image: circleci/golang:1.11-stretch
         environment:
@@ -164,7 +164,7 @@ jobs:
 
   # test_code_1_12 performs all package tests using Go 1.12.
   test_code_1_12:
-    working_directory: /go/src/github.com/hcnet/go
+    working_directory: /go/src/github.com/diamnet/go
     docker:
       - image: circleci/golang:1.12-stretch
         environment:
@@ -187,7 +187,7 @@ jobs:
   # NOTE: this commands relies on an env var called GITHUB_TOKEN which is a
   # GH OAUTH token with `repo` access.
   publish_artifacts:
-    working_directory: /go/src/github.com/hcnet/go
+    working_directory: /go/src/github.com/diamnet/go
     docker:
       - image: circleci/golang:1.11-stretch
     steps:

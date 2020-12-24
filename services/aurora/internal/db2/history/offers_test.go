@@ -3,8 +3,8 @@ package history
 import (
 	"testing"
 
-	"github.com/hcnet/go/services/aurora/internal/test"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/services/aurora/internal/test"
+	"github.com/diamnet/go/xdr"
 )
 
 var (

@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hcnet/go/services/bifrost/bitcoin"
-	"github.com/hcnet/go/services/bifrost/database"
-	"github.com/hcnet/go/services/bifrost/queue"
-	"github.com/hcnet/go/services/bifrost/sse"
+	"github.com/diamnet/go/services/bifrost/bitcoin"
+	"github.com/diamnet/go/services/bifrost/database"
+	"github.com/diamnet/go/services/bifrost/queue"
+	"github.com/diamnet/go/services/bifrost/sse"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
@@ -83,7 +83,7 @@ func (suite *BitcoinRailTestSuite) TestAssociationAlreadyProcessed() {
 		Chain:            database.ChainBitcoin,
 		AddressIndex:     1,
 		Address:          "1Q74qRud8bXUn6FMtXWZwJa5pj56s3mdyf",
-		HcNetPublicKey: "GDULKYRRVOMASFMXBYD4BYFRSHAKQDREEVVP2TMH2CER3DW2KATIOASB",
+		DiamNetPublicKey: "GDULKYRRVOMASFMXBYD4BYFRSHAKQDREEVVP2TMH2CER3DW2KATIOASB",
 		CreatedAt:        time.Now(),
 	}
 	suite.MockDatabase.
@@ -108,7 +108,7 @@ func (suite *BitcoinRailTestSuite) TestAssociationSuccess() {
 		Chain:            database.ChainBitcoin,
 		AddressIndex:     1,
 		Address:          "1Q74qRud8bXUn6FMtXWZwJa5pj56s3mdyf",
-		HcNetPublicKey: "GDULKYRRVOMASFMXBYD4BYFRSHAKQDREEVVP2TMH2CER3DW2KATIOASB",
+		DiamNetPublicKey: "GDULKYRRVOMASFMXBYD4BYFRSHAKQDREEVVP2TMH2CER3DW2KATIOASB",
 		CreatedAt:        time.Now(),
 	}
 	suite.MockDatabase.
@@ -126,7 +126,7 @@ func (suite *BitcoinRailTestSuite) TestAssociationSuccess() {
 			suite.Assert().Equal("BTC", string(queue.AssetCodeBTC))
 			suite.Assert().Equal(queue.AssetCodeBTC, queueTransaction.AssetCode)
 			suite.Assert().Equal("1.0000000", queueTransaction.Amount)
-			suite.Assert().Equal(association.HcNetPublicKey, queueTransaction.HcNetPublicKey)
+			suite.Assert().Equal(association.DiamNetPublicKey, queueTransaction.DiamNetPublicKey)
 		})
 	suite.MockSSEServer.
 		On("BroadcastEvent", transaction.To, sse.TransactionReceivedAddressEvent, []byte(nil))

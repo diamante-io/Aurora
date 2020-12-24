@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/hcnet/go/services/aurora/internal/test"
+	"github.com/diamnet/go/services/aurora/internal/test"
 )
 
 func TestDataActions_Show(t *testing.T) {
@@ -36,7 +36,7 @@ func TestDataActions_Show(t *testing.T) {
 	w = ht.Get(prefix+"/data/missing", test.RequestHelperRaw)
 	ht.Assert.Equal(404, w.Code)
 
-	// regression: https://github.com/hcnet/go/services/aurora/internal/issues/325
+	// regression: https://github.com/diamnet/go/services/aurora/internal/issues/325
 	// names with special characters do not work
 	w = ht.Get(prefix+"/data/name%20", test.RequestHelperRaw)
 	if ht.Assert.Equal(200, w.Code) {

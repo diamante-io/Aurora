@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/protocols/aurora/operations"
-	"github.com/hcnet/go/services/aurora/internal/db2/history"
+	"github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/protocols/aurora/operations"
+	"github.com/diamnet/go/services/aurora/internal/db2/history"
 )
 
 func TestPaymentActions(t *testing.T) {

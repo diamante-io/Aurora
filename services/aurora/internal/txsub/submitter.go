@@ -5,18 +5,18 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/hcnet/go/clients/hcnetcore"
-	proto "github.com/hcnet/go/protocols/hcnetcore"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/support/log"
+	"github.com/diamnet/go/clients/diamnetcore"
+	proto "github.com/diamnet/go/protocols/diamnetcore"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/support/log"
 )
 
 // NewDefaultSubmitter returns a new, simple Submitter implementation
-// that submits directly to the hcnet-core at `url` using the http client
+// that submits directly to the diamnet-core at `url` using the http client
 // `h`.
 func NewDefaultSubmitter(h *http.Client, url string) Submitter {
 	return &submitter{
-		HcNetCore: &hcnetcore.Client{
+		DiamNetCore: &diamnetcore.Client{
 			HTTP: h,
 			URL:  url,
 		},
@@ -25,14 +25,14 @@ func NewDefaultSubmitter(h *http.Client, url string) Submitter {
 }
 
 // submitter is the default implementation for the Submitter interface.  It
-// submits directly to the configured hcnet-core instance using the
+// submits directly to the configured diamnet-core instance using the
 // configured http client.
 type submitter struct {
-	HcNetCore *hcnetcore.Client
+	DiamNetCore *diamnetcore.Client
 	Log         *log.Entry
 }
 
-// Submit sends the provided envelope to hcnet-core and parses the response into
+// Submit sends the provided envelope to diamnet-core and parses the response into
 // a SubmissionResult
 func (sub *submitter) Submit(ctx context.Context, env string) (result SubmissionResult) {
 	start := time.Now()
@@ -44,7 +44,7 @@ func (sub *submitter) Submit(ctx context.Context, env string) (result Submission
 		}).Info("Submitter result")
 	}()
 
-	cresp, err := sub.HcNetCore.SubmitTransaction(ctx, env)
+	cresp, err := sub.DiamNetCore.SubmitTransaction(ctx, env)
 	if err != nil {
 		result.Err = errors.Wrap(err, "failed to submit")
 		return
@@ -52,7 +52,7 @@ func (sub *submitter) Submit(ctx context.Context, env string) (result Submission
 
 	// interpet response
 	if cresp.IsException() {
-		result.Err = errors.Errorf("hcnet-core exception: %s", cresp.Exception)
+		result.Err = errors.Errorf("diamnet-core exception: %s", cresp.Exception)
 		return
 	}
 
@@ -62,7 +62,7 @@ func (sub *submitter) Submit(ctx context.Context, env string) (result Submission
 	case proto.TXStatusPending, proto.TXStatusDuplicate, proto.TXStatusTryAgainLater:
 		//noop.  A nil Err indicates success
 	default:
-		result.Err = errors.Errorf("Unrecognized hcnet-core status response: %s", cresp.Status)
+		result.Err = errors.Errorf("Unrecognized diamnet-core status response: %s", cresp.Status)
 	}
 
 	return

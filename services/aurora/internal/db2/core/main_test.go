@@ -3,9 +3,9 @@ package core
 import (
 	"testing"
 
-	"github.com/hcnet/go/services/aurora/internal/db2"
-	"github.com/hcnet/go/services/aurora/internal/test"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/services/aurora/internal/db2"
+	"github.com/diamnet/go/services/aurora/internal/test"
+	"github.com/diamnet/go/xdr"
 )
 
 func TestLatestLedger(t *testing.T) {
@@ -73,7 +73,7 @@ func TestSchemaVersion8(t *testing.T) {
 	err := q.AccountByAddress(&account, "GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZMFSHONUCEOASW7QC7OX2H")
 	if tt.Assert.NoError(err) {
 		tt.Assert.True(account.HomeDomain.Valid)
-		tt.Assert.Equal("hcnet.org", account.HomeDomain.String)
+		tt.Assert.Equal("diamnet.org", account.HomeDomain.String)
 	}
 
 	var data []AccountData

@@ -12,16 +12,16 @@ import (
 	"github.com/facebookgo/inject"
 	"github.com/goji/httpauth"
 	"github.com/spf13/cobra"
-	"github.com/hcnet/go/clients/federation"
-	"github.com/hcnet/go/clients/hcnettoml"
-	"github.com/hcnet/go/services/compliance/internal/config"
-	"github.com/hcnet/go/services/compliance/internal/crypto"
-	"github.com/hcnet/go/services/compliance/internal/db"
-	"github.com/hcnet/go/services/compliance/internal/handlers"
-	supportConfig "github.com/hcnet/go/support/config"
-	"github.com/hcnet/go/support/db/schema"
-	"github.com/hcnet/go/support/errors"
-	supportHttp "github.com/hcnet/go/support/http"
+	"github.com/diamnet/go/clients/federation"
+	"github.com/diamnet/go/clients/diamnettoml"
+	"github.com/diamnet/go/services/compliance/internal/config"
+	"github.com/diamnet/go/services/compliance/internal/crypto"
+	"github.com/diamnet/go/services/compliance/internal/db"
+	"github.com/diamnet/go/services/compliance/internal/handlers"
+	supportConfig "github.com/diamnet/go/support/config"
+	"github.com/diamnet/go/support/db/schema"
+	"github.com/diamnet/go/support/errors"
+	supportHttp "github.com/diamnet/go/support/http"
 )
 
 var app *App
@@ -39,8 +39,8 @@ func main() {
 func init() {
 	rootCmd = &cobra.Command{
 		Use:   "compliance",
-		Short: "hcnet compliance server",
-		Long:  `hcnet compliance server`,
+		Short: "diamnet compliance server",
+		Long:  `diamnet compliance server`,
 		Run:   run,
 	}
 
@@ -132,13 +132,13 @@ func NewApp(config config.Config, migrateFlag bool, versionFlag bool, version st
 		Timeout: 10 * time.Second,
 	}
 
-	hcnettomlClient := hcnettoml.Client{
+	diamnettomlClient := diamnettoml.Client{
 		HTTP: &httpClientWithTimeout,
 	}
 
 	federationClient := federation.Client{
 		HTTP:        &httpClientWithTimeout,
-		HcNetTOML: &hcnettomlClient,
+		DiamNetTOML: &diamnettomlClient,
 	}
 
 	err = g.Provide(
@@ -146,7 +146,7 @@ func NewApp(config config.Config, migrateFlag bool, versionFlag bool, version st
 		&inject.Object{Value: &config},
 		&inject.Object{Value: &database},
 		&inject.Object{Value: &crypto.SignerVerifier{}},
-		&inject.Object{Value: &hcnettomlClient},
+		&inject.Object{Value: &diamnettomlClient},
 		&inject.Object{Value: &federationClient},
 		&inject.Object{Value: &httpClientWithTimeout},
 		&inject.Object{Value: &handlers.NonceGenerator{}},

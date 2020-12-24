@@ -1,14 +1,14 @@
 package txnbuild
 
 import (
-	"github.com/hcnet/go/amount"
-	"github.com/hcnet/go/price"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/amount"
+	"github.com/diamnet/go/price"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/xdr"
 )
 
-// CreatePassiveSellOffer represents the HcNet create passive offer operation. See
-// https://www.hcnet.org/developers/guides/concepts/list-of-operations.html
+// CreatePassiveSellOffer represents the DiamNet create passive offer operation. See
+// https://www.diamnet.org/developers/guides/concepts/list-of-operations.html
 type CreatePassiveSellOffer struct {
 	Selling       Asset
 	Buying        Asset

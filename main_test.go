@@ -1,4 +1,4 @@
-package hcnetgo
+package diamnetgo
 
 import (
 	"bytes"
@@ -7,10 +7,10 @@ import (
 	"log"
 	"strings"
 
-	b "github.com/hcnet/go/build"
-	"github.com/hcnet/go/hash"
-	"github.com/hcnet/go/keypair"
-	"github.com/hcnet/go/xdr"
+	b "github.com/diamnet/go/build"
+	"github.com/diamnet/go/hash"
+	"github.com/diamnet/go/keypair"
+	"github.com/diamnet/go/xdr"
 )
 
 // ExampleDecodeTransaction shows the lowest-level process to decode a base64
@@ -66,7 +66,7 @@ func ExampleBuildTransaction() {
 }
 
 // ExampleLowLevelTransaction creates and signs a simple transaction, and then
-// encodes it into a hex string capable of being submitted to hcnet-core.
+// encodes it into a hex string capable of being submitted to diamnet-core.
 //
 // It uses the low-level xdr facilities to create the transaction.
 func ExampleLowLevelTransaction() {

@@ -5,10 +5,10 @@ import (
 	stdio "io"
 	"testing"
 
-	"github.com/hcnet/go/exp/ingest/io"
-	supportPipeline "github.com/hcnet/go/exp/support/pipeline"
-	"github.com/hcnet/go/services/aurora/internal/db2/history"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/exp/ingest/io"
+	supportPipeline "github.com/diamnet/go/exp/support/pipeline"
+	"github.com/diamnet/go/services/aurora/internal/db2/history"
+	"github.com/diamnet/go/xdr"
 	"github.com/stretchr/testify/suite"
 )
 

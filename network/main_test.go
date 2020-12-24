@@ -3,7 +3,7 @@ package network
 import (
 	"testing"
 
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/xdr"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

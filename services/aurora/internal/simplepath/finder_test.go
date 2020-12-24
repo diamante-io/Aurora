@@ -3,10 +3,10 @@ package simplepath
 import (
 	"testing"
 
-	"github.com/hcnet/go/services/aurora/internal/db2/core"
-	"github.com/hcnet/go/services/aurora/internal/paths"
-	"github.com/hcnet/go/services/aurora/internal/test"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/services/aurora/internal/db2/core"
+	"github.com/diamnet/go/services/aurora/internal/paths"
+	"github.com/diamnet/go/services/aurora/internal/test"
+	"github.com/diamnet/go/xdr"
 )
 
 func TestFinder(t *testing.T) {

@@ -1,9 +1,9 @@
 GIT
- 
+  
   revision: 154c81daae1ae9acd41e81e1740e8e961124d8bd
   branch: master
   specs:
-    hcnet_core_commander (0.0.13)
+    diamnet_core_commander (0.0.13)
       activesupport (>= 5.2.0)
       contracts (~> 0.16)
       faraday (~> 0.9.1)
@@ -12,8 +12,8 @@ GIT
       pry (~> 0.11.3)
       sequel (~> 5.5.0)
       slop (~> 3.6.0)
-      hcnet-base (>= 0.17.0)
-      hcnet-sdk (>= 0.5.0)
+      diamnet-base (>= 0.17.0)
+      diamnet-sdk (>= 0.5.0)
       typhoeus (~> 0.8.0)
 
 GIT
@@ -91,19 +91,19 @@ GEM
       faraday (~> 0.8, < 1.0)
     sequel (5.5.0)
     slop (3.6.0)
-    hcnet-base (0.17.0)
+    diamnet-base (0.17.0)
       activesupport (>= 5.2.0)
       base32
       digest-crc
       rbnacl
       rbnacl-libsodium (~> 1.0.16)
       xdr (~> 3.0.0)
-    hcnet-sdk (0.5.0)
+    diamnet-sdk (0.5.0)
       activesupport (>= 5.2.0)
       contracts (~> 0.16)
       excon (~> 0.44, >= 0.44.4)
       hyperclient (~> 0.7)
-      hcnet-base (>= 0.16.0)
+      diamnet-base (>= 0.16.0)
       toml-rb (~> 1.1, >= 1.1.1)
     thread_safe (0.3.6)
     toml-rb (1.1.2)
@@ -127,7 +127,6 @@ DEPENDENCIES
   octokit
   pry
   rake
-  
   xdrgen!
 
 BUNDLED WITH

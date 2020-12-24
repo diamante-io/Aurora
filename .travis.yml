@@ -13,7 +13,7 @@ go:
 - '1.11'
 - '1.12'
 - tip
-go_import_path: github.com/hcnet/go
+go_import_path: github.com/diamnet/go
 before_install:
 - |
   if [ "$TRAVIS_TAG" != "" ]; then
@@ -73,7 +73,7 @@ deploy:
     file: dist/*
     file_glob: true
     on:
-      repo: hcnet/go
+      repo: diamnet/go
       tags: true
       condition: $TRAVIS_TAG != snapshots
       go: '1.11'

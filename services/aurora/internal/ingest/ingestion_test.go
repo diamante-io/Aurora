@@ -6,13 +6,13 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/hcnet/go/services/aurora/internal/db2/core"
-	"github.com/hcnet/go/services/aurora/internal/db2/history"
-	"github.com/hcnet/go/services/aurora/internal/db2/sqx"
-	"github.com/hcnet/go/services/aurora/internal/test"
-	testDB "github.com/hcnet/go/services/aurora/internal/test/db"
-	"github.com/hcnet/go/support/db"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/services/aurora/internal/db2/core"
+	"github.com/diamnet/go/services/aurora/internal/db2/history"
+	"github.com/diamnet/go/services/aurora/internal/db2/sqx"
+	"github.com/diamnet/go/services/aurora/internal/test"
+	testDB "github.com/diamnet/go/services/aurora/internal/test/db"
+	"github.com/diamnet/go/support/db"
+	"github.com/diamnet/go/xdr"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -215,7 +215,7 @@ func TestAssetStatsIngest(t *testing.T) {
 		Amount:      1009876000,
 		NumAccounts: 1,
 		Flags:       1,
-		Toml:        "https://test.com/.well-known/hcnet.toml",
+		Toml:        "https://test.com/.well-known/diamnet.toml",
 	}, assetStats[0])
 
 	tt.Assert.Equal(AssetStatResult{
@@ -235,7 +235,7 @@ func TestAssetStatsIngest(t *testing.T) {
 		Amount:      3000010434000,
 		NumAccounts: 2,
 		Flags:       1,
-		Toml:        "https://test.com/.well-known/hcnet.toml",
+		Toml:        "https://test.com/.well-known/diamnet.toml",
 	}, assetStats[2])
 }
 

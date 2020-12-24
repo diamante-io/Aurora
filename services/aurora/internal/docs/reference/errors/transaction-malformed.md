@@ -37,7 +37,7 @@ In addition, the following additional data is provided in the `extras` field of 
 
 ```json
 {
-  "type": "https://hcnet.org/aurora-errors/transaction_malformed",
+  "type": "https://diamnet.org/aurora-errors/transaction_malformed",
   "title": "Transaction Malformed",
   "status": 400,
   "detail": "Aurora could not decode the transaction envelope in this request. A transaction should be an XDR TransactionEnvelope struct encoded using base64.  The envelope read from this request is echoed in the `extras.envelope_xdr` field of this response for your convenience.",

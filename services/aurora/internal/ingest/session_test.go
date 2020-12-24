@@ -3,11 +3,11 @@ package ingest
 import (
 	"testing"
 
-	protocolEffects "github.com/hcnet/go/protocols/aurora/effects"
-	"github.com/hcnet/go/services/aurora/internal/db2"
-	"github.com/hcnet/go/services/aurora/internal/db2/history"
-	"github.com/hcnet/go/services/aurora/internal/test"
-	"github.com/hcnet/go/xdr"
+	protocolEffects "github.com/diamnet/go/protocols/aurora/effects"
+	"github.com/diamnet/go/services/aurora/internal/db2"
+	"github.com/diamnet/go/services/aurora/internal/db2/history"
+	"github.com/diamnet/go/services/aurora/internal/test"
+	"github.com/diamnet/go/xdr"
 )
 
 func Test_ingestSignerEffects(t *testing.T) {
@@ -19,7 +19,7 @@ func Test_ingestSignerEffects(t *testing.T) {
 
 	q := &history.Q{Session: tt.AuroraSession()}
 
-	// Regression: https://github.com/hcnet/aurora/issues/390 doesn't produce a signer effect when
+	// Regression: https://github.com/diamnet/aurora/issues/390 doesn't produce a signer effect when
 	// inflation has changed
 	var effects []history.Effect
 	err := q.Effects().ForLedger(3).Select(&effects)

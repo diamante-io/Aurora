@@ -4,14 +4,14 @@ import (
 	"math/big"
 	"net/http"
 
-	"github.com/hcnet/go/services/bifrost/bitcoin"
-	"github.com/hcnet/go/services/bifrost/config"
-	"github.com/hcnet/go/services/bifrost/database"
-	"github.com/hcnet/go/services/bifrost/ethereum"
-	"github.com/hcnet/go/services/bifrost/queue"
-	"github.com/hcnet/go/services/bifrost/sse"
-	"github.com/hcnet/go/services/bifrost/hcnet"
-	"github.com/hcnet/go/support/log"
+	"github.com/diamnet/go/services/bifrost/bitcoin"
+	"github.com/diamnet/go/services/bifrost/config"
+	"github.com/diamnet/go/services/bifrost/database"
+	"github.com/diamnet/go/services/bifrost/ethereum"
+	"github.com/diamnet/go/services/bifrost/queue"
+	"github.com/diamnet/go/services/bifrost/sse"
+	"github.com/diamnet/go/services/bifrost/diamnet"
+	"github.com/diamnet/go/support/log"
 )
 
 // ProtocolVersion is the version of the protocol that Bifrost server and
@@ -25,7 +25,7 @@ type Server struct {
 	Database                   database.Database            `inject:""`
 	EthereumListener           *ethereum.Listener           `inject:""`
 	EthereumAddressGenerator   *ethereum.AddressGenerator   `inject:""`
-	HcNetAccountConfigurator *hcnet.AccountConfigurator `inject:""`
+	DiamNetAccountConfigurator *diamnet.AccountConfigurator `inject:""`
 	TransactionsQueue          queue.Queue                  `inject:""`
 	SSEServer                  sse.ServerInterface          `inject:""`
 

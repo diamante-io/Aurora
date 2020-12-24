@@ -7,9 +7,9 @@ import (
 	"net/url"
 
 	"github.com/asaskevich/govalidator"
-	"github.com/hcnet/go/clients/hcnettoml"
-	"github.com/hcnet/go/keypair"
-	"github.com/hcnet/go/support/errors"
+	"github.com/diamnet/go/clients/diamnettoml"
+	"github.com/diamnet/go/keypair"
+	"github.com/diamnet/go/support/errors"
 )
 
 func (r *AuthRequest) Populate(request *http.Request) *AuthRequest {
@@ -45,23 +45,23 @@ func (r *AuthRequest) Validate() error {
 }
 
 // VerifySignature verifies if signature is valid. It makes a network connection
-// to sender server in order to obtain hcnet.toml file and signing key.
+// to sender server in order to obtain diamnet.toml file and signing key.
 func (r *AuthRequest) VerifySignature(sender string) error {
 	signatureBytes, err := base64.StdEncoding.DecodeString(r.Signature)
 	if err != nil {
 		return errors.New("Signature is not base64 encoded")
 	}
 
-	senderHcNetToml, err := hcnettoml.GetHcNetTomlByAddress(sender)
+	senderDiamNetToml, err := diamnettoml.GetDiamNetTomlByAddress(sender)
 	if err != nil {
-		return errors.Wrap(err, "Cannot get hcnet.toml of sender domain")
+		return errors.Wrap(err, "Cannot get diamnet.toml of sender domain")
 	}
 
-	if senderHcNetToml.SigningKey == "" {
-		return errors.New("No SIGNING_KEY in hcnet.toml of sender")
+	if senderDiamNetToml.SigningKey == "" {
+		return errors.New("No SIGNING_KEY in diamnet.toml of sender")
 	}
 
-	kp, err := keypair.Parse(senderHcNetToml.SigningKey)
+	kp, err := keypair.Parse(senderDiamNetToml.SigningKey)
 	if err != nil {
 		return errors.New("SigningKey is invalid")
 	}

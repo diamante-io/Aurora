@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hcnet/go/exp/ingest/adapters"
-	"github.com/hcnet/go/exp/ingest/io"
-	"github.com/hcnet/go/support/errors"
+	"github.com/diamnet/go/exp/ingest/adapters"
+	"github.com/diamnet/go/exp/ingest/io"
+	"github.com/diamnet/go/support/errors"
 )
 
 var _ Session = &LiveSession{}
@@ -71,18 +71,18 @@ func (s *LiveSession) Run() error {
 }
 
 func (s *LiveSession) updateCursor(ledgerSequence uint32) error {
-	if s.HcNetCoreClient == nil {
+	if s.DiamNetCoreClient == nil {
 		return nil
 	}
 
 	cursor := defaultCoreCursorName
-	if s.HcNetCoreCursor != "" {
-		cursor = s.HcNetCoreCursor
+	if s.DiamNetCoreCursor != "" {
+		cursor = s.DiamNetCoreCursor
 	}
 
-	err := s.HcNetCoreClient.SetCursor(context.Background(), cursor, int32(ledgerSequence))
+	err := s.DiamNetCoreClient.SetCursor(context.Background(), cursor, int32(ledgerSequence))
 	if err != nil {
-		return errors.Wrap(err, "Setting hcnet-core cursor failed")
+		return errors.Wrap(err, "Setting diamnet-core cursor failed")
 	}
 
 	return nil
@@ -99,8 +99,8 @@ func (s *LiveSession) Resume(ledgerSequence uint32) error {
 }
 
 // validateBucketList validates if the bucket list hash in history archive
-// matches the one in corresponding ledger header in hcnet-core backend.
-// This gives you full security if data in hcnet-core backend can be trusted
+// matches the one in corresponding ledger header in diamnet-core backend.
+// This gives you full security if data in diamnet-core backend can be trusted
 // (ex. you run it in your infrastructure).
 // The hashes of actual buckets of this HAS file are checked using
 // historyarchive.XdrStream.SetExpectedHash (this is done in
@@ -119,7 +119,7 @@ func (s *LiveSession) validateBucketList(
 	if err != nil {
 		if err == io.ErrNotFound {
 			return fmt.Errorf(
-				"Cannot validate bucket hash list. Checkpoint ledger (%d) must exist in HcNet-Core database.",
+				"Cannot validate bucket hash list. Checkpoint ledger (%d) must exist in DiamNet-Core database.",
 				ledgerSequence,
 			)
 		} else {

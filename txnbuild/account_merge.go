@@ -1,12 +1,12 @@
 package txnbuild
 
 import (
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/xdr"
 )
 
-// AccountMerge represents the HcNet merge account operation. See
-// https://www.hcnet.org/developers/guides/concepts/list-of-operations.html
+// AccountMerge represents the DiamNet merge account operation. See
+// https://www.diamnet.org/developers/guides/concepts/list-of-operations.html
 type AccountMerge struct {
 	Destination   string
 	SourceAccount Account

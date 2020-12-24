@@ -2,11 +2,11 @@
 title: Asset
 ---
 
-**Assets** are the units that are traded on the HcNet Network.
+**Assets** are the units that are traded on the DiamNet Network.
 
 An asset consists of an type, code, and issuer.
 
-To learn more about the concept of assets in the HcNet network, take a look at the [HcNet assets concept guide](https://www.hcnet.org/developers/guides/concepts/assets.html).
+To learn more about the concept of assets in the DiamNet network, take a look at the [DiamNet assets concept guide](https://www.diamnet.org/developers/guides/concepts/assets.html).
 
 ## Attributes
 
@@ -30,7 +30,7 @@ To learn more about the concept of assets in the HcNet network, take a look at t
 ## Links
 | rel          | Example                                                                                           | Description                                                
 |--------------|---------------------------------------------------------------------------------------------------|------------------------------------------------------------
-| toml  | `https://www.hcnet.org/.well-known/hcnet.toml`| Link to the TOML file for this issuer |
+| toml  | `https://www.diamnet.org/.well-known/diamnet.toml`| Link to the TOML file for this issuer |
 
 ## Example
 
@@ -38,7 +38,7 @@ To learn more about the concept of assets in the HcNet network, take a look at t
 {
   "_links": {
     "toml": {
-      "href": "https://www.hcnet.org/.well-known/hcnet.toml"
+      "href": "https://www.diamnet.org/.well-known/diamnet.toml"
     }
   },
   "asset_type": "credit_alphanum4",

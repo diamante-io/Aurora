@@ -1,18 +1,18 @@
 ---
 title: Account Details
 clientData:
-  laboratoryUrl: https://www.hcnet.org/laboratory/#explorer?resource=accounts&endpoint=single
+  laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=accounts&endpoint=single
 ---
 
 Returns information and links relating to a single [account](../resources/account.md).
 
 The balances section in the returned JSON will also list all the
-[trustlines](https://www.hcnet.org/developers/learn/concepts/assets.html) this account
+[trustlines](https://www.diamnet.org/developers/learn/concepts/assets.html) this account
 established. Note this will only return trustlines that have the necessary authorization to work.
 Meaning if an account `A` trusts another account `B` that has the
-[authorization required](https://www.hcnet.org/developers/guides/concepts/accounts.html#flags)
+[authorization required](https://www.diamnet.org/developers/guides/concepts/accounts.html#flags)
 flag set, the trustline won't show up until account `B`
-[allows](https://www.hcnet.org/developers/guides/concepts/list-of-operations.html#allow-trust)
+[allows](https://www.diamnet.org/developers/guides/concepts/list-of-operations.html#allow-trust)
 account `A` to hold its assets.
 
 ## Request
@@ -30,14 +30,14 @@ GET /accounts/{account}
 ### curl Example Request
 
 ```sh
-curl "https://aurora-testnet.hcnet.org/accounts/GD42RQNXTRIW6YR3E2HXV5T2AI27LBRHOERV2JIYNFMXOBA234SWLQQB"
+curl "https://aurora-testnet.diamnet.org/accounts/GD42RQNXTRIW6YR3E2HXV5T2AI27LBRHOERV2JIYNFMXOBA234SWLQQB"
 ```
 
 ### JavaScript Example Request
 
 ```javascript
-var HcNetSdk = require('hcnet-sdk');
-var server = new HcNetSdk.Server('https://aurora-testnet.hcnet.org');
+var DiamNetSdk = require('diamnet-sdk');
+var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.accounts()
   .accountId("GD42RQNXTRIW6YR3E2HXV5T2AI27LBRHOERV2JIYNFMXOBA234SWLQQB")
@@ -59,34 +59,34 @@ This endpoint responds with the details of a single account for a given ID. See 
 {
   "_links": {
     "self": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GD42RQNXTRIW6YR3E2HXV5T2AI27LBRHOERV2JIYNFMXOBA234SWLQQB"
+      "href": "https://aurora-testnet.diamnet.org/accounts/GD42RQNXTRIW6YR3E2HXV5T2AI27LBRHOERV2JIYNFMXOBA234SWLQQB"
     },
     "transactions": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GD42RQNXTRIW6YR3E2HXV5T2AI27LBRHOERV2JIYNFMXOBA234SWLQQB/transactions{?cursor,limit,order}",
+      "href": "https://aurora-testnet.diamnet.org/accounts/GD42RQNXTRIW6YR3E2HXV5T2AI27LBRHOERV2JIYNFMXOBA234SWLQQB/transactions{?cursor,limit,order}",
       "templated": true
     },
     "operations": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GD42RQNXTRIW6YR3E2HXV5T2AI27LBRHOERV2JIYNFMXOBA234SWLQQB/operations{?cursor,limit,order}",
+      "href": "https://aurora-testnet.diamnet.org/accounts/GD42RQNXTRIW6YR3E2HXV5T2AI27LBRHOERV2JIYNFMXOBA234SWLQQB/operations{?cursor,limit,order}",
       "templated": true
     },
     "payments": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GD42RQNXTRIW6YR3E2HXV5T2AI27LBRHOERV2JIYNFMXOBA234SWLQQB/payments{?cursor,limit,order}",
+      "href": "https://aurora-testnet.diamnet.org/accounts/GD42RQNXTRIW6YR3E2HXV5T2AI27LBRHOERV2JIYNFMXOBA234SWLQQB/payments{?cursor,limit,order}",
       "templated": true
     },
     "effects": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GD42RQNXTRIW6YR3E2HXV5T2AI27LBRHOERV2JIYNFMXOBA234SWLQQB/effects{?cursor,limit,order}",
+      "href": "https://aurora-testnet.diamnet.org/accounts/GD42RQNXTRIW6YR3E2HXV5T2AI27LBRHOERV2JIYNFMXOBA234SWLQQB/effects{?cursor,limit,order}",
       "templated": true
     },
     "offers": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GD42RQNXTRIW6YR3E2HXV5T2AI27LBRHOERV2JIYNFMXOBA234SWLQQB/offers{?cursor,limit,order}",
+      "href": "https://aurora-testnet.diamnet.org/accounts/GD42RQNXTRIW6YR3E2HXV5T2AI27LBRHOERV2JIYNFMXOBA234SWLQQB/offers{?cursor,limit,order}",
       "templated": true
     },
     "trades": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GD42RQNXTRIW6YR3E2HXV5T2AI27LBRHOERV2JIYNFMXOBA234SWLQQB/trades{?cursor,limit,order}",
+      "href": "https://aurora-testnet.diamnet.org/accounts/GD42RQNXTRIW6YR3E2HXV5T2AI27LBRHOERV2JIYNFMXOBA234SWLQQB/trades{?cursor,limit,order}",
       "templated": true
     },
     "data": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GD42RQNXTRIW6YR3E2HXV5T2AI27LBRHOERV2JIYNFMXOBA234SWLQQB/data/{key}",
+      "href": "https://aurora-testnet.diamnet.org/accounts/GD42RQNXTRIW6YR3E2HXV5T2AI27LBRHOERV2JIYNFMXOBA234SWLQQB/data/{key}",
       "templated": true
     }
   },

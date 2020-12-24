@@ -3,7 +3,7 @@ package crypto
 import (
 	"encoding/base64"
 
-	"github.com/hcnet/go/keypair"
+	"github.com/diamnet/go/keypair"
 )
 
 // SignerVerifierInterface is the interface that helps mocking SignerVerifier

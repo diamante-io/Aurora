@@ -8,14 +8,14 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
-	hc "github.com/hcnet/go/clients/auroraclient"
-	"github.com/hcnet/go/keypair"
-	hProtocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/services/bridge/internal/db"
-	shared "github.com/hcnet/go/services/internal/bridge-compliance-shared"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/txnbuild"
-	"github.com/hcnet/go/xdr"
+	hc "github.com/diamnet/go/clients/auroraclient"
+	"github.com/diamnet/go/keypair"
+	hProtocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/services/bridge/internal/db"
+	shared "github.com/diamnet/go/services/internal/bridge-compliance-shared"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/txnbuild"
+	"github.com/diamnet/go/xdr"
 )
 
 // TransactionSubmitterInterface helps mocking TransactionSubmitter
@@ -24,7 +24,7 @@ type TransactionSubmitterInterface interface {
 	SignAndSubmitRawTransaction(paymentID *string, seed string, tx *xdr.Transaction) (response hProtocol.TransactionSuccess, err error)
 }
 
-// TransactionSubmitter submits transactions to HcNet Network
+// TransactionSubmitter submits transactions to DiamNet Network
 type TransactionSubmitter struct {
 	Aurora       hc.ClientInterface
 	Accounts      map[string]*Account // seed => *Account
@@ -61,7 +61,7 @@ func NewTransactionSubmitter(
 	return
 }
 
-// LoadAccount loads current state of HcNet account and creates a map entry if it didn't exist
+// LoadAccount loads current state of DiamNet account and creates a map entry if it didn't exist
 func (ts *TransactionSubmitter) LoadAccount(seed string) (*Account, error) {
 	ts.AccountsMutex.Lock()
 
@@ -196,7 +196,7 @@ func (ts *TransactionSubmitter) SignAndSubmitRawTransaction(paymentID *string, s
 	return
 }
 
-// SubmitTransaction builds and submits transaction to HcNet network
+// SubmitTransaction builds and submits transaction to DiamNet network
 func (ts *TransactionSubmitter) SubmitTransaction(paymentID *string, seed string, operation []txnbuild.Operation, memo txnbuild.Memo) (hProtocol.TransactionSuccess, error) {
 	account, err := ts.LoadAccount(seed)
 	if err != nil {

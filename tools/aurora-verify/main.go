@@ -7,9 +7,9 @@ import (
 	"sync"
 
 	"github.com/spf13/cobra"
-	"github.com/hcnet/go/clients/auroraclient"
-	protocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/clients/auroraclient"
+	protocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/xdr"
 )
 
 var auroraURL string

@@ -1,12 +1,12 @@
 ---
 title: All Effects
 clientData:
-  laboratoryUrl: https://www.hcnet.org/laboratory/#explorer?resource=effects&endpoint=all
+  laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=effects&endpoint=all
 ---
 
 This endpoint represents all [effects](../resources/effect.md).
 
-This endpoint can also be used in [streaming](../streaming.md) mode so it is possible to use it to listen for new effects as transactions happen in the HcNet network.
+This endpoint can also be used in [streaming](../streaming.md) mode so it is possible to use it to listen for new effects as transactions happen in the DiamNet network.
 If called in streaming mode Aurora will start at the earliest known effect unless a `cursor` is set. In that case it will start from the `cursor`. You can also set `cursor` value to `now` to only stream effects created since your request time.
 
 ## Request
@@ -26,14 +26,14 @@ GET /effects{?cursor,limit,order}
 ### curl Example Request
 
 ```sh
-curl "https://aurora-testnet.hcnet.org/effects"
+curl "https://aurora-testnet.diamnet.org/effects"
 ```
 
 ### JavaScript Example Request
 
 ```javascript
-var HcNetSdk = require('hcnet-sdk');
-var server = new HcNetSdk.Server('https://aurora-testnet.hcnet.org');
+var DiamNetSdk = require('diamnet-sdk');
+var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.effects()
   .call()
@@ -49,8 +49,8 @@ server.effects()
 ### JavaScript Streaming Example
 
 ```javascript
-var HcNetSdk = require('hcnet-sdk')
-var server = new HcNetSdk.Server('https://aurora-testnet.hcnet.org');
+var DiamNetSdk = require('diamnet-sdk')
+var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
 
 var effectHandler = function (effectResponse) {
   console.log(effectResponse);

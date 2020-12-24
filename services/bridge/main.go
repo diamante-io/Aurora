@@ -11,18 +11,18 @@ import (
 
 	"github.com/facebookgo/inject"
 	"github.com/spf13/cobra"
-	"github.com/hcnet/go/clients/federation"
-	hc "github.com/hcnet/go/clients/auroraclient"
-	"github.com/hcnet/go/clients/hcnettoml"
-	"github.com/hcnet/go/services/bridge/internal/config"
-	"github.com/hcnet/go/services/bridge/internal/db"
-	"github.com/hcnet/go/services/bridge/internal/handlers"
-	"github.com/hcnet/go/services/bridge/internal/listener"
-	"github.com/hcnet/go/services/bridge/internal/submitter"
-	supportConfig "github.com/hcnet/go/support/config"
-	"github.com/hcnet/go/support/db/schema"
-	"github.com/hcnet/go/support/errors"
-	supportHttp "github.com/hcnet/go/support/http"
+	"github.com/diamnet/go/clients/federation"
+	hc "github.com/diamnet/go/clients/auroraclient"
+	"github.com/diamnet/go/clients/diamnettoml"
+	"github.com/diamnet/go/services/bridge/internal/config"
+	"github.com/diamnet/go/services/bridge/internal/db"
+	"github.com/diamnet/go/services/bridge/internal/handlers"
+	"github.com/diamnet/go/services/bridge/internal/listener"
+	"github.com/diamnet/go/services/bridge/internal/submitter"
+	supportConfig "github.com/diamnet/go/support/config"
+	"github.com/diamnet/go/support/db/schema"
+	"github.com/diamnet/go/support/errors"
+	supportHttp "github.com/diamnet/go/support/http"
 )
 
 var app *App
@@ -40,8 +40,8 @@ func main() {
 func init() {
 	rootCmd = &cobra.Command{
 		Use:   "bridge",
-		Short: "hcnet bridge server",
-		Long:  `hcnet bridge server`,
+		Short: "diamnet bridge server",
+		Long:  `diamnet bridge server`,
 		Run:   run,
 	}
 
@@ -193,19 +193,19 @@ func NewApp(config config.Config, migrateFlag bool, versionFlag bool, version st
 		log.Print("PaymentListener created")
 	}
 
-	hcnettomlClient := hcnettoml.Client{
+	diamnettomlClient := diamnettoml.Client{
 		HTTP: &httpClientWithTimeout,
 	}
 
 	federationClient := federation.Client{
 		HTTP:        &httpClientWithTimeout,
-		HcNetTOML: &hcnettomlClient,
+		DiamNetTOML: &diamnettomlClient,
 	}
 
 	err = g.Provide(
 		&inject.Object{Value: &requestHandler},
 		&inject.Object{Value: &config},
-		&inject.Object{Value: &hcnettomlClient},
+		&inject.Object{Value: &diamnettomlClient},
 		&inject.Object{Value: &federationClient},
 		&inject.Object{Value: &h},
 		&inject.Object{Value: &database},

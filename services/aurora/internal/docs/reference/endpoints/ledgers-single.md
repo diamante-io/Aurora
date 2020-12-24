@@ -1,7 +1,7 @@
 ---
 title: Ledger Details
 clientData:
-  laboratoryUrl: https://www.hcnet.org/laboratory/#explorer?resource=ledgers&endpoint=single
+  laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=ledgers&endpoint=single
 ---
 
 The ledger details endpoint provides information on a single [ledger](../resources/ledger.md).
@@ -21,14 +21,14 @@ GET /ledgers/{sequence}
 ### curl Example Request
 
 ```sh
-curl "https://aurora-testnet.hcnet.org/ledgers/69859"
+curl "https://aurora-testnet.diamnet.org/ledgers/69859"
 ```
 
 ### JavaScript Example Request
 
 ```js
-var HcNetSdk = require('hcnet-sdk')
-var server = new HcNetSdk.Server('https://aurora-testnet.hcnet.org');
+var DiamNetSdk = require('diamnet-sdk')
+var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.ledgers()
   .ledger('69858')

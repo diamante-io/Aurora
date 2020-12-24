@@ -470,8 +470,8 @@ ALTER TABLE ONLY history_transaction_participants ALTER COLUMN id SET DEFAULT ne
 -- Data for Name: asset_stats; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO asset_stats VALUES (1, '1009876000', 1, 1, 'https://test.com/.well-known/hcnet.toml');
-INSERT INTO asset_stats VALUES (2, '3000010434000', 2, 1, 'https://test.com/.well-known/hcnet.toml');
+INSERT INTO asset_stats VALUES (1, '1009876000', 1, 1, 'https://test.com/.well-known/diamnet.toml');
+INSERT INTO asset_stats VALUES (2, '3000010434000', 2, 1, 'https://test.com/.well-known/diamnet.toml');
 INSERT INTO asset_stats VALUES (3, '10000000000', 1, 2, '');
 
 

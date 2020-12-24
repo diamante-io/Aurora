@@ -6,13 +6,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hcnet/go/support/http/httptest"
+	"github.com/diamnet/go/support/http/httptest"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/hcnet/go/services/compliance/internal/config"
-	"github.com/hcnet/go/services/compliance/internal/db"
-	"github.com/hcnet/go/services/compliance/internal/mocks"
-	callback "github.com/hcnet/go/services/internal/bridge-compliance-shared/protocols/compliance"
+	"github.com/diamnet/go/services/compliance/internal/config"
+	"github.com/diamnet/go/services/compliance/internal/db"
+	"github.com/diamnet/go/services/compliance/internal/mocks"
+	callback "github.com/diamnet/go/services/internal/bridge-compliance-shared/protocols/compliance"
 )
 
 func TestRequestHandlerReceive(t *testing.T) {
@@ -28,7 +28,7 @@ func TestRequestHandlerReceive(t *testing.T) {
 	var mockDatabase = new(mocks.MockDatabase)
 	var mockFederationResolver = new(mocks.MockFederationResolver)
 	var mockSignerVerifier = new(mocks.MockSignerVerifier)
-	var mockHcNettomlResolver = new(mocks.MockHcNettomlResolver)
+	var mockDiamNettomlResolver = new(mocks.MockDiamNettomlResolver)
 
 	requestHandler := RequestHandler{
 		Config:                  rhconfig,
@@ -36,7 +36,7 @@ func TestRequestHandlerReceive(t *testing.T) {
 		Database:                mockDatabase,
 		FederationResolver:      mockFederationResolver,
 		SignatureSignerVerifier: mockSignerVerifier,
-		HcNetTomlResolver:     mockHcNettomlResolver,
+		DiamNetTomlResolver:     mockDiamNettomlResolver,
 	}
 
 	testServer := httptest.NewServer(t, http.HandlerFunc(requestHandler.HandlerReceive))

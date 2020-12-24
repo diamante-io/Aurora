@@ -3,14 +3,14 @@ package actions
 import (
 	"context"
 
-	"github.com/hcnet/go/clients/aurora"
-	"github.com/hcnet/go/services/aurora/internal/db2"
-	"github.com/hcnet/go/services/aurora/internal/db2/history"
-	"github.com/hcnet/go/services/aurora/internal/render/sse"
-	"github.com/hcnet/go/services/aurora/internal/resourceadapter"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/support/render/hal"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/clients/aurora"
+	"github.com/diamnet/go/services/aurora/internal/db2"
+	"github.com/diamnet/go/services/aurora/internal/db2/history"
+	"github.com/diamnet/go/services/aurora/internal/render/sse"
+	"github.com/diamnet/go/services/aurora/internal/resourceadapter"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/support/render/hal"
+	"github.com/diamnet/go/xdr"
 )
 
 // TransactionPage returns a page containing the transaction records of an

@@ -1,7 +1,7 @@
 ---
 title: Effects for Transaction
 clientData:
-  laboratoryUrl: https://www.hcnet.org/laboratory/#explorer?resource=effects&endpoint=for_transaction
+  laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=effects&endpoint=for_transaction
 ---
 
 This endpoint represents all [effects](../resources/effect.md) that occurred as a result of a given [transaction](../resources/transaction.md).
@@ -24,14 +24,14 @@ GET /transactions/{hash}/effects{?cursor,limit,order}
 ### curl Example Request
 
 ```sh
-curl "https://aurora-testnet.hcnet.org/transactions/7e2050abc676003efc3eaadd623c927f753b7a6c37f50864bf284f4e1510d088/effects?limit=1"
+curl "https://aurora-testnet.diamnet.org/transactions/7e2050abc676003efc3eaadd623c927f753b7a6c37f50864bf284f4e1510d088/effects?limit=1"
 ```
 
 ### JavaScript Example Request
 
 ```javascript
-var HcNetSdk = require('hcnet-sdk');
-var server = new HcNetSdk.Server('https://aurora-testnet.hcnet.org');
+var DiamNetSdk = require('diamnet-sdk');
+var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.effects()
   .forTransaction("7e2050abc676003efc3eaadd623c927f753b7a6c37f50864bf284f4e1510d088")
@@ -56,13 +56,13 @@ This endpoint responds with a list of effects on the ledger as a result of a giv
 {
   "_links": {
     "self": {
-      "href": "https://aurora-testnet.hcnet.org/transactions/7e2050abc676003efc3eaadd623c927f753b7a6c37f50864bf284f4e1510d088/effects?cursor=&limit=10&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/transactions/7e2050abc676003efc3eaadd623c927f753b7a6c37f50864bf284f4e1510d088/effects?cursor=&limit=10&order=asc"
     },
     "next": {
-      "href": "https://aurora-testnet.hcnet.org/transactions/7e2050abc676003efc3eaadd623c927f753b7a6c37f50864bf284f4e1510d088/effects?cursor=1919197546291201-3&limit=10&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/transactions/7e2050abc676003efc3eaadd623c927f753b7a6c37f50864bf284f4e1510d088/effects?cursor=1919197546291201-3&limit=10&order=asc"
     },
     "prev": {
-      "href": "https://aurora-testnet.hcnet.org/transactions/7e2050abc676003efc3eaadd623c927f753b7a6c37f50864bf284f4e1510d088/effects?cursor=1919197546291201-1&limit=10&order=desc"
+      "href": "https://aurora-testnet.diamnet.org/transactions/7e2050abc676003efc3eaadd623c927f753b7a6c37f50864bf284f4e1510d088/effects?cursor=1919197546291201-1&limit=10&order=desc"
     }
   },
   "_embedded": {
@@ -70,13 +70,13 @@ This endpoint responds with a list of effects on the ledger as a result of a giv
       {
         "_links": {
           "operation": {
-            "href": "https://aurora-testnet.hcnet.org/operations/1919197546291201"
+            "href": "https://aurora-testnet.diamnet.org/operations/1919197546291201"
           },
           "succeeds": {
-            "href": "https://aurora-testnet.hcnet.org/effects?order=desc&cursor=1919197546291201-1"
+            "href": "https://aurora-testnet.diamnet.org/effects?order=desc&cursor=1919197546291201-1"
           },
           "precedes": {
-            "href": "https://aurora-testnet.hcnet.org/effects?order=asc&cursor=1919197546291201-1"
+            "href": "https://aurora-testnet.diamnet.org/effects?order=asc&cursor=1919197546291201-1"
           }
         },
         "id": "0001919197546291201-0000000001",
@@ -90,13 +90,13 @@ This endpoint responds with a list of effects on the ledger as a result of a giv
       {
         "_links": {
           "operation": {
-            "href": "https://aurora-testnet.hcnet.org/operations/1919197546291201"
+            "href": "https://aurora-testnet.diamnet.org/operations/1919197546291201"
           },
           "succeeds": {
-            "href": "https://aurora-testnet.hcnet.org/effects?order=desc&cursor=1919197546291201-2"
+            "href": "https://aurora-testnet.diamnet.org/effects?order=desc&cursor=1919197546291201-2"
           },
           "precedes": {
-            "href": "https://aurora-testnet.hcnet.org/effects?order=asc&cursor=1919197546291201-2"
+            "href": "https://aurora-testnet.diamnet.org/effects?order=asc&cursor=1919197546291201-2"
           }
         },
         "id": "0001919197546291201-0000000002",
@@ -111,13 +111,13 @@ This endpoint responds with a list of effects on the ledger as a result of a giv
       {
         "_links": {
           "operation": {
-            "href": "https://aurora-testnet.hcnet.org/operations/1919197546291201"
+            "href": "https://aurora-testnet.diamnet.org/operations/1919197546291201"
           },
           "succeeds": {
-            "href": "https://aurora-testnet.hcnet.org/effects?order=desc&cursor=1919197546291201-3"
+            "href": "https://aurora-testnet.diamnet.org/effects?order=desc&cursor=1919197546291201-3"
           },
           "precedes": {
-            "href": "https://aurora-testnet.hcnet.org/effects?order=asc&cursor=1919197546291201-3"
+            "href": "https://aurora-testnet.diamnet.org/effects?order=asc&cursor=1919197546291201-3"
           }
         },
         "id": "0001919197546291201-0000000003",

@@ -1,11 +1,11 @@
 /*
-Package txnbuild implements transactions and operations on the HcNet network.
-This library provides an interface to the HcNet transaction model. It supports the building of Go applications on
-top of the HcNet network (https://www.hcnet.org/). Transactions constructed by this library may be submitted
-to any Aurora instance for processing onto the ledger, using any HcNet SDK client. The recommended client for Go
-programmers is auroraclient (https://github.com/hcnet/go/tree/master/clients/auroraclient). Together, these two
-libraries provide a complete HcNet SDK.
-For more information and further examples, see https://www.hcnet.org/developers/go/reference/index.html.
+Package txnbuild implements transactions and operations on the DiamNet network.
+This library provides an interface to the DiamNet transaction model. It supports the building of Go applications on
+top of the DiamNet network (https://www.diamnet.org/). Transactions constructed by this library may be submitted
+to any Aurora instance for processing onto the ledger, using any DiamNet SDK client. The recommended client for Go
+programmers is auroraclient (https://github.com/diamnet/go/tree/master/clients/auroraclient). Together, these two
+libraries provide a complete DiamNet SDK.
+For more information and further examples, see https://www.diamnet.org/developers/go/reference/index.html.
 */
 package txnbuild
 
@@ -18,14 +18,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hcnet/go/keypair"
-	"github.com/hcnet/go/network"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/keypair"
+	"github.com/diamnet/go/network"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/xdr"
 )
 
-// Account represents the aspects of a HcNet account necessary to construct transactions. See
-// https://www.hcnet.org/developers/guides/concepts/accounts.html
+// Account represents the aspects of a DiamNet account necessary to construct transactions. See
+// https://www.diamnet.org/developers/guides/concepts/accounts.html
 type Account interface {
 	GetAccountID() string
 	IncrementSequenceNumber() (xdr.SequenceNumber, error)
@@ -34,8 +34,8 @@ type Account interface {
 	// GetSequenceNumber() (xdr.SequenceNumber, error)
 }
 
-// Transaction represents a HcNet transaction. See
-// https://www.hcnet.org/developers/guides/concepts/transactions.html
+// Transaction represents a DiamNet transaction. See
+// https://www.diamnet.org/developers/guides/concepts/transactions.html
 type Transaction struct {
 	SourceAccount  Account
 	Operations     []Operation
@@ -202,7 +202,7 @@ func (tx *Transaction) BuildSignEncode(keypairs ...*keypair.Full) (string, error
 
 // BuildChallengeTx is a factory method that creates a valid SEP 10 challenge, for use in web authentication.
 // "timebound" is the time duration the transaction should be valid for, O means infinity.
-// More details on SEP 10: https://github.com/hcnet/hcnet-protocol/blob/master/ecosystem/sep-0010.md
+// More details on SEP 10: https://github.com/diamnet/diamnet-protocol/blob/master/ecosystem/sep-0010.md
 func BuildChallengeTx(serverSignerSecret, clientAccountID, anchorName, network string, timebound time.Duration) (string, error) {
 	serverKP, err := keypair.Parse(serverSignerSecret)
 	if err != nil {
@@ -223,7 +223,7 @@ func BuildChallengeTx(serverSignerSecret, clientAccountID, anchorName, network s
 		AccountID: serverKP.Address(),
 		// Action needed in release: v2.0.0
 		// TODO: remove this and use "Sequence: 0" and build transaction with optional argument
-		//  (https://github.com/hcnet/go/issues/1259)
+		//  (https://github.com/diamnet/go/issues/1259)
 		Sequence: int64(-1),
 	}
 
@@ -240,7 +240,7 @@ func BuildChallengeTx(serverSignerSecret, clientAccountID, anchorName, network s
 	}
 
 	// Create a SEP 10 compatible response. See
-	// https://github.com/hcnet/hcnet-protocol/blob/master/ecosystem/sep-0010.md#response
+	// https://github.com/diamnet/diamnet-protocol/blob/master/ecosystem/sep-0010.md#response
 	tx := Transaction{
 		SourceAccount: &sa,
 		Operations: []Operation{
@@ -308,7 +308,7 @@ func (tx *Transaction) TransactionFee() int {
 }
 
 // SignHashX signs a transaction with HashX signature type.
-// See description here: https://www.hcnet.org/developers/guides/concepts/multi-sig.html#hashx.
+// See description here: https://www.diamnet.org/developers/guides/concepts/multi-sig.html#hashx.
 func (tx *Transaction) SignHashX(preimage []byte) error {
 	if tx.xdrEnvelope == nil {
 		tx.xdrEnvelope = &xdr.TransactionEnvelope{}

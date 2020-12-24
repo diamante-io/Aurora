@@ -3,9 +3,9 @@ package aurora
 import (
 	"encoding/json"
 
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/support/render/problem"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/support/render/problem"
+	"github.com/diamnet/go/xdr"
 )
 
 func (herr Error) Error() string {

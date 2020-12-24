@@ -3,8 +3,8 @@ package xdr
 import (
 	"fmt"
 
-	"github.com/hcnet/go/strkey"
-	"github.com/hcnet/go/support/errors"
+	"github.com/diamnet/go/strkey"
+	"github.com/diamnet/go/support/errors"
 )
 
 // Address returns the strkey encoded form of this signer key.  This method will

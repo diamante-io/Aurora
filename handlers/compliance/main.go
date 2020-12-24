@@ -1,7 +1,7 @@
 package compliance
 
 import (
-	"github.com/hcnet/go/protocols/compliance"
+	"github.com/diamnet/go/protocols/compliance"
 )
 
 // Strategy defines strategy for handling auth requests.

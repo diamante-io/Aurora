@@ -3,7 +3,7 @@ package compliance
 import (
 	"net/http"
 
-	"github.com/hcnet/go/services/internal/bridge-compliance-shared/http/helpers"
+	"github.com/diamnet/go/services/internal/bridge-compliance-shared/http/helpers"
 )
 
 var (
@@ -15,7 +15,7 @@ var (
 	// /send
 
 	// CannotResolveDestination is an error response
-	CannotResolveDestination = &helpers.ErrorResponse{Code: "cannot_resolve_destination", Message: "Cannot resolve federated HcNet address.", Status: http.StatusBadRequest}
+	CannotResolveDestination = &helpers.ErrorResponse{Code: "cannot_resolve_destination", Message: "Cannot resolve federated DiamNet address.", Status: http.StatusBadRequest}
 	// AuthServerNotDefined is an error response
-	AuthServerNotDefined = &helpers.ErrorResponse{Code: "auth_server_not_defined", Message: "No AUTH_SERVER defined in hcnet.toml file.", Status: http.StatusBadRequest}
+	AuthServerNotDefined = &helpers.ErrorResponse{Code: "auth_server_not_defined", Message: "No AUTH_SERVER defined in diamnet.toml file.", Status: http.StatusBadRequest}
 )

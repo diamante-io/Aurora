@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/hcnet/go/services/aurora/internal/test"
+	"github.com/diamnet/go/services/aurora/internal/test"
 )
 
 func TestLedgerQueries(t *testing.T) {

@@ -3,9 +3,9 @@ package ledgerbackend
 import (
 	"database/sql"
 
-	"github.com/hcnet/go/support/db"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/support/db"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/xdr"
 )
 
 const (
@@ -119,7 +119,7 @@ func (dbb *DatabaseBackend) GetLedger(sequence uint32) (bool, LedgerCloseMeta, e
 // CreateSession returns a new db.Session that connects to the given DB settings.
 func createSession(dataSourceName string) (*db.Session, error) {
 	if dataSourceName == "" {
-		return nil, errors.New("missing DatabaseBackend.DataSourceName (e.g. \"postgres://hcnet:postgres@localhost:8002/core\")")
+		return nil, errors.New("missing DatabaseBackend.DataSourceName (e.g. \"postgres://diamnet:postgres@localhost:8002/core\")")
 	}
 
 	return db.Open(dbDriver, dataSourceName)

@@ -1,4 +1,4 @@
-# This scenario attempts to emulate the scenario that gave rise to https://github.com/hcnet/aurora/issues/310
+# This scenario attempts to emulate the scenario that gave rise to https://github.com/diamnet/aurora/issues/310
 
 run_recipe File.dirname(__FILE__) + "/_common_accounts.rb"
 

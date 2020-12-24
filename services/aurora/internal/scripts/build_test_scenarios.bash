@@ -3,10 +3,10 @@ set -e
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 GOTOP="$( cd "$DIR/../../../../../../../.." && pwd )"
-PACKAGES=$(find $GOTOP/src/github.com/hcnet/go/services/aurora/internal/test/scenarios -iname '*.rb' -not -name '_common_accounts.rb')
-#PACKAGES=$(find $GOTOP/src/github.com/hcnet/go/services/aurora/internal/test/scenarios -iname 'failed_transactions.rb')
+PACKAGES=$(find $GOTOP/src/github.com/diamnet/go/services/aurora/internal/test/scenarios -iname '*.rb' -not -name '_common_accounts.rb')
+#PACKAGES=$(find $GOTOP/src/github.com/diamnet/go/services/aurora/internal/test/scenarios -iname 'failed_transactions.rb')
 
-go install github.com/hcnet/go/services/aurora
+go install github.com/diamnet/go/services/aurora
 
 dropdb hayashi_scenarios --if-exists
 createdb hayashi_scenarios
@@ -47,5 +47,5 @@ done
 
 
 # commit new sql files to bindata
-go generate github.com/hcnet/go/services/aurora/internal/test/scenarios
-# go test github.com/hcnet/go/services/aurora/internal/ingest
+go generate github.com/diamnet/go/services/aurora/internal/test/scenarios
+# go test github.com/diamnet/go/services/aurora/internal/ingest

@@ -1,6 +1,6 @@
 package main
 
-// This is a build script that Travis uses to build HcNet release packages.
+// This is a build script that Travis uses to build DiamNet release packages.
 
 import (
 	"flag"
@@ -14,8 +14,8 @@ import (
 
 	"time"
 
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/support/log"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/support/log"
 )
 
 var extractBinName = regexp.MustCompile(`^(?P<bin>[a-z-]+)-(?P<tag>.+)$`)
@@ -85,8 +85,8 @@ func binNamesForDir(dir string) []string {
 func build(pkg, dest, version, buildOS, buildArch string) {
 	buildTime := time.Now().Format(time.RFC3339)
 
-	timeFlag := fmt.Sprintf("-X github.com/hcnet/go/support/app.buildTime=%s", buildTime)
-	versionFlag := fmt.Sprintf("-X github.com/hcnet/go/support/app.version=%s", version)
+	timeFlag := fmt.Sprintf("-X github.com/diamnet/go/support/app.buildTime=%s", buildTime)
+	versionFlag := fmt.Sprintf("-X github.com/diamnet/go/support/app.version=%s", version)
 
 	if buildOS == "windows" {
 		dest = dest + ".exe"
@@ -339,7 +339,7 @@ func repoName() string {
 	if os.Getenv("REPO") != "" {
 		return os.Getenv("REPO")
 	}
-	return "github.com/hcnet/go"
+	return "github.com/diamnet/go"
 
 }
 

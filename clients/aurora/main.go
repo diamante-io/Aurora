@@ -3,7 +3,7 @@
 //
 // Deprecated: clients/aurora package with all its exported methods and variables will no longer be
 // maintained. It will be removed in future versions of the SDK.
-// Use clients/auroraclient (https://godoc.org/github.com/hcnet/go/clients/auroraclient) instead.
+// Use clients/auroraclient (https://godoc.org/github.com/diamnet/go/clients/auroraclient) instead.
 package aurora
 
 import (
@@ -12,20 +12,20 @@ import (
 	"net/url"
 	"sync"
 
-	"github.com/hcnet/go/build"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/build"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/xdr"
 )
 
 // DefaultTestNetClient is a default client to connect to test network
 var DefaultTestNetClient = &Client{
-	URL:  "https://aurora-testnet.hcnet.org",
+	URL:  "https://aurora-testnet.diamnet.org",
 	HTTP: http.DefaultClient,
 }
 
 // DefaultPublicNetClient is a default client to connect to public network
 var DefaultPublicNetClient = &Client{
-	URL:  "https://aurora.hcnet.org",
+	URL:  "https://aurora.diamnet.org",
 	HTTP: http.DefaultClient,
 }
 

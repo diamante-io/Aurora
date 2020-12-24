@@ -5,10 +5,10 @@ import (
 	"errors"
 	"time"
 
-	"github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/protocols/aurora/base"
-	"github.com/hcnet/go/support/render/hal"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/protocols/aurora/base"
+	"github.com/diamnet/go/support/render/hal"
+	"github.com/diamnet/go/xdr"
 )
 
 // OperationTypeNames maps from operation type to the string used to represent that type

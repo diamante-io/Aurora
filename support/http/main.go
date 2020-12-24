@@ -1,4 +1,4 @@
-// Package http provides easy access to HcNet's best practices for building
+// Package http provides easy access to DiamNet's best practices for building
 // http servers.  The primary method to use is `Serve`, which sets up
 // an server that can support http/2 and can gracefully quit after receiving a
 // SIGINT signal.
@@ -11,9 +11,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/hcnet/go/support/config"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/support/log"
+	"github.com/diamnet/go/support/config"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/support/log"
 	"golang.org/x/net/http2"
 	"gopkg.in/tylerb/graceful.v1"
 )

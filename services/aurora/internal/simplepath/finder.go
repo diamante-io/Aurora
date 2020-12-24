@@ -2,14 +2,14 @@ package simplepath
 
 import (
 	"github.com/go-errors/errors"
-	"github.com/hcnet/go/services/aurora/internal/db2/core"
-	"github.com/hcnet/go/services/aurora/internal/paths"
-	"github.com/hcnet/go/support/log"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/services/aurora/internal/db2/core"
+	"github.com/diamnet/go/services/aurora/internal/paths"
+	"github.com/diamnet/go/support/log"
+	"github.com/diamnet/go/xdr"
 )
 
 // Finder implements the paths.Finder interface and searchs for
-// payment paths using a simple breadth first search of the offers table of a hcnet-core.
+// payment paths using a simple breadth first search of the offers table of a diamnet-core.
 //
 // This implementation is not meant to be fast or to provide the lowest costs paths, but
 // rather is meant to be a simple implementation that gives usable paths.

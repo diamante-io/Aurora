@@ -3,9 +3,9 @@ package resourceadapter
 import (
 	"testing"
 
-	. "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/services/aurora/internal/db2/history"
-	"github.com/hcnet/go/support/test"
+	. "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/services/aurora/internal/db2/history"
+	"github.com/diamnet/go/support/test"
 	"github.com/stretchr/testify/assert"
 )
 

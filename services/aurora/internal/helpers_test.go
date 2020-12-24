@@ -9,10 +9,10 @@ import (
 	"time"
 
 	"github.com/go-chi/chi"
-	"github.com/hcnet/go/network"
-	"github.com/hcnet/go/services/aurora/internal/actions"
-	"github.com/hcnet/go/services/aurora/internal/test"
-	supportLog "github.com/hcnet/go/support/log"
+	"github.com/diamnet/go/network"
+	"github.com/diamnet/go/services/aurora/internal/actions"
+	"github.com/diamnet/go/services/aurora/internal/test"
+	supportLog "github.com/diamnet/go/support/log"
 	"github.com/throttled/throttled"
 )
 
@@ -23,7 +23,7 @@ func NewTestApp() *App {
 func NewTestConfig() Config {
 	return Config{
 		DatabaseURL:            test.DatabaseURL(),
-		HcNetCoreDatabaseURL: test.HcNetCoreDatabaseURL(),
+		DiamNetCoreDatabaseURL: test.DiamNetCoreDatabaseURL(),
 		RateQuota: &throttled.RateQuota{
 			MaxRate:  throttled.PerHour(1000),
 			MaxBurst: 100,

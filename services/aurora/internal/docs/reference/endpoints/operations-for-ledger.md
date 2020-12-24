@@ -1,7 +1,7 @@
 ---
 title: Operations for Ledger
 clientData:
-  laboratoryUrl: https://www.hcnet.org/laboratory/#explorer?resource=operations&endpoint=for_ledger
+  laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=operations&endpoint=for_ledger
 ---
 
 This endpoint returns successful [operations](../resources/operation.md) that occurred in a given [ledger](../resources/ledger.md).
@@ -26,14 +26,14 @@ GET /ledgers/{sequence}/operations{?cursor,limit,order,include_failed}
 ### curl Example Request
 
 ```sh
-curl "https://aurora-testnet.hcnet.org/ledgers/681637/operations?limit=1"
+curl "https://aurora-testnet.diamnet.org/ledgers/681637/operations?limit=1"
 ```
 
 ### JavaScript Example Request
 
 ```javascript
-var HcNetSdk = require('hcnet-sdk');
-var server = new HcNetSdk.Server('https://aurora-testnet.hcnet.org');
+var DiamNetSdk = require('diamnet-sdk');
+var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.operations()
   .forLedger("681637")
@@ -56,13 +56,13 @@ This endpoint responds with a list of operations in a given ledger.  See [operat
 {
   "_links": {
     "self": {
-      "href": "https://aurora-testnet.hcnet.org/ledgers/681637/operations?cursor=&limit=10&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/ledgers/681637/operations?cursor=&limit=10&order=asc"
     },
     "next": {
-      "href": "https://aurora-testnet.hcnet.org/ledgers/681637/operations?cursor=2927608622751745&limit=10&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/ledgers/681637/operations?cursor=2927608622751745&limit=10&order=asc"
     },
     "prev": {
-      "href": "https://aurora-testnet.hcnet.org/ledgers/681637/operations?cursor=2927608622747649&limit=10&order=desc"
+      "href": "https://aurora-testnet.diamnet.org/ledgers/681637/operations?cursor=2927608622747649&limit=10&order=desc"
     }
   },
   "_embedded": {
@@ -70,19 +70,19 @@ This endpoint responds with a list of operations in a given ledger.  See [operat
       {
         "_links": {
           "self": {
-            "href": "https://aurora-testnet.hcnet.org/operations/2927608622747649"
+            "href": "https://aurora-testnet.diamnet.org/operations/2927608622747649"
           },
           "transaction": {
-            "href": "https://aurora-testnet.hcnet.org/transactions/4a3365180521e16b478d9f0c9198b97a9434fc9cb07b34f83ecc32fc54d0ca8a"
+            "href": "https://aurora-testnet.diamnet.org/transactions/4a3365180521e16b478d9f0c9198b97a9434fc9cb07b34f83ecc32fc54d0ca8a"
           },
           "effects": {
-            "href": "https://aurora-testnet.hcnet.org/operations/2927608622747649/effects"
+            "href": "https://aurora-testnet.diamnet.org/operations/2927608622747649/effects"
           },
           "succeeds": {
-            "href": "https://aurora-testnet.hcnet.org/effects?order=desc&cursor=2927608622747649"
+            "href": "https://aurora-testnet.diamnet.org/effects?order=desc&cursor=2927608622747649"
           },
           "precedes": {
-            "href": "https://aurora-testnet.hcnet.org/effects?order=asc&cursor=2927608622747649"
+            "href": "https://aurora-testnet.diamnet.org/effects?order=asc&cursor=2927608622747649"
           }
         },
         "id": "2927608622747649",
@@ -101,19 +101,19 @@ This endpoint responds with a list of operations in a given ledger.  See [operat
       {
         "_links": {
           "self": {
-            "href": "https://aurora-testnet.hcnet.org/operations/2927608622751745"
+            "href": "https://aurora-testnet.diamnet.org/operations/2927608622751745"
           },
           "transaction": {
-            "href": "https://aurora-testnet.hcnet.org/transactions/fdabcee816bd439dd1d20bcb0abab5aa939c15cca5fccc1db060ba6096a5e0ed"
+            "href": "https://aurora-testnet.diamnet.org/transactions/fdabcee816bd439dd1d20bcb0abab5aa939c15cca5fccc1db060ba6096a5e0ed"
           },
           "effects": {
-            "href": "https://aurora-testnet.hcnet.org/operations/2927608622751745/effects"
+            "href": "https://aurora-testnet.diamnet.org/operations/2927608622751745/effects"
           },
           "succeeds": {
-            "href": "https://aurora-testnet.hcnet.org/effects?order=desc&cursor=2927608622751745"
+            "href": "https://aurora-testnet.diamnet.org/effects?order=desc&cursor=2927608622751745"
           },
           "precedes": {
-            "href": "https://aurora-testnet.hcnet.org/effects?order=asc&cursor=2927608622751745"
+            "href": "https://aurora-testnet.diamnet.org/effects?order=asc&cursor=2927608622751745"
           }
         },
         "id": "2927608622751745",

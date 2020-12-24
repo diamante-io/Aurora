@@ -7,15 +7,15 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/hcnet/go/address"
-	proto "github.com/hcnet/go/protocols/federation"
-	"github.com/hcnet/go/support/errors"
+	"github.com/diamnet/go/address"
+	proto "github.com/diamnet/go/protocols/federation"
+	"github.com/diamnet/go/support/errors"
 )
 
-// LookupByAddress performs a federated lookup following to the hcnet
+// LookupByAddress performs a federated lookup following to the diamnet
 // federation protocol using the "name" type request.  The provided address is
 // used to resolve what server the request should be made against.  NOTE: the
-// "name" type is a legacy holdover from the legacy hcnet network's federation
+// "name" type is a legacy holdover from the legacy diamnet network's federation
 // protocol. It is unfortunate.
 func (c *Client) LookupByAddress(addy string) (*proto.NameResponse, error) {
 	_, domain, err := address.Split(addy)
@@ -46,7 +46,7 @@ func (c *Client) LookupByAddress(addy string) (*proto.NameResponse, error) {
 	return &resp, nil
 }
 
-// LookupByAccountID performs a federated lookup following to the hcnet
+// LookupByAccountID performs a federated lookup following to the diamnet
 // federation protocol using the "id" type request.  The provided strkey-encoded
 // account id is used to resolve what server the request should be made against.
 func (c *Client) LookupByAccountID(aid string) (*proto.IDResponse, error) {
@@ -79,7 +79,7 @@ func (c *Client) LookupByAccountID(aid string) (*proto.IDResponse, error) {
 	return &resp, nil
 }
 
-// ForwardRequest performs a federated lookup following to the hcnet
+// ForwardRequest performs a federated lookup following to the diamnet
 // federation protocol using the "forward" type request.
 func (c *Client) ForwardRequest(domain string, fields url.Values) (*proto.NameResponse, error) {
 	fserv, err := c.getFederationServer(domain)
@@ -104,13 +104,13 @@ func (c *Client) ForwardRequest(domain string, fields url.Values) (*proto.NameRe
 }
 
 func (c *Client) getFederationServer(domain string) (string, error) {
-	stoml, err := c.HcNetTOML.GetHcNetToml(domain)
+	stoml, err := c.DiamNetTOML.GetDiamNetToml(domain)
 	if err != nil {
-		return "", errors.Wrap(err, "get hcnet.toml failed")
+		return "", errors.Wrap(err, "get diamnet.toml failed")
 	}
 
 	if stoml.FederationServer == "" {
-		return "", errors.New("hcnet.toml is missing federation server info")
+		return "", errors.New("diamnet.toml is missing federation server info")
 	}
 
 	if !c.AllowHTTP && !strings.HasPrefix(stoml.FederationServer, "https://") {

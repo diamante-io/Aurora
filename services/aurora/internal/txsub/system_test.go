@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hcnet/go/build"
-	"github.com/hcnet/go/services/aurora/internal/test"
-	"github.com/hcnet/go/services/aurora/internal/txsub/sequence"
+	"github.com/diamnet/go/build"
+	"github.com/diamnet/go/services/aurora/internal/test"
+	"github.com/diamnet/go/services/aurora/internal/txsub/sequence"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )

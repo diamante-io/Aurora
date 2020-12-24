@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	client "github.com/hcnet/go/clients/auroraclient"
-	protocol "github.com/hcnet/go/protocols/aurora"
-	cmp "github.com/hcnet/go/tools/aurora-cmp/internal"
+	client "github.com/diamnet/go/clients/auroraclient"
+	protocol "github.com/diamnet/go/protocols/aurora"
+	cmp "github.com/diamnet/go/tools/aurora-cmp/internal"
 )
 
 const auroraOld = "http://localhost:8001"

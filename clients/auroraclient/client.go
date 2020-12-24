@@ -12,13 +12,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hcnet/go/txnbuild"
+	"github.com/diamnet/go/txnbuild"
 
 	"github.com/manucorporat/sse"
-	hProtocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/protocols/aurora/effects"
-	"github.com/hcnet/go/protocols/aurora/operations"
-	"github.com/hcnet/go/support/errors"
+	hProtocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/protocols/aurora/effects"
+	"github.com/diamnet/go/protocols/aurora/operations"
+	"github.com/diamnet/go/support/errors"
 )
 
 // sendRequest builds the URL for the given aurora request and sends the url to a aurora server
@@ -197,7 +197,7 @@ func (c *Client) stream(
 }
 
 func (c *Client) setClientAppHeaders(req *http.Request) {
-	req.Header.Set("X-Client-Name", "go-hcnet-sdk")
+	req.Header.Set("X-Client-Name", "go-diamnet-sdk")
 	req.Header.Set("X-Client-Version", c.Version())
 	req.Header.Set("X-App-Name", c.AppName)
 	req.Header.Set("X-App-Version", c.AppVersion)
@@ -227,7 +227,7 @@ func (c *Client) AuroraTimeOut() time.Duration {
 }
 
 // AccountDetail returns information for a single account.
-// See https://www.hcnet.org/developers/aurora/reference/endpoints/accounts-single.html
+// See https://www.diamnet.org/developers/aurora/reference/endpoints/accounts-single.html
 func (c *Client) AccountDetail(request AccountRequest) (account hProtocol.Account, err error) {
 	if request.AccountID == "" {
 		err = errors.New("no account ID provided")
@@ -242,7 +242,7 @@ func (c *Client) AccountDetail(request AccountRequest) (account hProtocol.Accoun
 }
 
 // AccountData returns a single data associated with a given account
-// See https://www.hcnet.org/developers/aurora/reference/endpoints/data-for-account.html
+// See https://www.diamnet.org/developers/aurora/reference/endpoints/data-for-account.html
 func (c *Client) AccountData(request AccountRequest) (accountData hProtocol.AccountData, err error) {
 	if request.AccountID == "" || request.DataKey == "" {
 		err = errors.New("too few parameters")
@@ -256,7 +256,7 @@ func (c *Client) AccountData(request AccountRequest) (accountData hProtocol.Acco
 	return
 }
 
-// Effects returns effects(https://www.hcnet.org/developers/aurora/reference/resources/effect.html)
+// Effects returns effects(https://www.diamnet.org/developers/aurora/reference/resources/effect.html)
 // It can be used to return effects for an account, a ledger, an operation, a transaction and all effects on the network.
 func (c *Client) Effects(request EffectRequest) (effects effects.EffectsPage, err error) {
 	err = c.sendRequest(request, &effects)
@@ -264,21 +264,21 @@ func (c *Client) Effects(request EffectRequest) (effects effects.EffectsPage, er
 }
 
 // Assets returns asset information.
-// See https://www.hcnet.org/developers/aurora/reference/endpoints/assets-all.html
+// See https://www.diamnet.org/developers/aurora/reference/endpoints/assets-all.html
 func (c *Client) Assets(request AssetRequest) (assets hProtocol.AssetsPage, err error) {
 	err = c.sendRequest(request, &assets)
 	return
 }
 
 // Ledgers returns information about all ledgers.
-// See https://www.hcnet.org/developers/aurora/reference/endpoints/ledgers-all.html
+// See https://www.diamnet.org/developers/aurora/reference/endpoints/ledgers-all.html
 func (c *Client) Ledgers(request LedgerRequest) (ledgers hProtocol.LedgersPage, err error) {
 	err = c.sendRequest(request, &ledgers)
 	return
 }
 
 // LedgerDetail returns information about a particular ledger for a given sequence number
-// See https://www.hcnet.org/developers/aurora/reference/endpoints/ledgers-single.html
+// See https://www.diamnet.org/developers/aurora/reference/endpoints/ledgers-single.html
 func (c *Client) LedgerDetail(sequence uint32) (ledger hProtocol.Ledger, err error) {
 	if sequence == 0 {
 		err = errors.New("invalid sequence number provided")
@@ -294,7 +294,7 @@ func (c *Client) LedgerDetail(sequence uint32) (ledger hProtocol.Ledger, err err
 }
 
 // Metrics returns monitoring information about a aurora server
-// See https://www.hcnet.org/developers/aurora/reference/endpoints/metrics.html
+// See https://www.diamnet.org/developers/aurora/reference/endpoints/metrics.html
 func (c *Client) Metrics() (metrics hProtocol.Metrics, err error) {
 	request := metricsRequest{endpoint: "metrics"}
 	err = c.sendRequest(request, &metrics)
@@ -302,7 +302,7 @@ func (c *Client) Metrics() (metrics hProtocol.Metrics, err error) {
 }
 
 // FeeStats returns information about fees in the last 5 ledgers.
-// See https://www.hcnet.org/developers/aurora/reference/endpoints/fee-stats.html
+// See https://www.diamnet.org/developers/aurora/reference/endpoints/fee-stats.html
 func (c *Client) FeeStats() (feestats hProtocol.FeeStats, err error) {
 	request := feeStatsRequest{endpoint: "fee_stats"}
 	err = c.sendRequest(request, &feestats)
@@ -310,20 +310,20 @@ func (c *Client) FeeStats() (feestats hProtocol.FeeStats, err error) {
 }
 
 // Offers returns information about offers made on the SDEX.
-// See https://www.hcnet.org/developers/aurora/reference/endpoints/offers-for-account.html
+// See https://www.diamnet.org/developers/aurora/reference/endpoints/offers-for-account.html
 func (c *Client) Offers(request OfferRequest) (offers hProtocol.OffersPage, err error) {
 	err = c.sendRequest(request, &offers)
 	return
 }
 
-// Operations returns hcnet operations (https://www.hcnet.org/developers/aurora/reference/resources/operation.html)
+// Operations returns diamnet operations (https://www.diamnet.org/developers/aurora/reference/resources/operation.html)
 // It can be used to return operations for an account, a ledger, a transaction and all operations on the network.
 func (c *Client) Operations(request OperationRequest) (ops operations.OperationsPage, err error) {
 	err = c.sendRequest(request.SetOperationsEndpoint(), &ops)
 	return
 }
 
-// OperationDetail returns a single hcnet operations (https://www.hcnet.org/developers/aurora/reference/resources/operation.html)
+// OperationDetail returns a single diamnet operations (https://www.diamnet.org/developers/aurora/reference/resources/operation.html)
 // for a given operation id
 func (c *Client) OperationDetail(id string) (ops operations.Operation, err error) {
 	if id == "" {
@@ -353,7 +353,7 @@ func (c *Client) OperationDetail(id string) (ops operations.Operation, err error
 }
 
 // SubmitTransactionXDR submits a transaction represented as a base64 XDR string to the network. err can be either error object or aurora.Error object.
-// See https://www.hcnet.org/developers/aurora/reference/endpoints/transactions-create.html
+// See https://www.diamnet.org/developers/aurora/reference/endpoints/transactions-create.html
 func (c *Client) SubmitTransactionXDR(transactionXdr string) (txSuccess hProtocol.TransactionSuccess,
 	err error) {
 	request := submitRequest{endpoint: "transactions", transactionXdr: transactionXdr}
@@ -362,7 +362,7 @@ func (c *Client) SubmitTransactionXDR(transactionXdr string) (txSuccess hProtoco
 }
 
 // SubmitTransaction submits a transaction to the network. err can be either error object or aurora.Error object.
-// See https://www.hcnet.org/developers/aurora/reference/endpoints/transactions-create.html
+// See https://www.diamnet.org/developers/aurora/reference/endpoints/transactions-create.html
 func (c *Client) SubmitTransaction(transaction txnbuild.Transaction) (txSuccess hProtocol.TransactionSuccess,
 	err error) {
 	txeBase64, err := transaction.Base64()
@@ -374,7 +374,7 @@ func (c *Client) SubmitTransaction(transaction txnbuild.Transaction) (txSuccess 
 	return c.SubmitTransactionXDR(txeBase64)
 }
 
-// Transactions returns hcnet transactions (https://www.hcnet.org/developers/aurora/reference/resources/transaction.html)
+// Transactions returns diamnet transactions (https://www.diamnet.org/developers/aurora/reference/resources/transaction.html)
 // It can be used to return transactions for an account, a ledger,and all transactions on the network.
 func (c *Client) Transactions(request TransactionRequest) (txs hProtocol.TransactionsPage, err error) {
 	err = c.sendRequest(request, &txs)
@@ -382,7 +382,7 @@ func (c *Client) Transactions(request TransactionRequest) (txs hProtocol.Transac
 }
 
 // TransactionDetail returns information about a particular transaction for a given transaction hash
-// See https://www.hcnet.org/developers/aurora/reference/endpoints/transactions-single.html
+// See https://www.diamnet.org/developers/aurora/reference/endpoints/transactions-single.html
 func (c *Client) TransactionDetail(txHash string) (tx hProtocol.Transaction, err error) {
 	if txHash == "" {
 		return tx, errors.New("no transaction hash provided")
@@ -393,26 +393,26 @@ func (c *Client) TransactionDetail(txHash string) (tx hProtocol.Transaction, err
 	return
 }
 
-// OrderBook returns the orderbook for an asset pair (https://www.hcnet.org/developers/aurora/reference/resources/orderbook.html)
+// OrderBook returns the orderbook for an asset pair (https://www.diamnet.org/developers/aurora/reference/resources/orderbook.html)
 func (c *Client) OrderBook(request OrderBookRequest) (obs hProtocol.OrderBookSummary, err error) {
 	err = c.sendRequest(request, &obs)
 	return
 }
 
-// Paths returns the available paths to make a payment. See https://www.hcnet.org/developers/aurora/reference/endpoints/path-finding.html
+// Paths returns the available paths to make a payment. See https://www.diamnet.org/developers/aurora/reference/endpoints/path-finding.html
 func (c *Client) Paths(request PathsRequest) (paths hProtocol.PathsPage, err error) {
 	err = c.sendRequest(request, &paths)
 	return
 }
 
-// Payments returns hcnet account_merge, create_account, path payment and payment operations.
+// Payments returns diamnet account_merge, create_account, path payment and payment operations.
 // It can be used to return payments for an account, a ledger, a transaction and all payments on the network.
 func (c *Client) Payments(request OperationRequest) (ops operations.OperationsPage, err error) {
 	err = c.sendRequest(request.SetPaymentsEndpoint(), &ops)
 	return
 }
 
-// Trades returns hcnet trades (https://www.hcnet.org/developers/aurora/reference/resources/trade.html)
+// Trades returns diamnet trades (https://www.diamnet.org/developers/aurora/reference/resources/trade.html)
 // It can be used to return trades for an account, an offer and all trades on the network.
 func (c *Client) Trades(request TradeRequest) (tds hProtocol.TradesPage, err error) {
 	err = c.sendRequest(request, &tds)
@@ -420,7 +420,7 @@ func (c *Client) Trades(request TradeRequest) (tds hProtocol.TradesPage, err err
 }
 
 // Fund creates a new account funded from friendbot. It only works on test networks. See
-// https://www.hcnet.org/developers/guides/get-started/create-account.html for more information.
+// https://www.diamnet.org/developers/guides/get-started/create-account.html for more information.
 func (c *Client) Fund(addr string) (txSuccess hProtocol.TransactionSuccess, err error) {
 	if !c.isTestNet {
 		return txSuccess, errors.New("can't fund account from friendbot on production network")
@@ -438,7 +438,7 @@ func (c *Client) StreamTrades(ctx context.Context, request TradeRequest, handler
 	return
 }
 
-// TradeAggregations returns hcnet trade aggregations (https://www.hcnet.org/developers/aurora/reference/resources/trade_aggregation.html)
+// TradeAggregations returns diamnet trade aggregations (https://www.diamnet.org/developers/aurora/reference/resources/trade_aggregation.html)
 func (c *Client) TradeAggregations(request TradeAggregationRequest) (tds hProtocol.TradeAggregationsPage, err error) {
 	err = c.sendRequest(request, &tds)
 	return
@@ -458,7 +458,7 @@ func (c *Client) StreamEffects(ctx context.Context, request EffectRequest, handl
 	return request.StreamEffects(ctx, c, handler)
 }
 
-// StreamOperations streams hcnet operations. It can be used to stream all operations or operations
+// StreamOperations streams diamnet operations. It can be used to stream all operations or operations
 // for an account. Use context.WithCancel to stop streaming or context.Background() if you want to
 // stream indefinitely. OperationHandler is a user-supplied function that is executed for each streamed
 //  operation received.
@@ -466,7 +466,7 @@ func (c *Client) StreamOperations(ctx context.Context, request OperationRequest,
 	return request.SetOperationsEndpoint().StreamOperations(ctx, c, handler)
 }
 
-// StreamPayments streams hcnet payments. It can be used to stream all payments or payments
+// StreamPayments streams diamnet payments. It can be used to stream all payments or payments
 // for an account. Payments include create_account, payment, path_payment and account_merge operations.
 // Use context.WithCancel to stop streaming or context.Background() if you want to
 // stream indefinitely. OperationHandler is a user-supplied function that is executed for each streamed
@@ -475,14 +475,14 @@ func (c *Client) StreamPayments(ctx context.Context, request OperationRequest, h
 	return request.SetPaymentsEndpoint().StreamOperations(ctx, c, handler)
 }
 
-// StreamOffers streams offers processed by the HcNet network for an account. Use context.WithCancel
+// StreamOffers streams offers processed by the DiamNet network for an account. Use context.WithCancel
 // to stop streaming or context.Background() if you want to stream indefinitely.
 // OfferHandler is a user-supplied function that is executed for each streamed offer received.
 func (c *Client) StreamOffers(ctx context.Context, request OfferRequest, handler OfferHandler) error {
 	return request.StreamOffers(ctx, c, handler)
 }
 
-// StreamLedgers streams hcnet ledgers. It can be used to stream all ledgers. Use context.WithCancel
+// StreamLedgers streams diamnet ledgers. It can be used to stream all ledgers. Use context.WithCancel
 // to stop streaming or context.Background() if you want to stream indefinitely.
 // LedgerHandler is a user-supplied function that is executed for each streamed ledger received.
 func (c *Client) StreamLedgers(ctx context.Context, request LedgerRequest, handler LedgerHandler) error {

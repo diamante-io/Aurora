@@ -4,9 +4,9 @@ import (
 	"io"
 	"sync"
 
-	"github.com/hcnet/go/exp/ingest/ledgerbackend"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/exp/ingest/ledgerbackend"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/xdr"
 )
 
 // DBLedgerReader is a database-backed implementation of the io.LedgerReader interface.

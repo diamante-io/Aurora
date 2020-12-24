@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/services/aurora/internal/test"
+	"github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/services/aurora/internal/test"
 )
 
 func TestRootAction(t *testing.T) {
@@ -25,9 +25,9 @@ func TestRootAction(t *testing.T) {
 	defer server.Close()
 
 	ht.App.auroraVersion = "test-aurora"
-	ht.App.config.HcNetCoreURL = server.URL
+	ht.App.config.DiamNetCoreURL = server.URL
 	ht.App.config.NetworkPassphrase = "test"
-	ht.App.UpdateHcNetCoreInfo()
+	ht.App.UpdateDiamNetCoreInfo()
 
 	w := ht.Get("/")
 
@@ -36,7 +36,7 @@ func TestRootAction(t *testing.T) {
 		err := json.Unmarshal(w.Body.Bytes(), &actual)
 		ht.Require.NoError(err)
 		ht.Assert.Equal("test-aurora", actual.AuroraVersion)
-		ht.Assert.Equal("test-core", actual.HcNetCoreVersion)
+		ht.Assert.Equal("test-core", actual.DiamNetCoreVersion)
 		ht.Assert.Equal(int32(4), actual.CoreSupportedProtocolVersion)
 		ht.Assert.Equal(int32(3), actual.CurrentProtocolVersion)
 	}

@@ -3,8 +3,8 @@
 ### Problem
 
 We need a keystore service that supports non-custodial applications.
-It will make the process of hcnetizing any applications easier as
-they don't have to implement the logic to create a hcnet account
+It will make the process of diamnetizing any applications easier as
+they don't have to implement the logic to create a diamnet account
 and handle the encrypted private key themselves.
 
 It is also intended to be the service that wallet SDK talks to.

@@ -3,8 +3,8 @@ package db
 import (
 	"database/sql"
 
-	"github.com/hcnet/go/support/db"
-	"github.com/hcnet/go/support/errors"
+	"github.com/diamnet/go/support/db"
+	"github.com/diamnet/go/support/errors"
 )
 
 const (

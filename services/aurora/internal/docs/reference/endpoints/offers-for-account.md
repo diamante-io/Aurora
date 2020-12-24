@@ -1,14 +1,14 @@
 ---
 title: Offers for Account
 clientData:
-  laboratoryUrl: https://www.hcnet.org/laboratory/#explorer?resource=offers&endpoint=for_account
+  laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=offers&endpoint=for_account
 ---
 
-People on the HcNet network can make [offers](../resources/offer.md) to buy or sell assets. This
+People on the DiamNet network can make [offers](../resources/offer.md) to buy or sell assets. This
 endpoint represents all the offers a particular account makes.
 
 This endpoint can also be used in [streaming](../streaming.md) mode so it is possible to use it to
-listen as offers are processed in the HcNet network. If called in streaming mode Aurora will
+listen as offers are processed in the DiamNet network. If called in streaming mode Aurora will
 start at the earliest known offer unless a `cursor` is set. In that case it will start from the
 `cursor`. You can also set `cursor` value to `now` to only stream offers created since your request
 time.
@@ -31,14 +31,14 @@ GET /accounts/{account}/offers{?cursor,limit,order}
 ### curl Example Request
 
 ```sh
-curl "https://aurora-testnet.hcnet.org/accounts/GBYUUJHG6F4EPJGNLERINATVQLNDOFRUD7SGJZ26YZLG5PAYLG7XUSGF/offers"
+curl "https://aurora-testnet.diamnet.org/accounts/GBYUUJHG6F4EPJGNLERINATVQLNDOFRUD7SGJZ26YZLG5PAYLG7XUSGF/offers"
 ```
 
 ### JavaScript Example Request
 
 ```javascript
-var HcNetSdk = require('hcnet-sdk');
-var server = new HcNetSdk.Server('https://aurora-testnet.hcnet.org');
+var DiamNetSdk = require('diamnet-sdk');
+var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.offers('accounts', 'GBYUUJHG6F4EPJGNLERINATVQLNDOFRUD7SGJZ26YZLG5PAYLG7XUSGF')
   .call()
@@ -53,8 +53,8 @@ server.offers('accounts', 'GBYUUJHG6F4EPJGNLERINATVQLNDOFRUD7SGJZ26YZLG5PAYLG7XU
 ### JavaScript Streaming Example
 
 ```javascript
-var HcNetSdk = require('hcnet-sdk')
-var server = new HcNetSdk.Server('https://aurora-testnet.hcnet.org');
+var DiamNetSdk = require('diamnet-sdk')
+var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
 
 var offerHandler = function (offerResponse) {
   console.log(offerResponse);
@@ -80,13 +80,13 @@ The list of offers.
 {
   "_links": {
     "self": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GBYUUJHG6F4EPJGNLERINATVQLNDOFRUD7SGJZ26YZLG5PAYLG7XUSGF/offers?cursor=&limit=10&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/accounts/GBYUUJHG6F4EPJGNLERINATVQLNDOFRUD7SGJZ26YZLG5PAYLG7XUSGF/offers?cursor=&limit=10&order=asc"
     },
     "next": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GBYUUJHG6F4EPJGNLERINATVQLNDOFRUD7SGJZ26YZLG5PAYLG7XUSGF/offers?cursor=5443256&limit=10&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/accounts/GBYUUJHG6F4EPJGNLERINATVQLNDOFRUD7SGJZ26YZLG5PAYLG7XUSGF/offers?cursor=5443256&limit=10&order=asc"
     },
     "prev": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GBYUUJHG6F4EPJGNLERINATVQLNDOFRUD7SGJZ26YZLG5PAYLG7XUSGF/offers?cursor=5443256&limit=10&order=desc"
+      "href": "https://aurora-testnet.diamnet.org/accounts/GBYUUJHG6F4EPJGNLERINATVQLNDOFRUD7SGJZ26YZLG5PAYLG7XUSGF/offers?cursor=5443256&limit=10&order=desc"
     }
   },
   "_embedded": {
@@ -94,10 +94,10 @@ The list of offers.
       {
         "_links": {
           "self": {
-            "href": "https://aurora-testnet.hcnet.org/offers/5443256"
+            "href": "https://aurora-testnet.diamnet.org/offers/5443256"
           },
           "offer_maker": {
-            "href": "https://aurora-testnet.hcnet.org/accounts/GBYUUJHG6F4EPJGNLERINATVQLNDOFRUD7SGJZ26YZLG5PAYLG7XUSGF"
+            "href": "https://aurora-testnet.diamnet.org/accounts/GBYUUJHG6F4EPJGNLERINATVQLNDOFRUD7SGJZ26YZLG5PAYLG7XUSGF"
           }
         },
         "id": 5443256,

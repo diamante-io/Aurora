@@ -7,7 +7,7 @@ import (
 
 	"net/url"
 
-	"github.com/hcnet/go/support/render/problem"
+	"github.com/diamnet/go/support/render/problem"
 	"github.com/stretchr/testify/assert"
 )
 

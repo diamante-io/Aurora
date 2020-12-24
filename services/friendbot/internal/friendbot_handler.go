@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/hcnet/go/clients/aurora"
-	"github.com/hcnet/go/strkey"
-	"github.com/hcnet/go/support/render/hal"
-	"github.com/hcnet/go/support/render/problem"
+	"github.com/diamnet/go/clients/aurora"
+	"github.com/diamnet/go/strkey"
+	"github.com/diamnet/go/support/render/hal"
+	"github.com/diamnet/go/support/render/problem"
 )
 
 // FriendbotHandler causes an account at `Address` to be created.

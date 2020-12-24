@@ -9,11 +9,11 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi"
-	"github.com/hcnet/go/services/aurora/internal/ledger"
-	"github.com/hcnet/go/services/aurora/internal/test"
-	"github.com/hcnet/go/services/aurora/internal/toid"
-	"github.com/hcnet/go/support/render/problem"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/services/aurora/internal/ledger"
+	"github.com/diamnet/go/services/aurora/internal/test"
+	"github.com/diamnet/go/services/aurora/internal/toid"
+	"github.com/diamnet/go/support/render/problem"
+	"github.com/diamnet/go/xdr"
 )
 
 func TestGetAccountID(t *testing.T) {
@@ -290,7 +290,7 @@ func TestGetPageQuery(t *testing.T) {
 	_ = action.GetPageQuery()
 	tt.Assert.Error(action.Err)
 
-	// regression: https://github.com/hcnet/go/services/aurora/internal/issues/372
+	// regression: https://github.com/diamnet/go/services/aurora/internal/issues/372
 	// (limit of 0 turns into 10)
 	makeAction("/?limit=0", nil)
 	_ = action.GetPageQuery()

@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/hcnet/go/support/render/problem"
+	"github.com/diamnet/go/support/render/problem"
 	"github.com/stretchr/testify/assert"
 )
 

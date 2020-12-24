@@ -12,19 +12,19 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hcnet/go/clients/hcnettoml"
-	"github.com/hcnet/go/protocols/compliance"
-	"github.com/hcnet/go/support/http/httptest"
-	"github.com/hcnet/go/txnbuild"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/clients/diamnettoml"
+	"github.com/diamnet/go/protocols/compliance"
+	"github.com/diamnet/go/support/http/httptest"
+	"github.com/diamnet/go/txnbuild"
+	"github.com/diamnet/go/xdr"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/hcnet/go/services/compliance/internal/config"
-	"github.com/hcnet/go/services/compliance/internal/db"
-	"github.com/hcnet/go/services/compliance/internal/mocks"
-	"github.com/hcnet/go/services/compliance/internal/test"
+	"github.com/diamnet/go/services/compliance/internal/config"
+	"github.com/diamnet/go/services/compliance/internal/db"
+	"github.com/diamnet/go/services/compliance/internal/mocks"
+	"github.com/diamnet/go/services/compliance/internal/test"
 )
 
 func TestRequestHandlerAuthInvalidParams(t *testing.T) {
@@ -43,7 +43,7 @@ func TestRequestHandlerAuthInvalidParams(t *testing.T) {
 	var mockDatabase = new(mocks.MockDatabase)
 	var mockFederationResolver = new(mocks.MockFederationResolver)
 	var mockSignerVerifier = new(mocks.MockSignerVerifier)
-	var mockHcNettomlResolver = new(mocks.MockHcNettomlResolver)
+	var mockDiamNettomlResolver = new(mocks.MockDiamNettomlResolver)
 	var mockNonceGenerator = new(mocks.MockNonceGenerator)
 
 	requestHandler := RequestHandler{
@@ -52,7 +52,7 @@ func TestRequestHandlerAuthInvalidParams(t *testing.T) {
 		Database:                mockDatabase,
 		FederationResolver:      mockFederationResolver,
 		SignatureSignerVerifier: mockSignerVerifier,
-		HcNetTomlResolver:     mockHcNettomlResolver,
+		DiamNetTomlResolver:     mockDiamNettomlResolver,
 		NonceGenerator:          mockNonceGenerator,
 	}
 
@@ -85,10 +85,10 @@ func TestRequestHandlerAuthInvalidParams(t *testing.T) {
 	assert.Equal(t, expected, test.StringToJSONMap(responseString, "more_info"))
 
 	// When signature is invalid
-	mockHcNettomlResolver.On(
-		"GetHcNetTomlByAddress",
-		"alice*hcnet.org",
-	).Return(&hcnettoml.Response{
+	mockDiamNettomlResolver.On(
+		"GetDiamNetTomlByAddress",
+		"alice*diamnet.org",
+	).Return(&diamnettoml.Response{
 		SigningKey: "GBYJZW5XFAI6XV73H5SAIUYK6XZI4CGGVBUBO3ANA2SV7KKDAXTV6AEB",
 	}, nil).Once()
 
@@ -129,7 +129,7 @@ func TestRequestHandlerAuthInvalidParams(t *testing.T) {
 	require.NoError(t, err)
 
 	authData := compliance.AuthData{
-		Sender:         "alice*hcnet.org",
+		Sender:         "alice*diamnet.org",
 		NeedInfo:       false,
 		Tx:             txB64,
 		AttachmentJSON: string(attachmentJSON),
@@ -162,11 +162,11 @@ func TestRequestHandlerAuthInvalidParams(t *testing.T) {
 }`)
 	assert.Equal(t, expected, test.StringToJSONMap(responseString, "more_info"))
 
-	// When sender's hcnet.toml does not contain signing key
-	mockHcNettomlResolver.On(
-		"GetHcNetTomlByAddress",
-		"alice*hcnet.org",
-	).Return(&hcnettoml.Response{}, nil).Once()
+	// When sender's diamnet.toml does not contain signing key
+	mockDiamNettomlResolver.On(
+		"GetDiamNetTomlByAddress",
+		"alice*diamnet.org",
+	).Return(&diamnettoml.Response{}, nil).Once()
 
 	attachHash = sha256.Sum256([]byte("{}"))
 	txnOp = &txnbuild.Payment{
@@ -199,7 +199,7 @@ func TestRequestHandlerAuthInvalidParams(t *testing.T) {
 	require.NoError(t, err)
 
 	authData = compliance.AuthData{
-		Sender:         "alice*hcnet.org",
+		Sender:         "alice*diamnet.org",
 		NeedInfo:       false,
 		Tx:             txB64,
 		AttachmentJSON: "{}",
@@ -243,7 +243,7 @@ func TestRequestHandlerAuthValidParams(t *testing.T) {
 	var mockDatabase = new(mocks.MockDatabase)
 	var mockFederationResolver = new(mocks.MockFederationResolver)
 	var mockSignerVerifier = new(mocks.MockSignerVerifier)
-	var mockHcNettomlResolver = new(mocks.MockHcNettomlResolver)
+	var mockDiamNettomlResolver = new(mocks.MockDiamNettomlResolver)
 	var mockNonceGenerator = new(mocks.MockNonceGenerator)
 
 	requestHandler := RequestHandler{
@@ -252,7 +252,7 @@ func TestRequestHandlerAuthValidParams(t *testing.T) {
 		Database:                mockDatabase,
 		FederationResolver:      mockFederationResolver,
 		SignatureSignerVerifier: mockSignerVerifier,
-		HcNetTomlResolver:     mockHcNettomlResolver,
+		DiamNetTomlResolver:     mockDiamNettomlResolver,
 		NonceGenerator:          mockNonceGenerator,
 	}
 
@@ -302,7 +302,7 @@ func TestRequestHandlerAuthValidParams(t *testing.T) {
 	txHashHex := hex.EncodeToString(txHash[:])
 
 	authData := compliance.AuthData{
-		Sender:         "alice*hcnet.org",
+		Sender:         "alice*diamnet.org",
 		NeedInfo:       false,
 		Tx:             txB64,
 		AttachmentJSON: string(attachmentJSON),
@@ -315,10 +315,10 @@ func TestRequestHandlerAuthValidParams(t *testing.T) {
 		"sig":  {"ACamNqa0dF8gf97URhFVKWSD7fmvZKc5At+8dCLM5ySR0HsHySF3G2WuwYP2nKjeqjKmu3U9Z3+u1P10w1KBCA=="},
 	}
 
-	mockHcNettomlResolver.On(
-		"GetHcNetTomlByAddress",
-		"alice*hcnet.org",
-	).Return(&hcnettoml.Response{
+	mockDiamNettomlResolver.On(
+		"GetDiamNetTomlByAddress",
+		"alice*diamnet.org",
+	).Return(&diamnettoml.Response{
 		SigningKey: "GBYJZW5XFAI6XV73H5SAIUYK6XZI4CGGVBUBO3ANA2SV7KKDAXTV6AEB",
 	}, nil).Once()
 
@@ -378,7 +378,7 @@ func TestRequestHandlerAuthSanctionsCheck(t *testing.T) {
 	var mockDatabase = new(mocks.MockDatabase)
 	var mockFederationResolver = new(mocks.MockFederationResolver)
 	var mockSignerVerifier = new(mocks.MockSignerVerifier)
-	var mockHcNettomlResolver = new(mocks.MockHcNettomlResolver)
+	var mockDiamNettomlResolver = new(mocks.MockDiamNettomlResolver)
 	var mockNonceGenerator = new(mocks.MockNonceGenerator)
 
 	requestHandler := RequestHandler{
@@ -387,7 +387,7 @@ func TestRequestHandlerAuthSanctionsCheck(t *testing.T) {
 		Database:                mockDatabase,
 		FederationResolver:      mockFederationResolver,
 		SignatureSignerVerifier: mockSignerVerifier,
-		HcNetTomlResolver:     mockHcNettomlResolver,
+		DiamNetTomlResolver:     mockDiamNettomlResolver,
 		NonceGenerator:          mockNonceGenerator,
 	}
 
@@ -452,7 +452,7 @@ func TestRequestHandlerAuthSanctionsCheck(t *testing.T) {
 
 	// When all params are valid (NeedInfo = `false`)
 	authData := compliance.AuthData{
-		Sender:         "alice*hcnet.org",
+		Sender:         "alice*diamnet.org",
 		NeedInfo:       false,
 		Tx:             txB64,
 		AttachmentJSON: string(attachmentJSON),
@@ -466,10 +466,10 @@ func TestRequestHandlerAuthSanctionsCheck(t *testing.T) {
 		"sig":  {"Q2cQVOn/A+aOxrLLeUPwHmBm3LMvlfXN8tDHo4Oi6SxWWueMTDfRkC4XvRX4emLij+Npo7/GfrZ82CnT5yB5Dg=="},
 	}
 
-	mockHcNettomlResolver.On(
-		"GetHcNetTomlByAddress",
-		"alice*hcnet.org",
-	).Return(&hcnettoml.Response{
+	mockDiamNettomlResolver.On(
+		"GetDiamNetTomlByAddress",
+		"alice*diamnet.org",
+	).Return(&diamnettoml.Response{
 		SigningKey: "GBYJZW5XFAI6XV73H5SAIUYK6XZI4CGGVBUBO3ANA2SV7KKDAXTV6AEB",
 	}, nil).Once()
 
@@ -501,10 +501,10 @@ func TestRequestHandlerAuthSanctionsCheck(t *testing.T) {
 	assert.Equal(t, expected, test.StringToJSONMap(responseString))
 
 	// when sanctions server returns bad request it returns tx_status `error`
-	mockHcNettomlResolver.On(
-		"GetHcNetTomlByAddress",
-		"alice*hcnet.org",
-	).Return(&hcnettoml.Response{
+	mockDiamNettomlResolver.On(
+		"GetDiamNetTomlByAddress",
+		"alice*diamnet.org",
+	).Return(&diamnettoml.Response{
 		SigningKey: "GBYJZW5XFAI6XV73H5SAIUYK6XZI4CGGVBUBO3ANA2SV7KKDAXTV6AEB",
 	}, nil).Once()
 
@@ -535,10 +535,10 @@ func TestRequestHandlerAuthSanctionsCheck(t *testing.T) {
 	assert.Equal(t, expected, test.StringToJSONMap(responseString))
 
 	// when sanctions server returns accepted it returns tx_status `pending`
-	mockHcNettomlResolver.On(
-		"GetHcNetTomlByAddress",
-		"alice*hcnet.org",
-	).Return(&hcnettoml.Response{
+	mockDiamNettomlResolver.On(
+		"GetDiamNetTomlByAddress",
+		"alice*diamnet.org",
+	).Return(&diamnettoml.Response{
 		SigningKey: "GBYJZW5XFAI6XV73H5SAIUYK6XZI4CGGVBUBO3ANA2SV7KKDAXTV6AEB",
 	}, nil).Once()
 
@@ -569,10 +569,10 @@ func TestRequestHandlerAuthSanctionsCheck(t *testing.T) {
 	assert.Equal(t, expected, test.StringToJSONMap(responseString))
 
 	// when sanctions server returns ok it returns tx_status `ok` and persists transaction
-	mockHcNettomlResolver.On(
-		"GetHcNetTomlByAddress",
-		"alice*hcnet.org",
-	).Return(&hcnettoml.Response{
+	mockDiamNettomlResolver.On(
+		"GetDiamNetTomlByAddress",
+		"alice*diamnet.org",
+	).Return(&diamnettoml.Response{
 		SigningKey: "GBYJZW5XFAI6XV73H5SAIUYK6XZI4CGGVBUBO3ANA2SV7KKDAXTV6AEB",
 	}, nil).Once()
 
@@ -639,7 +639,7 @@ func TestRequestHandlerAuthSanctionsCheckNeedInfo(t *testing.T) {
 	var mockDatabase = new(mocks.MockDatabase)
 	var mockFederationResolver = new(mocks.MockFederationResolver)
 	var mockSignerVerifier = new(mocks.MockSignerVerifier)
-	var mockHcNettomlResolver = new(mocks.MockHcNettomlResolver)
+	var mockDiamNettomlResolver = new(mocks.MockDiamNettomlResolver)
 	var mockNonceGenerator = new(mocks.MockNonceGenerator)
 
 	requestHandler := RequestHandler{
@@ -648,7 +648,7 @@ func TestRequestHandlerAuthSanctionsCheckNeedInfo(t *testing.T) {
 		Database:                mockDatabase,
 		FederationResolver:      mockFederationResolver,
 		SignatureSignerVerifier: mockSignerVerifier,
-		HcNetTomlResolver:     mockHcNettomlResolver,
+		DiamNetTomlResolver:     mockDiamNettomlResolver,
 		NonceGenerator:          mockNonceGenerator,
 	}
 
@@ -713,7 +713,7 @@ func TestRequestHandlerAuthSanctionsCheckNeedInfo(t *testing.T) {
 
 	// When all params are valid (NeedInfo = `true`)
 	authData := compliance.AuthData{
-		Sender:         "alice*hcnet.org",
+		Sender:         "alice*diamnet.org",
 		NeedInfo:       true,
 		Tx:             txB64,
 		AttachmentJSON: string(attachmentJSON),
@@ -727,10 +727,10 @@ func TestRequestHandlerAuthSanctionsCheckNeedInfo(t *testing.T) {
 		"sig":  {"Q2cQVOn/A+aOxrLLeUPwHmBm3LMvlfXN8tDHo4Oi6SxWWueMTDfRkC4XvRX4emLij+Npo7/GfrZ82CnT5yB5Dg=="},
 	}
 
-	mockHcNettomlResolver.On(
-		"GetHcNetTomlByAddress",
-		"alice*hcnet.org",
-	).Return(&hcnettoml.Response{
+	mockDiamNettomlResolver.On(
+		"GetDiamNetTomlByAddress",
+		"alice*diamnet.org",
+	).Return(&diamnettoml.Response{
 		SigningKey: "GBYJZW5XFAI6XV73H5SAIUYK6XZI4CGGVBUBO3ANA2SV7KKDAXTV6AEB",
 	}, nil).Once()
 
@@ -779,10 +779,10 @@ func TestRequestHandlerAuthSanctionsCheckNeedInfo(t *testing.T) {
 	assert.Equal(t, expected, test.StringToJSONMap(responseString))
 
 	// when ask_user server returns bad request it returns info_status `error`
-	mockHcNettomlResolver.On(
-		"GetHcNetTomlByAddress",
-		"alice*hcnet.org",
-	).Return(&hcnettoml.Response{
+	mockDiamNettomlResolver.On(
+		"GetDiamNetTomlByAddress",
+		"alice*diamnet.org",
+	).Return(&diamnettoml.Response{
 		SigningKey: "GBYJZW5XFAI6XV73H5SAIUYK6XZI4CGGVBUBO3ANA2SV7KKDAXTV6AEB",
 	}, nil).Once()
 
@@ -830,10 +830,10 @@ func TestRequestHandlerAuthSanctionsCheckNeedInfo(t *testing.T) {
 	assert.Equal(t, expected, test.StringToJSONMap(responseString))
 
 	// when ask_user server returns pending it returns info_status `pending`
-	mockHcNettomlResolver.On(
-		"GetHcNetTomlByAddress",
-		"alice*hcnet.org",
-	).Return(&hcnettoml.Response{
+	mockDiamNettomlResolver.On(
+		"GetDiamNetTomlByAddress",
+		"alice*diamnet.org",
+	).Return(&diamnettoml.Response{
 		SigningKey: "GBYJZW5XFAI6XV73H5SAIUYK6XZI4CGGVBUBO3ANA2SV7KKDAXTV6AEB",
 	}, nil).Once()
 
@@ -881,10 +881,10 @@ func TestRequestHandlerAuthSanctionsCheckNeedInfo(t *testing.T) {
 	assert.Equal(t, expected, test.StringToJSONMap(responseString))
 
 	// when ask_user server returns pending but invalid response body it returns info_status `pending` (600 seconds)
-	mockHcNettomlResolver.On(
-		"GetHcNetTomlByAddress",
-		"alice*hcnet.org",
-	).Return(&hcnettoml.Response{
+	mockDiamNettomlResolver.On(
+		"GetDiamNetTomlByAddress",
+		"alice*diamnet.org",
+	).Return(&diamnettoml.Response{
 		SigningKey: "GBYJZW5XFAI6XV73H5SAIUYK6XZI4CGGVBUBO3ANA2SV7KKDAXTV6AEB",
 	}, nil).Once()
 
@@ -932,10 +932,10 @@ func TestRequestHandlerAuthSanctionsCheckNeedInfo(t *testing.T) {
 	assert.Equal(t, expected, test.StringToJSONMap(responseString))
 
 	// when ask_user server returns ok it returns info_status `ok` and DestInfo and persists transaction
-	mockHcNettomlResolver.On(
-		"GetHcNetTomlByAddress",
-		"alice*hcnet.org",
-	).Return(&hcnettoml.Response{
+	mockDiamNettomlResolver.On(
+		"GetDiamNetTomlByAddress",
+		"alice*diamnet.org",
+	).Return(&diamnettoml.Response{
 		SigningKey: "GBYJZW5XFAI6XV73H5SAIUYK6XZI4CGGVBUBO3ANA2SV7KKDAXTV6AEB",
 	}, nil).Once()
 
@@ -1014,10 +1014,10 @@ func TestRequestHandlerAuthSanctionsCheckNeedInfo(t *testing.T) {
 	rhconfig.Callbacks.AskUser = ""
 
 	// when FI allowed it returns info_status = `ok` and DestInfo and persists transaction
-	mockHcNettomlResolver.On(
-		"GetHcNetTomlByAddress",
-		"alice*hcnet.org",
-	).Return(&hcnettoml.Response{
+	mockDiamNettomlResolver.On(
+		"GetDiamNetTomlByAddress",
+		"alice*diamnet.org",
+	).Return(&diamnettoml.Response{
 		SigningKey: "GBYJZW5XFAI6XV73H5SAIUYK6XZI4CGGVBUBO3ANA2SV7KKDAXTV6AEB",
 	}, nil).Once()
 
@@ -1039,10 +1039,10 @@ func TestRequestHandlerAuthSanctionsCheckNeedInfo(t *testing.T) {
 		nil,
 	).Once()
 
-	mockHcNettomlResolver.On(
-		"GetHcNetTomlByAddress",
-		"alice*hcnet.org",
-	).Return(&hcnettoml.Response{
+	mockDiamNettomlResolver.On(
+		"GetDiamNetTomlByAddress",
+		"alice*diamnet.org",
+	).Return(&diamnettoml.Response{
 		SigningKey: "GBYJZW5XFAI6XV73H5SAIUYK6XZI4CGGVBUBO3ANA2SV7KKDAXTV6AEB",
 	}, nil).Once()
 
@@ -1066,7 +1066,7 @@ func TestRequestHandlerAuthSanctionsCheckNeedInfo(t *testing.T) {
 
 	mockDatabase.On(
 		"GetAllowedFIByDomain",
-		"hcnet.org", // sender = `alice*hcnet.org`
+		"diamnet.org", // sender = `alice*diamnet.org`
 	).Return(
 		&db.AllowedFI{}, // It just returns existing record
 		nil,
@@ -1113,7 +1113,7 @@ func TestRequestHandlerAuthSanctionsCheckNeedInfo(t *testing.T) {
 	// when FI not allowed but User is allowed it returns info_status = `ok` and DestInfo and persists transaction
 	mockDatabase.On(
 		"GetAllowedFIByDomain",
-		"hcnet.org", // sender = `alice*hcnet.org`
+		"diamnet.org", // sender = `alice*diamnet.org`
 	).Return(
 		nil,
 		nil,
@@ -1121,7 +1121,7 @@ func TestRequestHandlerAuthSanctionsCheckNeedInfo(t *testing.T) {
 
 	mockDatabase.On(
 		"GetAllowedUserByDomainAndUserID",
-		"hcnet.org", // sender = `alice*hcnet.org`
+		"diamnet.org", // sender = `alice*diamnet.org`
 		"alice",
 	).Return(
 		&db.AllowedUser{},
@@ -1167,10 +1167,10 @@ func TestRequestHandlerAuthSanctionsCheckNeedInfo(t *testing.T) {
 	assert.Equal(t, expected, test.StringToJSONMap(responseString))
 
 	// when neither FI nor User is allowed it returns info_status = `denied`
-	mockHcNettomlResolver.On(
-		"GetHcNetTomlByAddress",
-		"alice*hcnet.org",
-	).Return(&hcnettoml.Response{
+	mockDiamNettomlResolver.On(
+		"GetDiamNetTomlByAddress",
+		"alice*diamnet.org",
+	).Return(&diamnettoml.Response{
 		SigningKey: "GBYJZW5XFAI6XV73H5SAIUYK6XZI4CGGVBUBO3ANA2SV7KKDAXTV6AEB",
 	}, nil).Once()
 
@@ -1194,7 +1194,7 @@ func TestRequestHandlerAuthSanctionsCheckNeedInfo(t *testing.T) {
 
 	mockDatabase.On(
 		"GetAllowedFIByDomain",
-		"hcnet.org", // sender = `alice*hcnet.org`
+		"diamnet.org", // sender = `alice*diamnet.org`
 	).Return(
 		nil,
 		nil,
@@ -1202,7 +1202,7 @@ func TestRequestHandlerAuthSanctionsCheckNeedInfo(t *testing.T) {
 
 	mockDatabase.On(
 		"GetAllowedUserByDomainAndUserID",
-		"hcnet.org", // sender = `alice*hcnet.org`
+		"diamnet.org", // sender = `alice*diamnet.org`
 		"alice",
 	).Return(
 		nil,

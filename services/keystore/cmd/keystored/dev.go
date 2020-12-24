@@ -3,8 +3,8 @@
 package main
 
 import (
-	"github.com/hcnet/go/services/keystore"
-	"github.com/hcnet/go/support/env"
+	"github.com/diamnet/go/services/keystore"
+	"github.com/diamnet/go/support/env"
 )
 
 func getConfig() *keystore.Config {

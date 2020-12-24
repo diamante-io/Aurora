@@ -2,8 +2,8 @@ package aurora
 
 import (
 	metrics "github.com/rcrowley/go-metrics"
-	"github.com/hcnet/go/services/aurora/internal/actions"
-	"github.com/hcnet/go/support/render/hal"
+	"github.com/diamnet/go/services/aurora/internal/actions"
+	"github.com/diamnet/go/support/render/hal"
 )
 
 // Interface verification

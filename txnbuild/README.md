@@ -1,17 +1,17 @@
 # txnbuild
 
-`txnbuild` is a [HcNet SDK](https://www.hcnet.org/developers/reference/), implemented in [Go](https://golang.org/). It provides a reference implementation of the complete [set of operations](https://www.hcnet.org/developers/guides/concepts/list-of-operations.html) that compose [transactions](https://www.hcnet.org/developers/guides/concepts/transactions.html) for the HcNet distributed ledger.
+`txnbuild` is a [DiamNet SDK](https://www.diamnet.org/developers/reference/), implemented in [Go](https://golang.org/). It provides a reference implementation of the complete [set of operations](https://www.diamnet.org/developers/guides/concepts/list-of-operations.html) that compose [transactions](https://www.diamnet.org/developers/guides/concepts/transactions.html) for the DiamNet distributed ledger.
 
-This project is maintained by the HcNet Development Foundation.
+This project is maintained by the DiamNet Development Foundation.
 
 ```golang
   import (
 	"log"
 	
-	"github.com/hcnet/go/clients/auroraclient"
-	"github.com/hcnet/go/keypair"
-	"github.com/hcnet/go/network"
-	"github.com/hcnet/go/txnbuild"
+	"github.com/diamnet/go/clients/auroraclient"
+	"github.com/diamnet/go/keypair"
+	"github.com/diamnet/go/network"
+	"github.com/diamnet/go/txnbuild"
 	)
 
 	// Make a keypair for a known account from a secret seed
@@ -53,10 +53,10 @@ This project is maintained by the HcNet Development Foundation.
 ```
 
 ## Getting Started
-This library is aimed at developers building Go applications on top of the [HcNet network](https://www.hcnet.org/). Transactions constructed by this library may be submitted to any Aurora instance for processing onto the ledger, using any HcNet SDK client. The recommended client for Go programmers is [auroraclient](https://github.com/hcnet/go/tree/master/clients/auroraclient). Together, these two libraries provide a complete HcNet SDK.
+This library is aimed at developers building Go applications on top of the [DiamNet network](https://www.diamnet.org/). Transactions constructed by this library may be submitted to any Aurora instance for processing onto the ledger, using any DiamNet SDK client. The recommended client for Go programmers is [auroraclient](https://github.com/diamnet/go/tree/master/clients/auroraclient). Together, these two libraries provide a complete DiamNet SDK.
 
-* The [txnbuild API reference](https://godoc.org/github.com/hcnet/go/txnbuild).
-* The [auroraclient API reference](https://godoc.org/github.com/hcnet/go/clients/auroraclient).
+* The [txnbuild API reference](https://godoc.org/github.com/diamnet/go/txnbuild).
+* The [auroraclient API reference](https://godoc.org/github.com/diamnet/go/clients/auroraclient).
 
 An easy-to-follow demonstration that exercises this SDK on the TestNet with actual accounts is also included! See the [Demo](#demo) section below.
 
@@ -64,8 +64,8 @@ An easy-to-follow demonstration that exercises this SDK on the TestNet with actu
 * Go 1.10 or greater
 
 ### Installing
-* Download the HcNet Go monorepo: `git clone git@github.com:hcnet/go.git`
-* Enter the source directory: `cd $GOPATH/src/github.com/hcnet/go`
+* Download the DiamNet Go monorepo: `git clone git@github.com:diamnet/go.git`
+* Enter the source directory: `cd $GOPATH/src/github.com/diamnet/go`
 * Download external dependencies: `dep ensure -v`
 
 ## Running the tests
@@ -73,13 +73,13 @@ Run the unit tests from the package directory: `go test`
 
 ## Demo
 To see the SDK in action, build and run the demo:
-* Enter the demo directory: `cd $GOPATH/src/github.com/hcnet/go/txnbuild/cmd/demo`
+* Enter the demo directory: `cd $GOPATH/src/github.com/diamnet/go/txnbuild/cmd/demo`
 * Build the demo: `go build`
 * Run the demo: `./demo init`
 
 
 ## Contributing
-Please read [Code of Conduct](https://github.com/hcnet/.github/blob/master/CODE_OF_CONDUCT.md) to understand this project's communication rules.
+Please read [Code of Conduct](https://github.com/diamnet/.github/blob/master/CODE_OF_CONDUCT.md) to understand this project's communication rules.
 
 To submit improvements and fixes to this library, please see [CONTRIBUTING](../CONTRIBUTING.md).
 

@@ -8,13 +8,13 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/spf13/cobra"
-	"github.com/hcnet/go/services/friendbot/internal"
-	"github.com/hcnet/go/support/app"
-	"github.com/hcnet/go/support/config"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/support/http"
-	"github.com/hcnet/go/support/log"
-	"github.com/hcnet/go/support/render/problem"
+	"github.com/diamnet/go/services/friendbot/internal"
+	"github.com/diamnet/go/support/app"
+	"github.com/diamnet/go/support/config"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/support/http"
+	"github.com/diamnet/go/support/log"
+	"github.com/diamnet/go/support/render/problem"
 )
 
 // Config represents the configuration of a friendbot server
@@ -32,8 +32,8 @@ func main() {
 
 	rootCmd := &cobra.Command{
 		Use:   "friendbot",
-		Short: "friendbot for the HcNet Test Network",
-		Long:  "client-facing api server for the friendbot service on the HcNet Test Network",
+		Short: "friendbot for the DiamNet Test Network",
+		Long:  "client-facing api server for the friendbot service on the DiamNet Test Network",
 		Run:   run,
 	}
 

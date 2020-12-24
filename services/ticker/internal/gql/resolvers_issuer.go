@@ -3,7 +3,7 @@ package gql
 import (
 	"errors"
 
-	"github.com/hcnet/go/services/ticker/internal/tickerdb"
+	"github.com/diamnet/go/services/ticker/internal/tickerdb"
 )
 
 // Issuers resolves the issuers() GraphQL query.

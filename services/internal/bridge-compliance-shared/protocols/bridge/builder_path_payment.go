@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/hcnet/go/amount"
-	shared "github.com/hcnet/go/services/internal/bridge-compliance-shared"
-	"github.com/hcnet/go/services/internal/bridge-compliance-shared/http/helpers"
-	"github.com/hcnet/go/services/internal/bridge-compliance-shared/protocols"
-	"github.com/hcnet/go/txnbuild"
+	"github.com/diamnet/go/amount"
+	shared "github.com/diamnet/go/services/internal/bridge-compliance-shared"
+	"github.com/diamnet/go/services/internal/bridge-compliance-shared/http/helpers"
+	"github.com/diamnet/go/services/internal/bridge-compliance-shared/protocols"
+	"github.com/diamnet/go/txnbuild"
 )
 
 // PathPaymentOperationBody represents path_payment operation

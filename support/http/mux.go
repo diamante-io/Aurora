@@ -7,7 +7,7 @@ import (
 )
 
 // NewMux returns a new server mux configured with the common defaults used across all
-// hcnet services.
+// diamnet services.
 func NewMux(behindProxy bool) *chi.Mux {
 	mux := chi.NewMux()
 
@@ -23,7 +23,7 @@ func NewMux(behindProxy bool) *chi.Mux {
 }
 
 // NewAPIMux returns a new server mux configured with the common defaults used for a web API in
-// hcnet.
+// diamnet.
 func NewAPIMux(behindProxy bool) *chi.Mux {
 	mux := NewMux(behindProxy)
 

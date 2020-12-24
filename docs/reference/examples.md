@@ -19,10 +19,10 @@ package main
 import (
 	"log"
 
-	"github.com/hcnet/go/clients/auroraclient"
-	"github.com/hcnet/go/keypair"
-	"github.com/hcnet/go/network"
-	"github.com/hcnet/go/txnbuild"
+	"github.com/diamnet/go/clients/auroraclient"
+	"github.com/diamnet/go/keypair"
+	"github.com/diamnet/go/network"
+	"github.com/diamnet/go/txnbuild"
 )
 
 func main() {

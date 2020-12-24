@@ -12,11 +12,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/hcnet/go/build"
-	"github.com/hcnet/go/clients/aurora"
-	"github.com/hcnet/go/keypair"
-	"github.com/hcnet/go/services/bifrost/common"
-	"github.com/hcnet/go/services/bifrost/server"
+	"github.com/diamnet/go/build"
+	"github.com/diamnet/go/clients/aurora"
+	"github.com/diamnet/go/keypair"
+	"github.com/diamnet/go/services/bifrost/common"
+	"github.com/diamnet/go/services/bifrost/server"
 )
 
 func (u *Users) Start(accounts chan<- server.GenerateAddressResponse) {
@@ -93,7 +93,7 @@ func (u *Users) newUser(kp *keypair.Full) server.GenerateAddressResponse {
 	randomCoin := []string{"bitcoin", "ethereum"}[rand.Int()%2]
 
 	params := url.Values{}
-	params.Add("hcnet_public_key", kp.Address())
+	params.Add("diamnet_public_key", kp.Address())
 	req, err := http.PostForm(
 		fmt.Sprintf("http://localhost:%d/generate-%s-address", randomPort, randomCoin),
 		params,

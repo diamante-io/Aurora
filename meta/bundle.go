@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/xdr"
 )
 
 // ErrMetaNotFound is returned when no meta that matches a provided filter can
@@ -60,10 +60,10 @@ func (b *Bundle) StateAfter(key xdr.LedgerKey, opidx int) (*xdr.LedgerEntry, err
 		entry := change.MustUpdated()
 		return &entry, nil
 	case xdr.LedgerEntryChangeTypeLedgerEntryState:
-		// scott: hcnet-core should not emit a lone state entry, and we are
+		// scott: diamnet-core should not emit a lone state entry, and we are
 		// retrieving changes from the end of the collection.  If this situation
 		// occurs, it means that I didn't understand something correctly or there is
-		// a bug in hcnet-core.
+		// a bug in diamnet-core.
 		panic(fmt.Errorf("Unexpected 'state' entry"))
 	default:
 		panic(fmt.Errorf("Unknown change type: %v", change.Type))

@@ -1,13 +1,13 @@
 package txnbuild
 
 import (
-	"github.com/hcnet/go/amount"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/amount"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/xdr"
 )
 
-// Payment represents the HcNet payment operation. See
-// https://www.hcnet.org/developers/guides/concepts/list-of-operations.html
+// Payment represents the DiamNet payment operation. See
+// https://www.diamnet.org/developers/guides/concepts/list-of-operations.html
 type Payment struct {
 	Destination   string
 	Amount        string

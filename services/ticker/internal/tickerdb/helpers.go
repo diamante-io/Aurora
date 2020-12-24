@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/hcnet/go/services/ticker/internal/utils"
+	"github.com/diamnet/go/services/ticker/internal/utils"
 )
 
 // getDBFieldTags returns all "db" tags for a given struct, optionally excluding the "id".

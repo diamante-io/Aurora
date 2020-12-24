@@ -7,29 +7,29 @@ import (
 	"strings"
 	"testing"
 
-	hc "github.com/hcnet/go/clients/auroraclient"
-	"github.com/hcnet/go/clients/hcnettoml"
-	"github.com/hcnet/go/support/http/httptest"
+	hc "github.com/diamnet/go/clients/auroraclient"
+	"github.com/diamnet/go/clients/diamnettoml"
+	"github.com/diamnet/go/support/http/httptest"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestLookupByAddress(t *testing.T) {
 	hmock := httptest.NewClient()
-	tomlmock := &hcnettoml.MockClient{}
-	c := &Client{HcNetTOML: tomlmock, HTTP: hmock}
+	tomlmock := &diamnettoml.MockClient{}
+	c := &Client{DiamNetTOML: tomlmock, HTTP: hmock}
 
 	// happy path - string integer
-	tomlmock.On("GetHcNetToml", "hcnet.org").Return(&hcnettoml.Response{
-		FederationServer: "https://hcnet.org/federation",
+	tomlmock.On("GetDiamNetToml", "diamnet.org").Return(&diamnettoml.Response{
+		FederationServer: "https://diamnet.org/federation",
 	}, nil)
-	hmock.On("GET", "https://hcnet.org/federation").
+	hmock.On("GET", "https://diamnet.org/federation").
 		ReturnJSON(http.StatusOK, map[string]string{
-			"hcnet_address": "scott*hcnet.org",
+			"diamnet_address": "scott*diamnet.org",
 			"account_id":      "GASTNVNLHVR3NFO3QACMHCJT3JUSIV4NBXDHDO4VTPDTNN65W3B2766C",
 			"memo_type":       "id",
 			"memo":            "123",
 		})
-	resp, err := c.LookupByAddress("scott*hcnet.org")
+	resp, err := c.LookupByAddress("scott*diamnet.org")
 
 	if assert.NoError(t, err) {
 		assert.Equal(t, "GASTNVNLHVR3NFO3QACMHCJT3JUSIV4NBXDHDO4VTPDTNN65W3B2766C", resp.AccountID)
@@ -38,17 +38,17 @@ func TestLookupByAddress(t *testing.T) {
 	}
 
 	// happy path - integer
-	tomlmock.On("GetHcNetToml", "hcnet.org").Return(&hcnettoml.Response{
-		FederationServer: "https://hcnet.org/federation",
+	tomlmock.On("GetDiamNetToml", "diamnet.org").Return(&diamnettoml.Response{
+		FederationServer: "https://diamnet.org/federation",
 	}, nil)
-	hmock.On("GET", "https://hcnet.org/federation").
+	hmock.On("GET", "https://diamnet.org/federation").
 		ReturnJSON(http.StatusOK, map[string]interface{}{
-			"hcnet_address": "scott*hcnet.org",
+			"diamnet_address": "scott*diamnet.org",
 			"account_id":      "GASTNVNLHVR3NFO3QACMHCJT3JUSIV4NBXDHDO4VTPDTNN65W3B2766C",
 			"memo_type":       "id",
 			"memo":            123,
 		})
-	resp, err = c.LookupByAddress("scott*hcnet.org")
+	resp, err = c.LookupByAddress("scott*diamnet.org")
 
 	if assert.NoError(t, err) {
 		assert.Equal(t, "GASTNVNLHVR3NFO3QACMHCJT3JUSIV4NBXDHDO4VTPDTNN65W3B2766C", resp.AccountID)
@@ -57,17 +57,17 @@ func TestLookupByAddress(t *testing.T) {
 	}
 
 	// happy path - string
-	tomlmock.On("GetHcNetToml", "hcnet.org").Return(&hcnettoml.Response{
-		FederationServer: "https://hcnet.org/federation",
+	tomlmock.On("GetDiamNetToml", "diamnet.org").Return(&diamnettoml.Response{
+		FederationServer: "https://diamnet.org/federation",
 	}, nil)
-	hmock.On("GET", "https://hcnet.org/federation").
+	hmock.On("GET", "https://diamnet.org/federation").
 		ReturnJSON(http.StatusOK, map[string]interface{}{
-			"hcnet_address": "scott*hcnet.org",
+			"diamnet_address": "scott*diamnet.org",
 			"account_id":      "GASTNVNLHVR3NFO3QACMHCJT3JUSIV4NBXDHDO4VTPDTNN65W3B2766C",
 			"memo_type":       "text",
 			"memo":            "testing",
 		})
-	resp, err = c.LookupByAddress("scott*hcnet.org")
+	resp, err = c.LookupByAddress("scott*diamnet.org")
 
 	if assert.NoError(t, err) {
 		assert.Equal(t, "GASTNVNLHVR3NFO3QACMHCJT3JUSIV4NBXDHDO4VTPDTNN65W3B2766C", resp.AccountID)
@@ -76,12 +76,12 @@ func TestLookupByAddress(t *testing.T) {
 	}
 
 	// response exceeds limit
-	tomlmock.On("GetHcNetToml", "toobig.org").Return(&hcnettoml.Response{
+	tomlmock.On("GetDiamNetToml", "toobig.org").Return(&diamnettoml.Response{
 		FederationServer: "https://toobig.org/federation",
 	}, nil)
 	hmock.On("GET", "https://toobig.org/federation").
 		ReturnJSON(http.StatusOK, map[string]string{
-			"hcnet_address": strings.Repeat("0", FederationResponseMaxSize) + "*hcnet.org",
+			"diamnet_address": strings.Repeat("0", FederationResponseMaxSize) + "*diamnet.org",
 			"account_id":      "GASTNVNLHVR3NFO3QACMHCJT3JUSIV4NBXDHDO4VTPDTNN65W3B2766C",
 			"memo_type":       "id",
 			"memo":            "123",
@@ -92,8 +92,8 @@ func TestLookupByAddress(t *testing.T) {
 	}
 
 	// failed toml resolution
-	tomlmock.On("GetHcNetToml", "missing.org").Return(
-		(*hcnettoml.Response)(nil),
+	tomlmock.On("GetDiamNetToml", "missing.org").Return(
+		(*diamnettoml.Response)(nil),
 		errors.New("toml failed"),
 	)
 	_, err = c.LookupByAddress("scott*missing.org")
@@ -102,7 +102,7 @@ func TestLookupByAddress(t *testing.T) {
 	}
 
 	// 404 federation response
-	tomlmock.On("GetHcNetToml", "404.org").Return(&hcnettoml.Response{
+	tomlmock.On("GetDiamNetToml", "404.org").Return(&diamnettoml.Response{
 		FederationServer: "https://404.org/federation",
 	}, nil)
 	hmock.On("GET", "https://404.org/federation").ReturnNotFound()
@@ -112,7 +112,7 @@ func TestLookupByAddress(t *testing.T) {
 	}
 
 	// connection error on federation response
-	tomlmock.On("GetHcNetToml", "error.org").Return(&hcnettoml.Response{
+	tomlmock.On("GetDiamNetToml", "error.org").Return(&diamnettoml.Response{
 		FederationServer: "https://error.org/federation",
 	}, nil)
 	hmock.On("GET", "https://error.org/federation").ReturnError("kaboom!")
@@ -137,14 +137,14 @@ func TestLookupByID(t *testing.T) {
 
 func TestForwardRequest(t *testing.T) {
 	hmock := httptest.NewClient()
-	tomlmock := &hcnettoml.MockClient{}
-	c := &Client{HcNetTOML: tomlmock, HTTP: hmock}
+	tomlmock := &diamnettoml.MockClient{}
+	c := &Client{DiamNetTOML: tomlmock, HTTP: hmock}
 
 	// happy path - string integer
-	tomlmock.On("GetHcNetToml", "hcnet.org").Return(&hcnettoml.Response{
-		FederationServer: "https://hcnet.org/federation",
+	tomlmock.On("GetDiamNetToml", "diamnet.org").Return(&diamnettoml.Response{
+		FederationServer: "https://diamnet.org/federation",
 	}, nil)
-	hmock.On("GET", "https://hcnet.org/federation").
+	hmock.On("GET", "https://diamnet.org/federation").
 		ReturnJSON(http.StatusOK, map[string]string{
 			"account_id": "GASTNVNLHVR3NFO3QACMHCJT3JUSIV4NBXDHDO4VTPDTNN65W3B2766C",
 			"memo_type":  "id",
@@ -154,7 +154,7 @@ func TestForwardRequest(t *testing.T) {
 	fields.Add("federation_type", "bank_account")
 	fields.Add("swift", "BOPBPHMM")
 	fields.Add("acct", "2382376")
-	resp, err := c.ForwardRequest("hcnet.org", fields)
+	resp, err := c.ForwardRequest("diamnet.org", fields)
 
 	if assert.NoError(t, err) {
 		assert.Equal(t, "GASTNVNLHVR3NFO3QACMHCJT3JUSIV4NBXDHDO4VTPDTNN65W3B2766C", resp.AccountID)
@@ -172,13 +172,13 @@ func Test_url(t *testing.T) {
 	qstr.Add("federation_type", "bank_account")
 	qstr.Add("swift", "BOPBPHMM")
 	qstr.Add("acct", "2382376")
-	furl := c.url("https://hcnet.org/federation", qstr)
-	assert.Equal(t, "https://hcnet.org/federation?acct=2382376&federation_type=bank_account&swift=BOPBPHMM&type=forward", furl)
+	furl := c.url("https://diamnet.org/federation", qstr)
+	assert.Equal(t, "https://diamnet.org/federation?acct=2382376&federation_type=bank_account&swift=BOPBPHMM&type=forward", furl)
 
 	// regression: ensure that query is properly URI encoded
 	qstr = url.Values{}
 	qstr.Add("type", "q")
-	qstr.Add("q", "scott+receiver1@hcnet.org*hcnet.org")
+	qstr.Add("q", "scott+receiver1@diamnet.org*diamnet.org")
 	furl = c.url("", qstr)
-	assert.Equal(t, "?q=scott%2Breceiver1%40hcnet.org%2Ahcnet.org&type=q", furl)
+	assert.Equal(t, "?q=scott%2Breceiver1%40diamnet.org%2Adiamnet.org&type=q", furl)
 }

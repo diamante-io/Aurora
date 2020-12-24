@@ -11,10 +11,10 @@ const (
 
 // EncodeOfferId creates synthetic offer ids to be used by trade resources
 //
-// This is required because hcnet-core does not allocate offer ids for immediately filled offers,
+// This is required because diamnet-core does not allocate offer ids for immediately filled offers,
 // while clients expect them for aggregated views.
 //
-// The encoded value is of type int64 for sql compatibility. The 2nd bit is used to differentiate between hcnet-core
+// The encoded value is of type int64 for sql compatibility. The 2nd bit is used to differentiate between diamnet-core
 // offer ids and operation ids, which are toids.
 //
 // Due to the 2nd bit being used, the largest possible toid is:

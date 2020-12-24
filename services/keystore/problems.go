@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/hcnet/go/support/render/problem"
+	"github.com/diamnet/go/support/render/problem"
 )
 
 var errRequiredField = errors.New("field value cannot be empty")

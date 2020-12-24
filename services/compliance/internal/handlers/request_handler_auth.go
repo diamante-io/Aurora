@@ -14,13 +14,13 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	baseAmount "github.com/hcnet/go/amount"
-	"github.com/hcnet/go/protocols/compliance"
-	"github.com/hcnet/go/services/compliance/internal/db"
-	shared "github.com/hcnet/go/services/internal/bridge-compliance-shared"
-	httpHelpers "github.com/hcnet/go/services/internal/bridge-compliance-shared/http/helpers"
-	callback "github.com/hcnet/go/services/internal/bridge-compliance-shared/protocols/compliance"
-	"github.com/hcnet/go/xdr"
+	baseAmount "github.com/diamnet/go/amount"
+	"github.com/diamnet/go/protocols/compliance"
+	"github.com/diamnet/go/services/compliance/internal/db"
+	shared "github.com/diamnet/go/services/internal/bridge-compliance-shared"
+	httpHelpers "github.com/diamnet/go/services/internal/bridge-compliance-shared/http/helpers"
+	callback "github.com/diamnet/go/services/internal/bridge-compliance-shared/protocols/compliance"
+	"github.com/diamnet/go/xdr"
 )
 
 // HandlerAuth implements authorize endpoint
@@ -46,18 +46,18 @@ func (rh *RequestHandler) HandlerAuth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	senderHcNetToml, err := rh.HcNetTomlResolver.GetHcNetTomlByAddress(authData.Sender)
+	senderDiamNetToml, err := rh.DiamNetTomlResolver.GetDiamNetTomlByAddress(authData.Sender)
 	if err != nil {
-		log.WithFields(log.Fields{"err": err, "sender": authData.Sender}).Warn("Cannot get hcnet.toml of sender")
-		errorResponse := httpHelpers.NewInvalidParameterError("data.sender", "Cannot get hcnet.toml of sender")
+		log.WithFields(log.Fields{"err": err, "sender": authData.Sender}).Warn("Cannot get diamnet.toml of sender")
+		errorResponse := httpHelpers.NewInvalidParameterError("data.sender", "Cannot get diamnet.toml of sender")
 		httpHelpers.Write(w, errorResponse)
 		return
 	}
 
-	if !shared.IsValidAccountID(senderHcNetToml.SigningKey) {
-		errorResponse := httpHelpers.NewInvalidParameterError("data.sender", "SIGNING_KEY in hcnet.toml of sender is invalid")
+	if !shared.IsValidAccountID(senderDiamNetToml.SigningKey) {
+		errorResponse := httpHelpers.NewInvalidParameterError("data.sender", "SIGNING_KEY in diamnet.toml of sender is invalid")
 		// TODO
-		// log.WithFields(errorResponse.LogData).Warn("SIGNING_KEY in hcnet.toml of sender is invalid")
+		// log.WithFields(errorResponse.LogData).Warn("SIGNING_KEY in diamnet.toml of sender is invalid")
 		httpHelpers.Write(w, errorResponse)
 		return
 	}
@@ -71,10 +71,10 @@ func (rh *RequestHandler) HandlerAuth(w http.ResponseWriter, r *http.Request) {
 		httpHelpers.Write(w, errorResponse)
 		return
 	}
-	err = rh.SignatureSignerVerifier.Verify(senderHcNetToml.SigningKey, []byte(authreq.DataJSON), signatureBytes)
+	err = rh.SignatureSignerVerifier.Verify(senderDiamNetToml.SigningKey, []byte(authreq.DataJSON), signatureBytes)
 	if err != nil {
 		log.WithFields(log.Fields{
-			"signing_key": senderHcNetToml.SigningKey,
+			"signing_key": senderDiamNetToml.SigningKey,
 			"data":        authreq.Data,
 			"sig":         authreq.Signature,
 		}).Warn("Invalid signature")
@@ -228,7 +228,7 @@ func (rh *RequestHandler) HandlerAuth(w http.ResponseWriter, r *http.Request) {
 			if len(tokens) != 2 {
 				log.WithFields(log.Fields{
 					"sender": authData.Sender,
-				}).Warn("Invalid hcnet address")
+				}).Warn("Invalid diamnet address")
 				httpHelpers.Write(w, httpHelpers.InternalServerError)
 				return
 			}

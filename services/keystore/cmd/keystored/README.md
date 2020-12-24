@@ -4,7 +4,7 @@ Generate the certificate and the private key pair for localhost
 if you haven't done so:
 
 ```sh
-cd github.com/hcnet/go/exp/services/keystore
+cd github.com/diamnet/go/exp/services/keystore
 ./tls/regen.sh
 ```
 Simply choose all the default options. This will create three files:
@@ -15,7 +15,7 @@ We will only be using `server.crt` and `server.key`.
 ## Install the `keystored` command:
 
 ```sh
-cd github.com/hcnet/go/exp/services/keystore
+cd github.com/diamnet/go/exp/services/keystore
 go install ./cmd/keystored
 ```
 

@@ -3,8 +3,8 @@ package schema
 import (
 	"testing"
 
-	"github.com/hcnet/go/support/db"
-	"github.com/hcnet/go/support/db/dbtest"
+	"github.com/diamnet/go/support/db"
+	"github.com/diamnet/go/support/db/dbtest"
 	"github.com/stretchr/testify/assert"
 )
 

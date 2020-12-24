@@ -4,8 +4,8 @@ set -e
 # This scripts rebuilds the latest.sql file included in the schema package.
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 GOTOP="$( cd "$DIR/../../../../../../../.." && pwd )"
-go generate github.com/hcnet/go/services/aurora/internal/db2/schema
-go install github.com/hcnet/go/services/aurora
+go generate github.com/diamnet/go/services/aurora/internal/db2/schema
+go install github.com/diamnet/go/services/aurora
 dropdb aurora_schema --if-exists
 createdb aurora_schema
 DATABASE_URL=postgres://localhost/aurora_schema?sslmode=disable $GOTOP/bin/aurora db migrate up
@@ -24,6 +24,6 @@ pg_dump postgres://localhost/aurora_schema?sslmode=disable \
   | sed '/SET row_security/d' \
   > $BLANK_PATH
 
-go generate github.com/hcnet/go/services/aurora/internal/db2/schema
-go generate github.com/hcnet/go/services/aurora/internal/test
-go install github.com/hcnet/go/services/aurora
+go generate github.com/diamnet/go/services/aurora/internal/db2/schema
+go generate github.com/diamnet/go/services/aurora/internal/test
+go install github.com/diamnet/go/services/aurora

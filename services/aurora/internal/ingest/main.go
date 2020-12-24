@@ -1,5 +1,5 @@
 // Package ingest contains the ingestion system for aurora.  This system takes
-// data produced by the connected hcnet-core database, transforms it and
+// data produced by the connected diamnet-core database, transforms it and
 // inserts it into the aurora database.
 package ingest
 
@@ -8,10 +8,10 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	metrics "github.com/rcrowley/go-metrics"
-	"github.com/hcnet/go/services/aurora/internal/db2/core"
-	"github.com/hcnet/go/support/db"
-	ilog "github.com/hcnet/go/support/log"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/services/aurora/internal/db2/core"
+	"github.com/diamnet/go/support/db"
+	ilog "github.com/diamnet/go/support/log"
+	"github.com/diamnet/go/xdr"
 )
 
 var log = ilog.DefaultLogger.WithField("service", "ingest")
@@ -47,7 +47,7 @@ const (
 	TransactionsTableName            TableName = "history_transactions"
 )
 
-// Cursor iterates through a hcnet core database's ledgers
+// Cursor iterates through a diamnet core database's ledgers
 type Cursor struct {
 	// FirstLedger is the beginning of the range of ledgers (inclusive) that will
 	// attempt to be ingested in this session.
@@ -56,7 +56,7 @@ type Cursor struct {
 	// attempt to be ingested in this session.
 	LastLedger int32
 
-	// CoreDB is the hcnet-core db that data is ingested from.
+	// CoreDB is the diamnet-core db that data is ingested from.
 	CoreDB *db.Session
 
 	Metrics    *IngesterMetrics
@@ -65,7 +65,7 @@ type Cursor struct {
 	// Err is the error that caused this iteration to fail, if any.
 	Err error
 
-	// Name is a unique identifier tracking the latest ingested ledger on hcnet-core
+	// Name is a unique identifier tracking the latest ingested ledger on diamnet-core
 	Name string
 
 	lg   int32
@@ -82,9 +82,9 @@ type Config struct {
 	// IngestFailedTransactions is a feature flag that determines if system
 	// should ingest failed transactions.
 	IngestFailedTransactions bool
-	// CursorName is the cursor used for ingesting from hcnet-core.
+	// CursorName is the cursor used for ingesting from diamnet-core.
 	// Setting multiple cursors in different Aurora instances allows multiple
-	// Auroras to ingest from the same hcnet-core instance without cursor
+	// Auroras to ingest from the same diamnet-core instance without cursor
 	// collisions.
 	CursorName string
 }
@@ -116,17 +116,17 @@ type System struct {
 	// AuroraDB is the connection to the aurora database that ingested data will
 	// be written to.
 	AuroraDB *db.Session
-	// CoreDB is the hcnet-core db that data is ingested from.
+	// CoreDB is the diamnet-core db that data is ingested from.
 	CoreDB  *db.Session
 	Metrics IngesterMetrics
 	// Network is the passphrase for the network being imported
 	Network string
-	// HcNetCoreURL is the http endpoint of the hcnet-core that data is being
+	// DiamNetCoreURL is the http endpoint of the diamnet-core that data is being
 	// ingested from.
-	HcNetCoreURL string
+	DiamNetCoreURL string
 	// SkipCursorUpdate causes the ingestor to skip
 	// reporting the "last imported ledger" cursor to
-	// hcnet-core
+	// diamnet-core
 	SkipCursorUpdate bool
 	// HistoryRetentionCount is the desired minimum number of ledgers to
 	// keep in the history database, working backwards from the latest core
@@ -184,15 +184,15 @@ type Session struct {
 	Ingestion *Ingestion
 	// Network is the passphrase for the network being imported
 	Network string
-	// HcNetCoreURL is the http endpoint of the hcnet-core that data is being
+	// DiamNetCoreURL is the http endpoint of the diamnet-core that data is being
 	// ingested from.
-	HcNetCoreURL string
+	DiamNetCoreURL string
 	// ClearExisting causes the session to clear existing data from the aurora db
 	// when the session is run.
 	ClearExisting bool
 	// SkipCursorUpdate causes the session to skip
 	// reporting the "last imported ledger" cursor to
-	// hcnet-core
+	// diamnet-core
 	SkipCursorUpdate bool
 	// Metrics is a reference to where the session should record its metric information
 	Metrics *IngesterMetrics
@@ -210,13 +210,13 @@ type Session struct {
 	Ingested int
 }
 
-// New initializes the ingester, causing it to begin polling the hcnet-core
+// New initializes the ingester, causing it to begin polling the diamnet-core
 // database for now ledgers and ingesting data into the aurora database.
 func New(network string, coreURL string, core, aurora *db.Session, config Config) *System {
 	i := &System{
 		Config:         config,
 		Network:        network,
-		HcNetCoreURL: coreURL,
+		DiamNetCoreURL: coreURL,
 		AuroraDB:      aurora,
 		CoreDB:         core,
 	}
@@ -249,7 +249,7 @@ func NewSession(i *System) *Session {
 			DB: hdb,
 		},
 		Network:          i.Network,
-		HcNetCoreURL:   i.HcNetCoreURL,
+		DiamNetCoreURL:   i.DiamNetCoreURL,
 		SkipCursorUpdate: i.SkipCursorUpdate,
 		Metrics:          &i.Metrics,
 		AssetStats: &AssetStats{

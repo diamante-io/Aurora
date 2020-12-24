@@ -3,10 +3,10 @@ package adapters
 import (
 	"fmt"
 
-	"github.com/hcnet/go/exp/ingest/io"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/support/historyarchive"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/exp/ingest/io"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/support/historyarchive"
+	"github.com/diamnet/go/xdr"
 )
 
 const msrBufferSize = 50000
@@ -32,7 +32,7 @@ func (haa *HistoryArchiveAdapter) GetLatestLedgerSequence() (uint32, error) {
 }
 
 // BucketListHash returns the bucket list hash to compare with hash in the
-// ledger header fetched from HcNet-Core.
+// ledger header fetched from DiamNet-Core.
 func (haa *HistoryArchiveAdapter) BucketListHash(sequence uint32) (xdr.Hash, error) {
 	exists, err := haa.archive.CategoryCheckpointExists("history", sequence)
 	if err != nil {

@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	protocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/services/aurora/internal/db2/assets"
+	protocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/services/aurora/internal/db2/assets"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,7 +18,7 @@ func TestLargeAmount(t *testing.T) {
 		Amount:      "100000000000000000000", // 10T
 		NumAccounts: 429,
 		Flags:       0,
-		Toml:        "https://xim.com/.well-known/hcnet.toml",
+		Toml:        "https://xim.com/.well-known/diamnet.toml",
 	}
 	var res protocol.AssetStat
 	err := PopulateAssetStat(context.Background(), &res, row)
@@ -29,5 +29,5 @@ func TestLargeAmount(t *testing.T) {
 	assert.Equal(t, "GBZ35ZJRIKJGYH5PBKLKOZ5L6EXCNTO7BKIL7DAVVDFQ2ODJEEHHJXIM", res.Issuer)
 	assert.Equal(t, "10000000000000.0000000", res.Amount)
 	assert.Equal(t, int32(429), res.NumAccounts)
-	assert.Equal(t, "https://xim.com/.well-known/hcnet.toml", res.Links.Toml.Href)
+	assert.Equal(t, "https://xim.com/.well-known/diamnet.toml", res.Links.Toml.Href)
 }

@@ -5,12 +5,12 @@ import (
 
 	"github.com/graph-gophers/graphql-go"
 	"github.com/graph-gophers/graphql-go/relay"
-	"github.com/hcnet/go/services/ticker/internal/gql/static"
-	"github.com/hcnet/go/services/ticker/internal/tickerdb"
-	hlog "github.com/hcnet/go/support/log"
+	"github.com/diamnet/go/services/ticker/internal/gql/static"
+	"github.com/diamnet/go/services/ticker/internal/tickerdb"
+	hlog "github.com/diamnet/go/support/log"
 )
 
-// asset represents a HcNet asset, with some type
+// asset represents a DiamNet asset, with some type
 // adaptations to match the GraphQL type system
 type asset struct {
 	Code                        string

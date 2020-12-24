@@ -5,10 +5,10 @@ import (
 	"net/http"
 
 	log "github.com/sirupsen/logrus"
-	hc "github.com/hcnet/go/clients/auroraclient"
-	"github.com/hcnet/go/services/internal/bridge-compliance-shared/http/helpers"
-	"github.com/hcnet/go/services/internal/bridge-compliance-shared/protocols/bridge"
-	"github.com/hcnet/go/txnbuild"
+	hc "github.com/diamnet/go/clients/auroraclient"
+	"github.com/diamnet/go/services/internal/bridge-compliance-shared/http/helpers"
+	"github.com/diamnet/go/services/internal/bridge-compliance-shared/protocols/bridge"
+	"github.com/diamnet/go/txnbuild"
 )
 
 // Authorize implements /authorize endpoint

@@ -3,7 +3,7 @@ package db
 import (
 	"database/sql/driver"
 
-	"github.com/hcnet/go/support/errors"
+	"github.com/diamnet/go/support/errors"
 )
 
 // Scan implements database/sql.Scanner interface

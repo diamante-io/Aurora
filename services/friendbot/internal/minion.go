@@ -3,18 +3,18 @@ package internal
 import (
 	"fmt"
 
-	"github.com/hcnet/go/clients/auroraclient"
-	"github.com/hcnet/go/keypair"
-	hProtocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/txnbuild"
+	"github.com/diamnet/go/clients/auroraclient"
+	"github.com/diamnet/go/keypair"
+	hProtocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/txnbuild"
 )
 
 const createAccountAlreadyExistXDR = "AAAAAAAAAGT/////AAAAAQAAAAAAAAAA/////AAAAAA="
 
 var ErrAccountExists error = errors.New(fmt.Sprintf("createAccountAlreadyExist (%s)", createAccountAlreadyExistXDR))
 
-// Minion contains a HcNet channel account and Go channels to communicate with friendbot.
+// Minion contains a DiamNet channel account and Go channels to communicate with friendbot.
 type Minion struct {
 	Account           Account
 	Keypair           *keypair.Full

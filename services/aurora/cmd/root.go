@@ -10,11 +10,11 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	aurora "github.com/hcnet/go/services/aurora/internal"
-	"github.com/hcnet/go/services/aurora/internal/db2/schema"
-	apkg "github.com/hcnet/go/support/app"
-	support "github.com/hcnet/go/support/config"
-	"github.com/hcnet/go/support/log"
+	aurora "github.com/diamnet/go/services/aurora/internal"
+	"github.com/diamnet/go/services/aurora/internal/db2/schema"
+	apkg "github.com/diamnet/go/support/app"
+	support "github.com/diamnet/go/support/config"
+	"github.com/diamnet/go/support/log"
 	"github.com/throttled/throttled"
 )
 
@@ -22,8 +22,8 @@ var config aurora.Config
 
 var rootCmd = &cobra.Command{
 	Use:   "aurora",
-	Short: "client-facing api server for the hcnet network",
-	Long:  "client-facing api server for the hcnet network. It acts as the interface between HcNet Core and applications that want to access the HcNet network. It allows you to submit transactions to the network, check the status of accounts, subscribe to event streams and more.",
+	Short: "client-facing api server for the diamnet network",
+	Long:  "client-facing api server for the diamnet network. It acts as the interface between DiamNet Core and applications that want to access the DiamNet network. It allows you to submit transactions to the network, check the status of accounts, subscribe to event streams and more.",
 	Run: func(cmd *cobra.Command, args []string) {
 		initApp().Serve()
 	},
@@ -46,13 +46,13 @@ func checkMigrations() {
 	if len(migrationsToApplyUp) > 0 {
 		stdLog.Printf(`There are %v migrations to apply in the "up" direction.`, len(migrationsToApplyUp))
 		stdLog.Printf("The necessary migrations are: %v", migrationsToApplyUp)
-		stdLog.Printf("A database migration is required to run this version (%v) of Aurora. Run \"aurora db migrate up\" to update your DB. Consult the Changelog (https://github.com/hcnet/go/blob/master/services/aurora/CHANGELOG.md) for more information.", apkg.Version())
+		stdLog.Printf("A database migration is required to run this version (%v) of Aurora. Run \"aurora db migrate up\" to update your DB. Consult the Changelog (https://github.com/diamnet/go/blob/master/services/aurora/CHANGELOG.md) for more information.", apkg.Version())
 		os.Exit(1)
 	}
 
 	nMigrationsDown := schema.GetNumMigrationsDown(viper.GetString("db-url"))
 	if nMigrationsDown > 0 {
-		stdLog.Printf("A database migration DOWN to an earlier version of the schema is required to run this version (%v) of Aurora. Consult the Changelog (https://github.com/hcnet/go/blob/master/services/aurora/CHANGELOG.md) for more information.", apkg.Version())
+		stdLog.Printf("A database migration DOWN to an earlier version of the schema is required to run this version (%v) of Aurora. Consult the Changelog (https://github.com/diamnet/go/blob/master/services/aurora/CHANGELOG.md) for more information.", apkg.Version())
 		stdLog.Printf("In order to migrate the database DOWN, using the HIGHEST version number of Aurora you have installed (not this binary), run \"aurora db migrate down %v\".", nMigrationsDown)
 		os.Exit(1)
 	}
@@ -70,19 +70,19 @@ var configOpts = []*support.ConfigOption{
 		Usage:     "aurora postgres database to connect with",
 	},
 	&support.ConfigOption{
-		Name:      "hcnet-core-db-url",
+		Name:      "diamnet-core-db-url",
 		EnvVar:    "HCNET_CORE_DATABASE_URL",
-		ConfigKey: &config.HcNetCoreDatabaseURL,
+		ConfigKey: &config.DiamNetCoreDatabaseURL,
 		OptType:   types.String,
 		Required:  true,
-		Usage:     "hcnet-core postgres database to connect with",
+		Usage:     "diamnet-core postgres database to connect with",
 	},
 	&support.ConfigOption{
-		Name:      "hcnet-core-url",
-		ConfigKey: &config.HcNetCoreURL,
+		Name:      "diamnet-core-url",
+		ConfigKey: &config.DiamNetCoreURL,
 		OptType:   types.String,
 		Required:  true,
-		Usage:     "hcnet-core to connect with (for http commands)",
+		Usage:     "diamnet-core to connect with (for http commands)",
 	},
 	&support.ConfigOption{
 		Name:        "history-archive-urls",
@@ -96,7 +96,7 @@ var configOpts = []*support.ConfigOption{
 
 			*(co.ConfigKey.(*[]string)) = urlStrings
 		},
-		Usage: "comma-separated list of hcnet history archives to connect with",
+		Usage: "comma-separated list of diamnet history archives to connect with",
 	},
 	&support.ConfigOption{
 		Name:        "port",
@@ -263,7 +263,7 @@ var configOpts = []*support.ConfigOption{
 		ConfigKey:   &config.Ingest,
 		OptType:     types.Bool,
 		FlagDefault: false,
-		Usage:       "causes this aurora process to ingest data from hcnet-core into aurora's db",
+		Usage:       "causes this aurora process to ingest data from diamnet-core into aurora's db",
 	},
 	&support.ConfigOption{
 		Name:        "ingest-failed-transactions",
@@ -278,7 +278,7 @@ var configOpts = []*support.ConfigOption{
 		ConfigKey:   &config.CursorName,
 		OptType:     types.String,
 		FlagDefault: "HORIZON",
-		Usage:       "ingestor cursor used by aurora to ingest from hcnet core. must be uppercase and unique for each aurora instance ingesting from that core instance.",
+		Usage:       "ingestor cursor used by aurora to ingest from diamnet core. must be uppercase and unique for each aurora instance ingesting from that core instance.",
 	},
 	&support.ConfigOption{
 		Name:        "history-retention-count",
@@ -292,14 +292,14 @@ var configOpts = []*support.ConfigOption{
 		ConfigKey:   &config.StaleThreshold,
 		OptType:     types.Uint,
 		FlagDefault: uint(0),
-		Usage:       "the maximum number of ledgers the history db is allowed to be out of date from the connected hcnet-core db before aurora considers history stale",
+		Usage:       "the maximum number of ledgers the history db is allowed to be out of date from the connected diamnet-core db before aurora considers history stale",
 	},
 	&support.ConfigOption{
 		Name:        "skip-cursor-update",
 		ConfigKey:   &config.SkipCursorUpdate,
 		OptType:     types.Bool,
 		FlagDefault: false,
-		Usage:       "causes the ingester to skip reporting the last imported ledger state to hcnet-core",
+		Usage:       "causes the ingester to skip reporting the last imported ledger state to diamnet-core",
 	},
 	&support.ConfigOption{
 		Name:        "enable-asset-stats",

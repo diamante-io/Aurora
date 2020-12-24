@@ -4,12 +4,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/hcnet/go/clients/federation"
-	"github.com/hcnet/go/clients/hcnettoml"
-	"github.com/hcnet/go/services/compliance/internal/config"
-	"github.com/hcnet/go/services/compliance/internal/crypto"
-	"github.com/hcnet/go/services/compliance/internal/db"
-	"github.com/hcnet/go/support/http"
+	"github.com/diamnet/go/clients/federation"
+	"github.com/diamnet/go/clients/diamnettoml"
+	"github.com/diamnet/go/services/compliance/internal/config"
+	"github.com/diamnet/go/services/compliance/internal/crypto"
+	"github.com/diamnet/go/services/compliance/internal/db"
+	"github.com/diamnet/go/support/http"
 )
 
 // RequestHandler implements compliance server request handlers
@@ -18,7 +18,7 @@ type RequestHandler struct {
 	Client                  http.SimpleHTTPClientInterface `inject:""`
 	Database                db.Database                    `inject:""`
 	SignatureSignerVerifier crypto.SignerVerifierInterface `inject:""`
-	HcNetTomlResolver     hcnettoml.ClientInterface    `inject:""`
+	DiamNetTomlResolver     diamnettoml.ClientInterface    `inject:""`
 	FederationResolver      federation.ClientInterface     `inject:""`
 	NonceGenerator          NonceGeneratorInterface        `inject:""`
 }

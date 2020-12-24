@@ -14,13 +14,13 @@ import (
 )
 
 const (
-	// HcNetAccountPrefix is a prefix for HcNet key pairs derivation.
-	HcNetAccountPrefix = "m/44'/148'"
-	// HcNetPrimaryAccountPath is a derivation path of the primary account.
-	HcNetPrimaryAccountPath = "m/44'/148'/0'"
-	// HcNetAccountPathFormat is a path format used for HcNet key pair
+	// DiamNetAccountPrefix is a prefix for DiamNet key pairs derivation.
+	DiamNetAccountPrefix = "m/44'/148'"
+	// DiamNetPrimaryAccountPath is a derivation path of the primary account.
+	DiamNetPrimaryAccountPath = "m/44'/148'/0'"
+	// DiamNetAccountPathFormat is a path format used for DiamNet key pair
 	// derivation as described in SEP-00XX. Use with `fmt.Sprintf` and `DeriveForPath`.
-	HcNetAccountPathFormat = "m/44'/148'/%d'"
+	DiamNetAccountPathFormat = "m/44'/148'/%d'"
 	// FirstHardenedIndex is the index of the first hardened key.
 	FirstHardenedIndex = uint32(0x80000000)
 	// As in https://github.com/satoshilabs/slips/blob/master/slip-0010.md

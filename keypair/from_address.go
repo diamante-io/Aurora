@@ -1,8 +1,8 @@
 package keypair
 
 import (
-	"github.com/hcnet/go/strkey"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/strkey"
+	"github.com/diamnet/go/xdr"
 
 	"golang.org/x/crypto/ed25519"
 )
@@ -10,7 +10,7 @@ import (
 // FromAddress represents a keypair to which only the address is know.  This KP
 // can verify signatures, but cannot sign them.
 //
-// NOTE: ensure the address provided is a valid strkey encoded hcnet address.
+// NOTE: ensure the address provided is a valid strkey encoded diamnet address.
 // Some operations will panic otherwise. It's recommended that you create these
 // structs through the Parse() method.
 type FromAddress struct {

@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/hcnet/go/services/aurora/internal/actions"
-	"github.com/hcnet/go/services/aurora/internal/operationfeestats"
-	"github.com/hcnet/go/support/render/hal"
-	"github.com/hcnet/go/support/render/problem"
+	"github.com/diamnet/go/services/aurora/internal/actions"
+	"github.com/diamnet/go/services/aurora/internal/operationfeestats"
+	"github.com/diamnet/go/support/render/hal"
+	"github.com/diamnet/go/support/render/problem"
 )
 
 // This file contains the actions:

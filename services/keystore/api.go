@@ -11,10 +11,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/support/log"
-	"github.com/hcnet/go/support/render/httpjson"
-	"github.com/hcnet/go/support/render/problem"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/support/log"
+	"github.com/diamnet/go/support/render/httpjson"
+	"github.com/diamnet/go/support/render/problem"
 )
 
 func init() {

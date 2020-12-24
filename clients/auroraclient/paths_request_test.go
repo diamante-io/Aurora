@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	hProtocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/support/http/httptest"
+	hProtocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/support/http/httptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -105,7 +105,7 @@ func TestPathsRequest(t *testing.T) {
 }
 
 var badRequestResponse = `{
-  "type": "https://hcnet.org/aurora-errors/bad_request",
+  "type": "https://diamnet.org/aurora-errors/bad_request",
   "title": "Bad Request",
   "status": 400,
   "detail": "The request you sent was invalid in some way",

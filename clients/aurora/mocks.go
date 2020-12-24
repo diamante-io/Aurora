@@ -3,7 +3,7 @@ package aurora
 import (
 	"context"
 
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/xdr"
 	"github.com/stretchr/testify/mock"
 )
 

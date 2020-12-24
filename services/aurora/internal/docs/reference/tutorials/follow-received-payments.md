@@ -3,7 +3,7 @@ title: Follow Received Payments
 ---
 
 This tutorial shows how easy it is to use Aurora to watch for incoming payments on an [account](../../reference/resources/account.md)
-using JavaScript and `EventSource`.  We will eschew using [`js-hcnet-sdk`](https://github.com/hcnet/js-hcnet-sdk), the
+using JavaScript and `EventSource`.  We will eschew using [`js-diamnet-sdk`](https://github.com/diamnet/js-diamnet-sdk), the
 high-level helper library, to show that it is possible for you to perform this
 task on your own, with whatever programming language you would like to use.
 
@@ -28,7 +28,7 @@ Let's get started by building our project skeleton:
 ```bash
 $ mkdir follow_tutorial
 $ cd follow_tutorial
-$ npm install --save hcnet-base
+$ npm install --save diamnet-base
 $ npm install --save eventsource
 ```
 
@@ -36,7 +36,7 @@ This should have created a `package.json` in the `follow_tutorial` directory.
 You can check that everything went well by running the following command:
 
 ```bash
-$ node -e "require('hcnet-base')"
+$ node -e "require('diamnet-base')"
 ```
 
 Everything was successful if no output it generated from the above command.  Now
@@ -47,7 +47,7 @@ let's write a script to create a new account.
 Create a new file named `make_account.js` and paste the following text into it:
 
 ```javascript
-var Keypair = require("hcnet-base").Keypair;
+var Keypair = require("diamnet-base").Keypair;
 
 var newAccount = Keypair.random();
 
@@ -71,12 +71,12 @@ is funded it does not truly exist!
 
 ## Funding your account
 
-The HcNet test network provides the Friendbot, a tool that developers
+The DiamNet test network provides the Friendbot, a tool that developers
 can use to get testnet lumens for testing purposes. To fund your account, simply
 execute the following curl command:
 
 ```bash
-$ curl "https://friendbot.hcnet.org/?addr=GB7JFK56QXQ4DVJRNPDBXABNG3IVKIXWWJJRJICHRU22Z5R5PI65GAK3"
+$ curl "https://friendbot.diamnet.org/?addr=GB7JFK56QXQ4DVJRNPDBXABNG3IVKIXWWJJRJICHRU22Z5R5PI65GAK3"
 ```
 
 Don't forget to replace the account id above with your own.  If the request
@@ -90,7 +90,7 @@ succeeds, you should see a response like:
 }
 ```
 
-After a few seconds, the HcNet network will perform consensus, close the
+After a few seconds, the DiamNet network will perform consensus, close the
 ledger, and your account will have been created.  Next up we will write a command
 that watches for new payments to your account and outputs a message to the
 terminal.
@@ -100,7 +100,7 @@ terminal.
 To follow new payments connected to your account you simply need to send `Accept: text/event-stream` header to the [/payments](../../reference/payments-all.md) endpoint.
 
 ```bash
-$ curl -H "Accept: text/event-stream" "https://aurora-testnet.hcnet.org/accounts/GB7JFK56QXQ4DVJRNPDBXABNG3IVKIXWWJJRJICHRU22Z5R5PI65GAK3/payments"
+$ curl -H "Accept: text/event-stream" "https://aurora-testnet.diamnet.org/accounts/GB7JFK56QXQ4DVJRNPDBXABNG3IVKIXWWJJRJICHRU22Z5R5PI65GAK3/payments"
 ```
 
 As a result you will see something like:
@@ -130,13 +130,13 @@ Every time you receive a new payment you will get a new row of data. Payments is
 ## Following payments using `EventStream`
 
 > **Warning!** `EventSource` object does not reconnect for certain error types so it can stop working.
-> If you need a reliable streaming connection please use our [SDK](https://github.com/hcnet/js-hcnet-sdk).
+> If you need a reliable streaming connection please use our [SDK](https://github.com/diamnet/js-diamnet-sdk).
 
 Another way to follow payments is writing a simple JS script that will stream payments and print them to console. Create `stream_payments.js` file and paste the following code into it:
 
 ```js
 var EventSource = require('eventsource');
-var es = new EventSource('https://aurora-testnet.hcnet.org/accounts/GB7JFK56QXQ4DVJRNPDBXABNG3IVKIXWWJJRJICHRU22Z5R5PI65GAK3/payments');
+var es = new EventSource('https://aurora-testnet.diamnet.org/accounts/GB7JFK56QXQ4DVJRNPDBXABNG3IVKIXWWJJRJICHRU22Z5R5PI65GAK3/payments');
 es.onmessage = function(message) {
 	var result = message.data ? JSON.parse(message.data) : message;
 	console.log('New payment:');
@@ -175,7 +175,7 @@ We use the `create_account` operation because we are sending payment to a new, u
 First, let's check our account sequence number so we can create a payment transaction. To do this we send a request to aurora:
 
 ```bash
-$ curl "https://aurora-testnet.hcnet.org/accounts/GB7JFK56QXQ4DVJRNPDBXABNG3IVKIXWWJJRJICHRU22Z5R5PI65GAK3"
+$ curl "https://aurora-testnet.diamnet.org/accounts/GB7JFK56QXQ4DVJRNPDBXABNG3IVKIXWWJJRJICHRU22Z5R5PI65GAK3"
 ```
 
 Sequence number can be found under the `sequence` field. The current sequence number is `713226564141056`. Save this value somewhere.
@@ -183,16 +183,16 @@ Sequence number can be found under the `sequence` field. The current sequence nu
 Now, create `make_payment.js` file and paste the following code into it:
 
 ```js
-var HcNetBase = require("hcnet-base");
-HcNetBase.Network.useTestNetwork();
+var DiamNetBase = require("diamnet-base");
+DiamNetBase.Network.useTestNetwork();
 
-var keypair = HcNetBase.Keypair.fromSecret('SCU36VV2OYTUMDSSU4EIVX4UUHY3XC7N44VL4IJ26IOG6HVNC7DY5UJO');
-var account = new HcNetBase.Account(keypair.publicKey(), "713226564141056");
+var keypair = DiamNetBase.Keypair.fromSecret('SCU36VV2OYTUMDSSU4EIVX4UUHY3XC7N44VL4IJ26IOG6HVNC7DY5UJO');
+var account = new DiamNetBase.Account(keypair.publicKey(), "713226564141056");
 
 var amount = "100";
-var transaction = new HcNetBase.TransactionBuilder(account)
-  .addOperation(HcNetBase.Operation.createAccount({
-    destination: HcNetBase.Keypair.random().publicKey(),
+var transaction = new DiamNetBase.TransactionBuilder(account)
+  .addOperation(DiamNetBase.Operation.createAccount({
+    destination: DiamNetBase.Keypair.random().publicKey(),
     startingBalance: amount
   }))
   .build();
@@ -202,12 +202,12 @@ transaction.sign(keypair);
 console.log(transaction.toEnvelope().toXDR().toString("base64"));
 ```
 
-After running this script you should see a signed transaction blob. To submit this transaction we send it to aurora or hcnet-core. But before we do, let's open a new console and start our previous script by `node stream_payments.js`.
+After running this script you should see a signed transaction blob. To submit this transaction we send it to aurora or diamnet-core. But before we do, let's open a new console and start our previous script by `node stream_payments.js`.
 
 Now to send a transaction just use aurora:
 
 ```bash
-curl -H "Content-Type: application/json" -X POST -d '{"tx":"AAAAAH6Sq76F4cHVMWvGG4AtNtFVIvayUxSgR401rPY9ej3TAAAD6AACiK0AAAABAAAAAAAAAAAAAAABAAAAAAAAAAEAAAAAKc1j3y10+nI+sxuXlmFz71JS35mp/RcPCP45Gw0obdAAAAAAAAAAAAExLQAAAAAAAAAAAT16PdMAAABAsJTBC5N5B9Q/9+ZKS7qkMd/wZHWlP6uCCFLzeD+JWT60/VgGFCpzQhZmMg2k4Vg+AwKJTwko3d7Jt3Y6WhjLCg=="}' "https://aurora-testnet.hcnet.org/transactions"
+curl -H "Content-Type: application/json" -X POST -d '{"tx":"AAAAAH6Sq76F4cHVMWvGG4AtNtFVIvayUxSgR401rPY9ej3TAAAD6AACiK0AAAABAAAAAAAAAAAAAAABAAAAAAAAAAEAAAAAKc1j3y10+nI+sxuXlmFz71JS35mp/RcPCP45Gw0obdAAAAAAAAAAAAExLQAAAAAAAAAAAT16PdMAAABAsJTBC5N5B9Q/9+ZKS7qkMd/wZHWlP6uCCFLzeD+JWT60/VgGFCpzQhZmMg2k4Vg+AwKJTwko3d7Jt3Y6WhjLCg=="}' "https://aurora-testnet.diamnet.org/transactions"
 ```
 
 You should see a new payment in a window running `stream_payments.js` script.

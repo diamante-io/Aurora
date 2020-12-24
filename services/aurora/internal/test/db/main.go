@@ -11,7 +11,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	// pq enables postgres support
 	_ "github.com/lib/pq"
-	db "github.com/hcnet/go/support/db/dbtest"
+	db "github.com/diamnet/go/support/db/dbtest"
 )
 
 var (
@@ -41,8 +41,8 @@ func AuroraURL() string {
 	return *auroraUrl
 }
 
-// HcNetCore returns a connection to the hcnet core test database
-func HcNetCore(t *testing.T) *sqlx.DB {
+// DiamNetCore returns a connection to the diamnet core test database
+func DiamNetCore(t *testing.T) *sqlx.DB {
 	if coreDB != nil {
 		return coreDB
 	}
@@ -52,11 +52,11 @@ func HcNetCore(t *testing.T) *sqlx.DB {
 	return coreDB
 }
 
-// HcNetCoreURL returns the database connection the url any test
-// use when connecting to the hcnet-core database
-func HcNetCoreURL() string {
+// DiamNetCoreURL returns the database connection the url any test
+// use when connecting to the diamnet-core database
+func DiamNetCoreURL() string {
 	if coreUrl == nil {
-		log.Panic(fmt.Errorf("HcNetCore not initialized"))
+		log.Panic(fmt.Errorf("DiamNetCore not initialized"))
 	}
 	return *coreUrl
 }

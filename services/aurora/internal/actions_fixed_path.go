@@ -1,14 +1,14 @@
 package aurora
 
 import (
-	"github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/services/aurora/internal/actions"
-	"github.com/hcnet/go/services/aurora/internal/paths"
-	"github.com/hcnet/go/services/aurora/internal/render/problem"
-	"github.com/hcnet/go/services/aurora/internal/resourceadapter"
-	"github.com/hcnet/go/services/aurora/internal/simplepath"
-	"github.com/hcnet/go/support/render/hal"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/services/aurora/internal/actions"
+	"github.com/diamnet/go/services/aurora/internal/paths"
+	"github.com/diamnet/go/services/aurora/internal/render/problem"
+	"github.com/diamnet/go/services/aurora/internal/resourceadapter"
+	"github.com/diamnet/go/services/aurora/internal/simplepath"
+	"github.com/diamnet/go/support/render/hal"
+	"github.com/diamnet/go/xdr"
 )
 
 // Interface verification

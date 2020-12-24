@@ -3,7 +3,7 @@ package problem
 import (
 	"net/http"
 
-	"github.com/hcnet/go/support/render/problem"
+	"github.com/diamnet/go/support/render/problem"
 )
 
 // Well-known and reused problems below:
@@ -78,7 +78,7 @@ var (
 		Title:  "Data Requested Is Before Recorded History",
 		Status: http.StatusGone,
 		Detail: "This aurora instance is configured to only track a " +
-			"portion of the hcnet network's latest history. This request " +
+			"portion of the diamnet network's latest history. This request " +
 			"is asking for results prior to the recorded history known to " +
 			"this aurora instance.",
 	}
@@ -91,7 +91,7 @@ var (
 		Status: http.StatusServiceUnavailable,
 		Detail: "This aurora instance is configured to reject client requests " +
 			"when it can determine that the history database is lagging too far " +
-			"behind the connected instance of hcnet-core.  If you operate this " +
+			"behind the connected instance of diamnet-core.  If you operate this " +
 			"server, please ensure that the ingestion system is properly running.",
 	}
 

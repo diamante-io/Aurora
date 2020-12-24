@@ -1,4 +1,4 @@
-// Copyright 2016 HcNet Development Foundation and contributors. Licensed
+// Copyright 2016 DiamNet Development Foundation and contributors. Licensed
 // under the Apache License, Version 2.0. See the COPYING file at the root
 // of this distribution or at http://www.apache.org/licenses/LICENSE-2.0
 
@@ -48,8 +48,8 @@ func TestUnmarshalState(t *testing.T) {
 
 func TestHashValidation(t *testing.T) {
 	// This is real bucket hash list for pubnet's ledger: 24088895
-	// https://aurora.hcnet.org/ledgers/24088895
-	// http://history.hcnet.org/prd/core-live/core_live_001/history/01/6f/91/history-016f913f.json
+	// https://aurora.diamnet.org/ledgers/24088895
+	// http://history.diamnet.org/prd/core-live/core_live_001/history/01/6f/91/history-016f913f.json
 	var jsonBlob = []byte(`{
     "version": 1,
     "server": "v11.1.0",

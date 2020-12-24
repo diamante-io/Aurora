@@ -5,11 +5,11 @@ import (
 	"fmt"
 	stdio "io"
 
-	"github.com/hcnet/go/exp/ingest/io"
-	ingestpipeline "github.com/hcnet/go/exp/ingest/pipeline"
-	"github.com/hcnet/go/exp/support/pipeline"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/exp/ingest/io"
+	ingestpipeline "github.com/diamnet/go/exp/ingest/pipeline"
+	"github.com/diamnet/go/exp/support/pipeline"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/xdr"
 )
 
 type DatabaseProcessorActionType string

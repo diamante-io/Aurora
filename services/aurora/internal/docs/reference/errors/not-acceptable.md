@@ -28,9 +28,9 @@ draft specification guide and thus has the following attributes:
 ## Example
 
 ```shell
-$ curl -X GET -H "Accept: application/xml" "https://aurora-testnet.hcnet.org/accounts/GALWEV6GY73RJ255JC7XUOZ2L7WZ5JJDTKATB2MUK7F3S67DVT2A6R5G"
+$ curl -X GET -H "Accept: application/xml" "https://aurora-testnet.diamnet.org/accounts/GALWEV6GY73RJ255JC7XUOZ2L7WZ5JJDTKATB2MUK7F3S67DVT2A6R5G"
 {
-  "type": "https://hcnet.org/aurora-errors/not_acceptable",
+  "type": "https://diamnet.org/aurora-errors/not_acceptable",
   "title": "An acceptable response content-type could not be provided for this request",
   "status": 406
 }

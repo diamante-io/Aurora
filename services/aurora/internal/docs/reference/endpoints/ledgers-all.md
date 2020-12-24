@@ -1,11 +1,11 @@
 ---
 title: All Ledgers
 clientData:
-  laboratoryUrl: https://www.hcnet.org/laboratory/#explorer?resource=ledgers&endpoint=all
+  laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=ledgers&endpoint=all
 ---
 
 This endpoint represents all [ledgers](../resources/ledger.md).
-This endpoint can also be used in [streaming](../streaming.md) mode so it is possible to use it to get notifications as ledgers are closed by the HcNet network.
+This endpoint can also be used in [streaming](../streaming.md) mode so it is possible to use it to get notifications as ledgers are closed by the DiamNet network.
 If called in streaming mode Aurora will start at the earliest known ledger unless a `cursor` is set. In that case it will start from the `cursor`. You can also set `cursor` value to `now` to only stream ledgers created since your request time.
 
 ## Request
@@ -26,7 +26,7 @@ GET /ledgers{?cursor,limit,order}
 
 ```sh
 # Retrieve the 200 latest ledgers, ordered chronologically
-curl "https://aurora-testnet.hcnet.org/ledgers?limit=200&order=desc"
+curl "https://aurora-testnet.diamnet.org/ledgers?limit=200&order=desc"
 ```
 
 ### JavaScript Example Request
@@ -52,8 +52,8 @@ server.ledgers()
 ### JavaScript Streaming Example
 
 ```javascript
-var HcNetSdk = require('hcnet-sdk')
-var server = new HcNetSdk.Server('https://aurora-testnet.hcnet.org');
+var DiamNetSdk = require('diamnet-sdk')
+var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
 
 var ledgerHandler = function (ledgerResponse) {
   console.log(ledgerResponse);

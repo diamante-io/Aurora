@@ -6,9 +6,9 @@ import (
 	"io"
 	"sync"
 
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/support/historyarchive"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/support/historyarchive"
+	"github.com/diamnet/go/xdr"
 )
 
 // readResult is the result of reading a bucket value

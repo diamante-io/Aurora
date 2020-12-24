@@ -5,9 +5,9 @@ import (
 	stdio "io"
 	"testing"
 
-	"github.com/hcnet/go/exp/ingest/io"
-	"github.com/hcnet/go/exp/orderbook"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/exp/ingest/io"
+	"github.com/diamnet/go/exp/orderbook"
+	"github.com/diamnet/go/xdr"
 )
 
 func TestProcessOrderBookState(t *testing.T) {

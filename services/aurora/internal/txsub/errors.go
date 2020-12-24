@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/hcnet/go/services/aurora/internal/codes"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/services/aurora/internal/codes"
+	"github.com/diamnet/go/xdr"
 )
 
 var (
@@ -22,7 +22,7 @@ var (
 )
 
 // FailedTransactionError represent an error that occurred because
-// hcnet-core rejected the transaction.  ResultXDR is a base64
+// diamnet-core rejected the transaction.  ResultXDR is a base64
 // encoded TransactionResult struct
 type FailedTransactionError struct {
 	ResultXDR string

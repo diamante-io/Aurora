@@ -3,9 +3,9 @@ package aurora
 import (
 	"testing"
 
-	"github.com/hcnet/go/protocols/aurora/effects"
-	"github.com/hcnet/go/services/aurora/internal/db2/history"
-	"github.com/hcnet/go/services/aurora/internal/test"
+	"github.com/diamnet/go/protocols/aurora/effects"
+	"github.com/diamnet/go/services/aurora/internal/db2/history"
+	"github.com/diamnet/go/services/aurora/internal/test"
 )
 
 func TestEffectActions_Index(t *testing.T) {
@@ -20,7 +20,7 @@ func TestEffectActions_Index(t *testing.T) {
 			ht.Assert.PageOf(11, w.Body)
 		}
 
-		// test streaming, regression for https://github.com/hcnet/go/services/aurora/internal/issues/147
+		// test streaming, regression for https://github.com/diamnet/go/services/aurora/internal/issues/147
 		w = ht.Get("/effects?limit=2", test.RequestHelperStreaming)
 		ht.Assert.Equal(200, w.Code)
 

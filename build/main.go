@@ -1,20 +1,20 @@
 // Package build implements a builder system for constructing various xdr
-// structures used by the hcnet network, most importanly transactions.
+// structures used by the diamnet network, most importanly transactions.
 //
 // At the core of this package is the *Builder and *Mutator types.  A Builder
 // object (ex. PaymentBuilder, TransactionBuilder) contain an underlying xdr
 // struct that is being iteratively built by having zero or more Mutator structs
 // applied to it. See ExampleTransactionBuilder in main_test.go for an example.
 // Deprecated: build package with all its exported methods and variables will no longer be
-// maintained. It will be removed in future versions of the SDK. Use txnbuild (https://godoc.org/github.com/hcnet/go/txnbuild) instead.
+// maintained. It will be removed in future versions of the SDK. Use txnbuild (https://godoc.org/github.com/diamnet/go/txnbuild) instead.
 package build
 
 import (
 	"math"
 
-	"github.com/hcnet/go/amount"
-	"github.com/hcnet/go/network"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/amount"
+	"github.com/diamnet/go/network"
+	"github.com/diamnet/go/xdr"
 )
 
 const (
@@ -25,15 +25,15 @@ const (
 
 var (
 	// PublicNetwork is a mutator that configures the transaction for submission
-	// to the main public hcnet network.
+	// to the main public diamnet network.
 	PublicNetwork = Network{network.PublicNetworkPassphrase}
 
 	// TestNetwork is a mutator that configures the transaction for submission
-	// to the test hcnet network (often called testnet).
+	// to the test diamnet network (often called testnet).
 	TestNetwork = Network{network.TestNetworkPassphrase}
 
 	// DefaultNetwork is a mutator that configures the
-	// transaction for submission to the default hcnet
+	// transaction for submission to the default diamnet
 	// network.  Integrators may change this value to
 	// another `Network` mutator if they would like to
 	// effect the default in a process-global manner.
@@ -232,7 +232,7 @@ type Trustor struct {
 	Address string
 }
 
-// Network establishes the hcnet network that a transaction should apply to.
+// Network establishes the diamnet network that a transaction should apply to.
 // This modifier influences how a transaction is hashed for the purposes of signature generation.
 type Network struct {
 	Passphrase string

@@ -9,20 +9,20 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/hcnet/go/address"
-	hc "github.com/hcnet/go/clients/auroraclient"
-	"github.com/hcnet/go/keypair"
-	hProtocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/txnbuild"
+	"github.com/diamnet/go/address"
+	hc "github.com/diamnet/go/clients/auroraclient"
+	"github.com/diamnet/go/keypair"
+	hProtocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/txnbuild"
 
-	"github.com/hcnet/go/protocols/compliance"
-	"github.com/hcnet/go/protocols/federation"
-	shared "github.com/hcnet/go/services/internal/bridge-compliance-shared"
-	"github.com/hcnet/go/services/internal/bridge-compliance-shared/http/helpers"
-	"github.com/hcnet/go/services/internal/bridge-compliance-shared/protocols"
-	"github.com/hcnet/go/services/internal/bridge-compliance-shared/protocols/bridge"
-	callback "github.com/hcnet/go/services/internal/bridge-compliance-shared/protocols/compliance"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/protocols/compliance"
+	"github.com/diamnet/go/protocols/federation"
+	shared "github.com/diamnet/go/services/internal/bridge-compliance-shared"
+	"github.com/diamnet/go/services/internal/bridge-compliance-shared/http/helpers"
+	"github.com/diamnet/go/services/internal/bridge-compliance-shared/protocols"
+	"github.com/diamnet/go/services/internal/bridge-compliance-shared/protocols/bridge"
+	callback "github.com/diamnet/go/services/internal/bridge-compliance-shared/protocols/compliance"
+	"github.com/diamnet/go/xdr"
 )
 
 // Payment implements /payment endpoint

@@ -1,10 +1,10 @@
 package aurora
 
 import (
-	"github.com/hcnet/go/services/aurora/internal/actions"
-	"github.com/hcnet/go/services/aurora/internal/db2/core"
-	"github.com/hcnet/go/services/aurora/internal/render/sse"
-	"github.com/hcnet/go/support/render/hal"
+	"github.com/diamnet/go/services/aurora/internal/actions"
+	"github.com/diamnet/go/services/aurora/internal/db2/core"
+	"github.com/diamnet/go/services/aurora/internal/render/sse"
+	"github.com/diamnet/go/support/render/hal"
 )
 
 // Interface verifications

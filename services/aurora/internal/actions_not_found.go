@@ -1,8 +1,8 @@
 package aurora
 
 import (
-	"github.com/hcnet/go/services/aurora/internal/actions"
-	"github.com/hcnet/go/support/render/problem"
+	"github.com/diamnet/go/services/aurora/internal/actions"
+	"github.com/diamnet/go/support/render/problem"
 )
 
 // Interface verification

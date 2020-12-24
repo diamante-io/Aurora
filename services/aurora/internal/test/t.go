@@ -5,13 +5,13 @@ import (
 
 	"encoding/json"
 
-	"github.com/hcnet/go/services/aurora/internal/ledger"
-	"github.com/hcnet/go/services/aurora/internal/operationfeestats"
-	"github.com/hcnet/go/support/db"
-	"github.com/hcnet/go/support/render/hal"
+	"github.com/diamnet/go/services/aurora/internal/ledger"
+	"github.com/diamnet/go/services/aurora/internal/operationfeestats"
+	"github.com/diamnet/go/support/db"
+	"github.com/diamnet/go/support/render/hal"
 )
 
-// CoreSession returns a db.Session instance pointing at the hcnet core test database
+// CoreSession returns a db.Session instance pointing at the diamnet core test database
 func (t *T) CoreSession() *db.Session {
 	return &db.Session{
 		DB:  t.CoreDB,

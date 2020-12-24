@@ -1,10 +1,10 @@
 package txnbuild
 
 import (
-	"github.com/hcnet/go/amount"
-	"github.com/hcnet/go/price"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/amount"
+	"github.com/diamnet/go/price"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/xdr"
 )
 
 //CreateOfferOp returns a ManageSellOffer operation to create a new offer, by
@@ -51,7 +51,7 @@ func UpdateOfferOp(selling, buying Asset, amount, price string, offerID int64, s
 // setting the Amount to "0". The sourceAccount is optional, and if not provided,
 // will be that of the surrounding transaction.
 func DeleteOfferOp(offerID int64, sourceAccount ...Account) (ManageSellOffer, error) {
-	// It turns out HcNet core doesn't care about any of these fields except the amount.
+	// It turns out DiamNet core doesn't care about any of these fields except the amount.
 	// However, Aurora will reject ManageSellOffer if it is missing fields.
 	// Aurora will also reject if Buying == Selling.
 	// Therefore unfortunately we have to make up some dummy values here.
@@ -71,8 +71,8 @@ func DeleteOfferOp(offerID int64, sourceAccount ...Account) (ManageSellOffer, er
 	return offer, nil
 }
 
-// ManageSellOffer represents the HcNet manage offer operation. See
-// https://www.hcnet.org/developers/guides/concepts/list-of-operations.html
+// ManageSellOffer represents the DiamNet manage offer operation. See
+// https://www.diamnet.org/developers/guides/concepts/list-of-operations.html
 type ManageSellOffer struct {
 	Selling       Asset
 	Buying        Asset

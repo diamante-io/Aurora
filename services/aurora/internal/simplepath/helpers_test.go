@@ -1,8 +1,8 @@
 package simplepath
 
 import (
-	"github.com/hcnet/go/strkey"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/strkey"
+	"github.com/diamnet/go/xdr"
 )
 
 func makeAsset(typ xdr.AssetType, code string, issuer string) xdr.Asset {

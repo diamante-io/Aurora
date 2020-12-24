@@ -1,6 +1,6 @@
 package federation
 
-import "github.com/hcnet/go/support/errors"
+import "github.com/diamnet/go/support/errors"
 
 // LookupReverseRecord implements `ReverseDriver` by performing
 // `drv.LookupReverseRecordQuery` against `drv.DB` using the provided parameter

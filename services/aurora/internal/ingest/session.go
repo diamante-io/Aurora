@@ -7,17 +7,17 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/hcnet/go/clients/hcnetcore"
+	"github.com/diamnet/go/clients/diamnetcore"
 
-	"github.com/hcnet/go/amount"
-	"github.com/hcnet/go/keypair"
-	"github.com/hcnet/go/meta"
-	"github.com/hcnet/go/services/aurora/internal/db2/history"
-	"github.com/hcnet/go/services/aurora/internal/ingest/participants"
-	"github.com/hcnet/go/support/errors"
-	ilog "github.com/hcnet/go/support/log"
-	sTime "github.com/hcnet/go/support/time"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/amount"
+	"github.com/diamnet/go/keypair"
+	"github.com/diamnet/go/meta"
+	"github.com/diamnet/go/services/aurora/internal/db2/history"
+	"github.com/diamnet/go/services/aurora/internal/ingest/participants"
+	"github.com/diamnet/go/support/errors"
+	ilog "github.com/diamnet/go/support/log"
+	sTime "github.com/diamnet/go/support/time"
+	"github.com/diamnet/go/xdr"
 )
 
 // Run starts an attempt to ingest the range of ledgers specified in this
@@ -204,7 +204,7 @@ func (is *Session) ingestEffects() {
 		var claims []xdr.ClaimOfferAtom
 		result := is.Cursor.OperationResult()
 
-		// KNOWN ISSUE:  hcnet-core creates results for CreatePassiveOffer operations
+		// KNOWN ISSUE:  diamnet-core creates results for CreatePassiveOffer operations
 		// with the wrong result arm set.
 		if result.Type == xdr.OperationTypeManageSellOffer {
 			claims = result.MustManageSellOfferResult().MustSuccess().OffersClaimed
@@ -550,7 +550,7 @@ func (is *Session) ingestTrades() {
 	case xdr.OperationTypeCreatePassiveSellOffer:
 		result := cursor.OperationResult()
 
-		// KNOWN ISSUE:  hcnet-core creates results for CreatePassiveOffer operations
+		// KNOWN ISSUE:  diamnet-core creates results for CreatePassiveOffer operations
 		// with the wrong result arm set.
 		if result.Type == xdr.OperationTypeManageSellOffer {
 			manageOfferResult := result.MustManageSellOfferResult().MustSuccess()
@@ -564,7 +564,7 @@ func (is *Session) ingestTrades() {
 	}
 	q := history.Q{Session: is.Ingestion.DB}
 	for i, trade := range trades {
-		// hcnet-core will opportunisticly garbage collect invalid offers (in the
+		// diamnet-core will opportunisticly garbage collect invalid offers (in the
 		// event that a trader spends down their balance).  These garbage collected
 		// offers get emitted in the result with the amount values set to zero.
 		//
@@ -884,12 +884,12 @@ func (is *Session) operationFlagDetails(result map[string]interface{}, f int32, 
 	result[prefix+"_flags_s"] = s
 }
 
-// reportCursorState makes an http request to the configured hcnet-core server
+// reportCursorState makes an http request to the configured diamnet-core server
 // to report that it has finished processing the data being ingested.  This
-// allows hcnet-core to free that storage when next it runs its own
+// allows diamnet-core to free that storage when next it runs its own
 // maintenance.
 func (is *Session) reportCursorState() error {
-	if is.HcNetCoreURL == "" {
+	if is.DiamNetCoreURL == "" {
 		return nil
 	}
 
@@ -897,7 +897,7 @@ func (is *Session) reportCursorState() error {
 		return nil
 	}
 
-	core := &hcnetcore.Client{URL: is.HcNetCoreURL}
+	core := &diamnetcore.Client{URL: is.DiamNetCoreURL}
 
 	err := core.SetCursor(context.Background(), is.Cursor.Name, is.Cursor.LastLedger)
 

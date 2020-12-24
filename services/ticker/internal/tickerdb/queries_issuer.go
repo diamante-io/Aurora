@@ -3,7 +3,7 @@ package tickerdb
 import (
 	"strings"
 
-	"github.com/hcnet/go/services/ticker/internal/utils"
+	"github.com/diamnet/go/services/ticker/internal/utils"
 )
 
 // InsertOrUpdateIssuer inserts an Issuer on the database (if new),

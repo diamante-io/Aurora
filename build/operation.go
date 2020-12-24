@@ -1,7 +1,7 @@
 package build
 
 import (
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/xdr"
 )
 
 // OperationMutator is a interface that wraps the MutateOperation operation.

@@ -1,7 +1,7 @@
 ---
 title: Operation Details
 clientData:
-  laboratoryUrl: https://www.hcnet.org/laboratory/#explorer?resource=operations&endpoint=single
+  laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=operations&endpoint=single
 ---
 
 The operation details endpoint provides information on a single
@@ -11,7 +11,7 @@ which operation to load.
 ### Warning - failed transactions
 
 Operations can be part of successful or failed transactions (failed transactions are also included
-in HcNet ledger). Always check operation status using `transaction_successful` field!
+in DiamNet ledger). Always check operation status using `transaction_successful` field!
 
 ## Request
 
@@ -29,14 +29,14 @@ GET /operations/{id}
 ### curl Example Request
 
 ```sh
-curl https://aurora-testnet.hcnet.org/operations/2927608622747649
+curl https://aurora-testnet.diamnet.org/operations/2927608622747649
 ```
 
 ### JavaScript Example Request
 
 ```javascript
-var HcNetSdk = require('hcnet-sdk');
-var server = new HcNetSdk.Server('https://aurora-testnet.hcnet.org');
+var DiamNetSdk = require('diamnet-sdk');
+var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.operations()
   .operation('2927608622747649')
@@ -59,19 +59,19 @@ This endpoint responds with a single Operation.  See [operation resource](../res
 {
   "_links": {
     "self": {
-      "href": "https://aurora-testnet.hcnet.org/operations/2927608622747649"
+      "href": "https://aurora-testnet.diamnet.org/operations/2927608622747649"
     },
     "transaction": {
-      "href": "https://aurora-testnet.hcnet.org/transactions/4a3365180521e16b478d9f0c9198b97a9434fc9cb07b34f83ecc32fc54d0ca8a"
+      "href": "https://aurora-testnet.diamnet.org/transactions/4a3365180521e16b478d9f0c9198b97a9434fc9cb07b34f83ecc32fc54d0ca8a"
     },
     "effects": {
-      "href": "https://aurora-testnet.hcnet.org/operations/2927608622747649/effects"
+      "href": "https://aurora-testnet.diamnet.org/operations/2927608622747649/effects"
     },
     "succeeds": {
-      "href": "https://aurora-testnet.hcnet.org/effects?order=desc&cursor=2927608622747649"
+      "href": "https://aurora-testnet.diamnet.org/effects?order=desc&cursor=2927608622747649"
     },
     "precedes": {
-      "href": "https://aurora-testnet.hcnet.org/effects?order=asc&cursor=2927608622747649"
+      "href": "https://aurora-testnet.diamnet.org/effects?order=asc&cursor=2927608622747649"
     }
   },
   "id": "2927608622747649",

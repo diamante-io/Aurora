@@ -3,10 +3,10 @@ package ingest
 import (
 	"testing"
 
-	"github.com/hcnet/go/network"
-	"github.com/hcnet/go/services/aurora/internal/db2/core"
-	"github.com/hcnet/go/services/aurora/internal/ledger"
-	"github.com/hcnet/go/services/aurora/internal/test"
+	"github.com/diamnet/go/network"
+	"github.com/diamnet/go/services/aurora/internal/db2/core"
+	"github.com/diamnet/go/services/aurora/internal/ledger"
+	"github.com/diamnet/go/services/aurora/internal/test"
 )
 
 func TestIngest_Kahuna1(t *testing.T) {

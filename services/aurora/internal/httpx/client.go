@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	auroraContext "github.com/hcnet/go/services/aurora/internal/context"
+	auroraContext "github.com/diamnet/go/services/aurora/internal/context"
 )
 
 var defaultClient = &http.Client{}

@@ -1,7 +1,7 @@
 package mocks
 
 import (
-	"github.com/hcnet/go/services/compliance/internal/db"
+	"github.com/diamnet/go/services/compliance/internal/db"
 	"github.com/stretchr/testify/mock"
 )
 

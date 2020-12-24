@@ -23,21 +23,21 @@ For each new version we will only track changes from the previous version.
 
 #### SDKs with full support
 
-- [JS SDK 0.10.2](https://github.com/hcnet/js-hcnet-sdk/releases/tag/v0.10.2)
-- [Java SDK 0.4.0](https://github.com/hcnet/java-hcnet-sdk/releases/tag/0.4.0)
+- [JS SDK 0.10.2](https://github.com/diamnet/js-diamnet-sdk/releases/tag/v0.10.2)
+- [Java SDK 0.4.0](https://github.com/diamnet/java-diamnet-sdk/releases/tag/0.4.0)
 
 #### Changes
 
 * Assets stats are disabled by default. This can be changed using an environment variable (`ENABLE_ASSET_STATS=true`) or
 CLI parameter (`--enable-asset-stats=true`). Please note that it has a negative impact on a DB and ingestion time.
-* In ["Offers for Account"](https://www.hcnet.org/developers/aurora/reference/endpoints/offers-for-account.html),
+* In ["Offers for Account"](https://www.diamnet.org/developers/aurora/reference/endpoints/offers-for-account.html),
 `last_modified_time` field  endpoint can be `null` when ledger data is not available (has not been ingested yet).
-* ["Trades for Offer"](https://www.hcnet.org/developers/aurora/reference/endpoints/trades-for-offer.html) endpoint
+* ["Trades for Offer"](https://www.diamnet.org/developers/aurora/reference/endpoints/trades-for-offer.html) endpoint
 will query for trades that match the given offer on either side of trades, rather than just the "sell" offer.
-Offer IDs are now [synthetic](https://www.hcnet.org/developers/aurora/reference/resources/trade.html#synthetic-offer-ids).
+Offer IDs are now [synthetic](https://www.diamnet.org/developers/aurora/reference/resources/trade.html#synthetic-offer-ids).
 * New `/operation_fee_stats` endpoint includes fee stats for the last 5 ledgers.
-* ["Trades"](https://www.hcnet.org/developers/aurora/reference/endpoints/trades.html) endpoint can now be streamed.
-* In ["Trade Aggregations"](https://www.hcnet.org/developers/aurora/reference/endpoints/trade_aggregations.html) endpoint,
+* ["Trades"](https://www.diamnet.org/developers/aurora/reference/endpoints/trades.html) endpoint can now be streamed.
+* In ["Trade Aggregations"](https://www.diamnet.org/developers/aurora/reference/endpoints/trade_aggregations.html) endpoint,
 `offset` parameter has been added.
 * Account flags now display `auth_immutable` value.
 * Rate limiting in streams has been changed to be more fair. Now 1 *credit* has to be *paid* every time there's a new ledger
@@ -57,12 +57,12 @@ instead of per request.
 
 #### SDKs with full support
 
-- [JS SDK 0.10.2](https://github.com/hcnet/js-hcnet-sdk/releases/tag/v0.10.2)
-- [Java SDK 0.3.1](https://github.com/hcnet/java-hcnet-sdk/releases/tag/0.3.1)
+- [JS SDK 0.10.2](https://github.com/diamnet/js-diamnet-sdk/releases/tag/v0.10.2)
+- [Java SDK 0.3.1](https://github.com/diamnet/java-diamnet-sdk/releases/tag/0.3.1)
 
 #### Changes
 
-* New [`bump_sequence`](https://www.hcnet.org/developers/aurora/reference/resources/operation.html#bump-sequence) operation.
+* New [`bump_sequence`](https://www.diamnet.org/developers/aurora/reference/resources/operation.html#bump-sequence) operation.
 * New `sequence_bumped` effect.
 * New fields in Account > Balances collection: `buying_liabilities` and `selling_liabilities`.
 * Offer resource `last_modified` field removed, replaced by `last_modified_ledger` and `last_modified_time`.
@@ -96,12 +96,12 @@ instead of per request.
 
 #### SDKs with full support
 
-- [JS SDK 0.8.2](https://github.com/hcnet/js-hcnet-sdk/releases/tag/v0.8.2)
-- [Java SDK 0.2.1](https://github.com/hcnet/java-hcnet-sdk/releases/tag/0.2.1)
+- [JS SDK 0.8.2](https://github.com/diamnet/js-diamnet-sdk/releases/tag/v0.8.2)
+- [Java SDK 0.2.1](https://github.com/diamnet/java-diamnet-sdk/releases/tag/0.2.1)
 
 #### Changes
 
-- `amount` field in `/assets` is now a String (to support HcNet amounts larger than `int64`).
+- `amount` field in `/assets` is now a String (to support DiamNet amounts larger than `int64`).
 - Effect resource contains a new `created_at` field.
 
 | Resource                                 | Changes                                      | Go SDK <sup>1</sup> | JS SDK             | Java SDK |
@@ -122,8 +122,8 @@ instead of per request.
 
 #### SDKs with full support
 
-- [JS SDK 0.8.2](https://github.com/hcnet/js-hcnet-sdk/releases/tag/v0.8.2)
-- [Java SDK 0.2.1](https://github.com/hcnet/java-hcnet-sdk/releases/tag/0.2.1)
+- [JS SDK 0.8.2](https://github.com/diamnet/js-diamnet-sdk/releases/tag/v0.8.2)
+- [Java SDK 0.2.1](https://github.com/diamnet/java-diamnet-sdk/releases/tag/0.2.1)
 
 #### Changes
 

@@ -10,12 +10,12 @@ import (
 // NOTE: this test is presently failing because govalidator doesn't support
 // optional fields that also use a custom validator.  We'll remove the build tag
 // above that disabled it from running during tests when we fix upstream.
-func TestOptionalHcNetFields(t *testing.T) {
+func TestOptionalDiamNetFields(t *testing.T) {
 	var val struct {
-		F1 string `valid:"hcnet_accountid,optional"`
-		F2 string `valid:"optional,hcnet_accountid"`
-		F3 string `valid:"hcnet_seed,optional"`
-		F4 string `valid:"optional,hcnet_accountid"`
+		F1 string `valid:"diamnet_accountid,optional"`
+		F2 string `valid:"optional,diamnet_accountid"`
+		F3 string `valid:"diamnet_seed,optional"`
+		F4 string `valid:"optional,diamnet_accountid"`
 	}
 
 	// run the validation

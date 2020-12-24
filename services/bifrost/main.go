@@ -15,23 +15,23 @@ import (
 	"github.com/facebookgo/inject"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/hcnet/go/clients/aurora"
-	"github.com/hcnet/go/services/bifrost/bitcoin"
-	"github.com/hcnet/go/services/bifrost/config"
-	"github.com/hcnet/go/services/bifrost/database"
-	"github.com/hcnet/go/services/bifrost/ethereum"
-	"github.com/hcnet/go/services/bifrost/server"
-	"github.com/hcnet/go/services/bifrost/sse"
-	"github.com/hcnet/go/services/bifrost/hcnet"
-	"github.com/hcnet/go/services/bifrost/stress"
-	supportConfig "github.com/hcnet/go/support/config"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/support/log"
+	"github.com/diamnet/go/clients/aurora"
+	"github.com/diamnet/go/services/bifrost/bitcoin"
+	"github.com/diamnet/go/services/bifrost/config"
+	"github.com/diamnet/go/services/bifrost/database"
+	"github.com/diamnet/go/services/bifrost/ethereum"
+	"github.com/diamnet/go/services/bifrost/server"
+	"github.com/diamnet/go/services/bifrost/sse"
+	"github.com/diamnet/go/services/bifrost/diamnet"
+	"github.com/diamnet/go/services/bifrost/stress"
+	supportConfig "github.com/diamnet/go/support/config"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/support/log"
 )
 
 var rootCmd = &cobra.Command{
 	Use:   "bifrost",
-	Short: "Bridge server to allow participating in HcNet based ICOs using Bitcoin and Ethereum",
+	Short: "Bridge server to allow participating in DiamNet based ICOs using Bitcoin and Ethereum",
 }
 
 var serverCmd = &cobra.Command{
@@ -109,7 +109,7 @@ This command will create 3 server.Server's listening on ports 8000-8002.`,
 		for i := 0; i < numServers; i++ {
 			go func(i int) {
 				cfg.Port = ports[i]
-				cfg.HcNet.SignerSecretKey = signers[i]
+				cfg.DiamNet.SignerSecretKey = signers[i]
 				server := createServer(cfg, true)
 				// Replace clients in listeners with random transactions generators
 				server.BitcoinListener.Client = bitcoinClient
@@ -129,16 +129,16 @@ This command will create 3 server.Server's listening on ports 8000-8002.`,
 		accounts := make(chan server.GenerateAddressResponse)
 		users := stress.Users{
 			Aurora: &aurora.Client{
-				URL: cfg.HcNet.Aurora,
+				URL: cfg.DiamNet.Aurora,
 				HTTP: &http.Client{
 					Timeout: 60 * time.Second,
 				},
 				AppName: "bifrost",
 			},
-			NetworkPassphrase: cfg.HcNet.NetworkPassphrase,
+			NetworkPassphrase: cfg.DiamNet.NetworkPassphrase,
 			UsersPerSecond:    usersPerSecond,
 			BifrostPorts:      ports,
-			IssuerPublicKey:   cfg.HcNet.IssuerPublicKey,
+			IssuerPublicKey:   cfg.DiamNet.IssuerPublicKey,
 		}
 		go users.Start(accounts)
 		for {
@@ -217,7 +217,7 @@ var versionCmd = &cobra.Command{
 }
 
 func init() {
-	// TODO I think these should be default in hcnet/go:
+	// TODO I think these should be default in diamnet/go:
 	log.SetLevel(log.InfoLevel)
 	log.DefaultLogger.Logger.Formatter.(*logrus.TextFormatter).FullTimestamp = true
 
@@ -375,31 +375,31 @@ func createServer(cfg config.Config, stressTest bool) *server.Server {
 		}
 	}
 
-	hcnetAccountConfigurator := &hcnet.AccountConfigurator{
-		NetworkPassphrase:     cfg.HcNet.NetworkPassphrase,
-		IssuerPublicKey:       cfg.HcNet.IssuerPublicKey,
-		DistributionPublicKey: cfg.HcNet.DistributionPublicKey,
-		SignerSecretKey:       cfg.HcNet.SignerSecretKey,
-		NeedsAuthorize:        cfg.HcNet.NeedsAuthorize,
-		TokenAssetCode:        cfg.HcNet.TokenAssetCode,
-		StartingBalance:       cfg.HcNet.StartingBalance,
-		LockUnixTimestamp:     cfg.HcNet.LockUnixTimestamp,
+	diamnetAccountConfigurator := &diamnet.AccountConfigurator{
+		NetworkPassphrase:     cfg.DiamNet.NetworkPassphrase,
+		IssuerPublicKey:       cfg.DiamNet.IssuerPublicKey,
+		DistributionPublicKey: cfg.DiamNet.DistributionPublicKey,
+		SignerSecretKey:       cfg.DiamNet.SignerSecretKey,
+		NeedsAuthorize:        cfg.DiamNet.NeedsAuthorize,
+		TokenAssetCode:        cfg.DiamNet.TokenAssetCode,
+		StartingBalance:       cfg.DiamNet.StartingBalance,
+		LockUnixTimestamp:     cfg.DiamNet.LockUnixTimestamp,
 	}
 
-	if cfg.HcNet.StartingBalance == "" {
-		hcnetAccountConfigurator.StartingBalance = "2.1"
+	if cfg.DiamNet.StartingBalance == "" {
+		diamnetAccountConfigurator.StartingBalance = "2.1"
 	}
 
 	if cfg.Bitcoin != nil {
-		hcnetAccountConfigurator.TokenPriceBTC = cfg.Bitcoin.TokenPrice
+		diamnetAccountConfigurator.TokenPriceBTC = cfg.Bitcoin.TokenPrice
 	}
 
 	if cfg.Ethereum != nil {
-		hcnetAccountConfigurator.TokenPriceETH = cfg.Ethereum.TokenPrice
+		diamnetAccountConfigurator.TokenPriceETH = cfg.Ethereum.TokenPrice
 	}
 
 	auroraClient := &aurora.Client{
-		URL: cfg.HcNet.Aurora,
+		URL: cfg.DiamNet.Aurora,
 		HTTP: &http.Client{
 			Timeout: 20 * time.Second,
 		},
@@ -420,7 +420,7 @@ func createServer(cfg config.Config, stressTest bool) *server.Server {
 		&inject.Object{Value: auroraClient},
 		&inject.Object{Value: server},
 		&inject.Object{Value: sseServer},
-		&inject.Object{Value: hcnetAccountConfigurator},
+		&inject.Object{Value: diamnetAccountConfigurator},
 	)
 	if err != nil {
 		log.WithField("err", err).Error("Error providing objects to injector")

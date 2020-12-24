@@ -10,11 +10,11 @@ import (
 	"encoding/base64"
 	"encoding/json"
 
-	"github.com/hcnet/go/protocols/aurora/base"
-	"github.com/hcnet/go/strkey"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/support/render/hal"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/protocols/aurora/base"
+	"github.com/diamnet/go/strkey"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/support/render/hal"
+	"github.com/diamnet/go/xdr"
 )
 
 // KeyTypeNames maps from strkey version bytes into json string values to use in
@@ -53,7 +53,7 @@ type Account struct {
 	Data                 map[string]string `json:"data"`
 }
 
-// GetAccountID returns the HcNet account ID. This is to satisfy the
+// GetAccountID returns the DiamNet account ID. This is to satisfy the
 // Account interface of txnbuild.
 func (a Account) GetAccountID() string {
 	return a.AccountID
@@ -293,7 +293,7 @@ type Root struct {
 	} `json:"_links"`
 
 	AuroraVersion               string `json:"aurora_version"`
-	HcNetCoreVersion           string `json:"core_version"`
+	DiamNetCoreVersion           string `json:"core_version"`
 	ExpAuroraSequence           uint32 `json:"exp_history_latest_ledger,omitempty"`
 	AuroraSequence              int32  `json:"history_latest_ledger"`
 	HistoryElderSequence         int32  `json:"history_elder_ledger"`
@@ -605,8 +605,8 @@ type Metrics struct {
 	RequestsFailed         LogMetric      `json:"requests.failed"`
 	RequestsSucceeded      LogMetric      `json:"requests.succeeded"`
 	RequestsTotal          LogTotalMetric `json:"requests.total"`
-	CoreLatestLedger       SingleMetric   `json:"hcnet_core.latest_ledger"`
-	CoreOpenConnections    SingleMetric   `json:"hcnet_core.open_connections"`
+	CoreLatestLedger       SingleMetric   `json:"diamnet_core.latest_ledger"`
+	CoreOpenConnections    SingleMetric   `json:"diamnet_core.open_connections"`
 	TxsubBuffered          SingleMetric   `json:"txsub.buffered"`
 	TxsubFailed            LogMetric      `json:"txsub.failed"`
 	TxsubOpen              SingleMetric   `json:"txsub.open"`
@@ -615,7 +615,7 @@ type Metrics struct {
 }
 
 // FeeStats represents a response of fees from aurora
-// To do: implement fee suggestions if agreement is reached in https://github.com/hcnet/go/issues/926
+// To do: implement fee suggestions if agreement is reached in https://github.com/diamnet/go/issues/926
 type FeeStats struct {
 	LastLedger          int     `json:"last_ledger,string"`
 	LastLedgerBaseFee   int     `json:"last_ledger_base_fee,string"`

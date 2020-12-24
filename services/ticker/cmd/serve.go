@@ -3,8 +3,8 @@ package cmd
 import (
 	"github.com/lib/pq"
 	"github.com/spf13/cobra"
-	ticker "github.com/hcnet/go/services/ticker/internal"
-	"github.com/hcnet/go/services/ticker/internal/tickerdb"
+	ticker "github.com/diamnet/go/services/ticker/internal"
+	"github.com/diamnet/go/services/ticker/internal/tickerdb"
 )
 
 var ServerAddr string

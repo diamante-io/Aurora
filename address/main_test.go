@@ -3,7 +3,7 @@ package address
 import (
 	"testing"
 
-	"github.com/hcnet/go/support/errors"
+	"github.com/diamnet/go/support/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -13,8 +13,8 @@ func TestNew(t *testing.T) {
 		Domain          string
 		ExpectedAddress string
 	}{
-		{"scott", "hcnet.org", "scott*hcnet.org"},
-		{"", "hcnet.org", "*hcnet.org"},
+		{"scott", "diamnet.org", "scott*diamnet.org"},
+		{"", "diamnet.org", "*diamnet.org"},
 		{"scott", "", "scott*"},
 	}
 
@@ -32,9 +32,9 @@ func TestSplit(t *testing.T) {
 		ExpectedDomain string
 		ExpectedError  error
 	}{
-		{"happy path", "scott*hcnet.org", "scott", "hcnet.org", nil},
+		{"happy path", "scott*diamnet.org", "scott", "diamnet.org", nil},
 		{"blank", "", "", "", ErrInvalidAddress},
-		{"blank name", "*hcnet.org", "", "", ErrInvalidName},
+		{"blank name", "*diamnet.org", "", "", ErrInvalidName},
 		{"blank domain", "scott*", "", "", ErrInvalidDomain},
 		{"invalid domain", "scott*--3.com", "", "", ErrInvalidDomain},
 	}

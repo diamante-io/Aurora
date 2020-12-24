@@ -3,9 +3,9 @@ package internal
 import (
 	"strconv"
 
-	"github.com/hcnet/go/clients/auroraclient"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/clients/auroraclient"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/xdr"
 )
 
 // Account implements the `txnbuild.Account` interface.

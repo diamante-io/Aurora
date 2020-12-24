@@ -1,5 +1,5 @@
 // Package results provides an implementation of the txsub.ResultProvider interface
-// backed using the SQL databases used by both hcnet core and aurora
+// backed using the SQL databases used by both diamnet core and aurora
 package results
 
 import (
@@ -7,15 +7,15 @@ import (
 	"context"
 	"encoding/base64"
 
-	"github.com/hcnet/go/services/aurora/internal/db2/core"
-	"github.com/hcnet/go/services/aurora/internal/db2/history"
-	"github.com/hcnet/go/services/aurora/internal/ledger"
-	"github.com/hcnet/go/services/aurora/internal/txsub"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/services/aurora/internal/db2/core"
+	"github.com/diamnet/go/services/aurora/internal/db2/history"
+	"github.com/diamnet/go/services/aurora/internal/ledger"
+	"github.com/diamnet/go/services/aurora/internal/txsub"
+	"github.com/diamnet/go/xdr"
 )
 
 // DB provides transactio submission results by querying the
-// connected aurora and hcnet core databases.
+// connected aurora and diamnet core databases.
 type DB struct {
 	Core    *core.Q
 	History *history.Q

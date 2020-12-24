@@ -3,7 +3,7 @@ package core
 import (
 	"testing"
 
-	"github.com/hcnet/go/services/aurora/internal/test"
+	"github.com/diamnet/go/services/aurora/internal/test"
 )
 
 func TestTransactionFeesByLedger(t *testing.T) {

@@ -1,12 +1,12 @@
 package txnbuild
 
 import (
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/xdr"
 )
 
-// AllowTrust represents the HcNet allow trust operation. See
-// https://www.hcnet.org/developers/guides/concepts/list-of-operations.html
+// AllowTrust represents the DiamNet allow trust operation. See
+// https://www.diamnet.org/developers/guides/concepts/list-of-operations.html
 type AllowTrust struct {
 	Trustor       string
 	Type          Asset

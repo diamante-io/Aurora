@@ -23,6 +23,6 @@ bumps.  A breaking change will get clearly notified in this log.
 
 ## [v0.2.0] - 2016-08-17
 
-Initial release after import from https://github.com/hcnet/federation
+Initial release after import from https://github.com/diamnet/federation
 
-[Unreleased]: https://github.com/hcnet/go/compare/federation-v0.2.0...master
+[Unreleased]: https://github.com/diamnet/go/compare/federation-v0.2.0...master

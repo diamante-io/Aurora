@@ -4,8 +4,8 @@ import (
 	"errors"
 	"net/url"
 
-	"github.com/hcnet/go/keypair"
-	"github.com/hcnet/go/support/config"
+	"github.com/diamnet/go/keypair"
+	"github.com/diamnet/go/support/config"
 )
 
 // Config contains config params of the compliance server

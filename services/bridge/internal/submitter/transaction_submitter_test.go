@@ -5,12 +5,12 @@ import (
 	"testing"
 	"time"
 
-	hc "github.com/hcnet/go/clients/auroraclient"
-	hProtocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/services/bridge/internal/db"
-	"github.com/hcnet/go/services/bridge/internal/mocks"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/txnbuild"
+	hc "github.com/diamnet/go/clients/auroraclient"
+	hProtocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/services/bridge/internal/db"
+	"github.com/diamnet/go/services/bridge/internal/mocks"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/txnbuild"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

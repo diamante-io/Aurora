@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/hcnet/go/services/compliance/internal/db"
-	"github.com/hcnet/go/services/internal/bridge-compliance-shared/http/helpers"
+	"github.com/diamnet/go/services/compliance/internal/db"
+	"github.com/diamnet/go/services/internal/bridge-compliance-shared/http/helpers"
 )
 
 // HandlerAllowAccess implements /allow_access endpoint

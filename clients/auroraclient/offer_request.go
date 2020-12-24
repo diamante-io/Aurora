@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"net/url"
 
-	hProtocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/support/errors"
+	hProtocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/support/errors"
 )
 
 // BuildURL creates the endpoint to be queried based on the data in the OfferRequest struct.
@@ -33,7 +33,7 @@ func (or OfferRequest) BuildURL() (endpoint string, err error) {
 // OfferHandler is a function that is called when a new offer is received
 type OfferHandler func(hProtocol.Offer)
 
-// StreamOffers streams offers processed by the HcNet network for an account. Use context.WithCancel
+// StreamOffers streams offers processed by the DiamNet network for an account. Use context.WithCancel
 // to stop streaming or context.Background() if you want to stream indefinitely.
 // OfferHandler is a user-supplied function that is executed for each streamed offer received.
 func (or OfferRequest) StreamOffers(ctx context.Context, client *Client, handler OfferHandler) (err error) {

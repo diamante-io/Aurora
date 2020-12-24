@@ -7,8 +7,8 @@ import (
 	"sync"
 
 	"github.com/pkg/errors"
-	"github.com/hcnet/go/support/log"
-	"github.com/hcnet/go/support/render/problem"
+	"github.com/diamnet/go/support/log"
+	"github.com/diamnet/go/support/render/problem"
 )
 
 var (

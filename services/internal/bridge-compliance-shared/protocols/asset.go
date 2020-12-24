@@ -3,12 +3,12 @@ package protocols
 import (
 	"fmt"
 
-	shared "github.com/hcnet/go/services/internal/bridge-compliance-shared"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/txnbuild"
+	shared "github.com/diamnet/go/services/internal/bridge-compliance-shared"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/txnbuild"
 )
 
-// ToBaseAsset transforms Asset to github.com/hcnet/go-hcnet-base/build.Asset
+// ToBaseAsset transforms Asset to github.com/diamnet/go-diamnet-base/build.Asset
 func (a Asset) ToBaseAsset() txnbuild.Asset {
 	if a.Code == "" && a.Issuer == "" {
 		return txnbuild.NativeAsset{}

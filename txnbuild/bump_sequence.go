@@ -1,12 +1,12 @@
 package txnbuild
 
 import (
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/xdr"
 )
 
-// BumpSequence represents the HcNet bump sequence operation. See
-// https://www.hcnet.org/developers/guides/concepts/list-of-operations.html
+// BumpSequence represents the DiamNet bump sequence operation. See
+// https://www.diamnet.org/developers/guides/concepts/list-of-operations.html
 type BumpSequence struct {
 	BumpTo        int64
 	SourceAccount Account

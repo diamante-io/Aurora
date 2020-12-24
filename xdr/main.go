@@ -1,5 +1,5 @@
 // Package xdr contains the generated code for parsing the xdr structures used
-// for hcnet.
+// for diamnet.
 package xdr
 
 import (

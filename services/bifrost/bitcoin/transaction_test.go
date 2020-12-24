@@ -9,7 +9,7 @@ import (
 func TestTransactionAmount(t *testing.T) {
 	tests := []struct {
 		amount                int64
-		expectedHcNetAmount string
+		expectedDiamNetAmount string
 	}{
 		{1, "0.0000000"},
 		{4, "0.0000000"},
@@ -23,7 +23,7 @@ func TestTransactionAmount(t *testing.T) {
 
 	for _, test := range tests {
 		transaction := Transaction{ValueSat: test.amount}
-		amount := transaction.ValueToHcNet()
-		assert.Equal(t, test.expectedHcNetAmount, amount)
+		amount := transaction.ValueToDiamNet()
+		assert.Equal(t, test.expectedDiamNetAmount, amount)
 	}
 }

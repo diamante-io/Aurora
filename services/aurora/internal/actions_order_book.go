@@ -3,14 +3,14 @@ package aurora
 import (
 	"net/http"
 
-	"github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/services/aurora/internal/actions"
-	"github.com/hcnet/go/services/aurora/internal/db2/core"
-	"github.com/hcnet/go/services/aurora/internal/render/sse"
-	"github.com/hcnet/go/services/aurora/internal/resourceadapter"
-	"github.com/hcnet/go/support/render/hal"
-	"github.com/hcnet/go/support/render/problem"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/services/aurora/internal/actions"
+	"github.com/diamnet/go/services/aurora/internal/db2/core"
+	"github.com/diamnet/go/services/aurora/internal/render/sse"
+	"github.com/diamnet/go/services/aurora/internal/resourceadapter"
+	"github.com/diamnet/go/support/render/hal"
+	"github.com/diamnet/go/support/render/problem"
+	"github.com/diamnet/go/xdr"
 )
 
 // Interface verifications

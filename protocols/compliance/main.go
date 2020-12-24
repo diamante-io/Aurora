@@ -24,8 +24,8 @@ type AuthRequest struct {
 
 // AuthData represents how AuthRequest.Data field looks like.
 type AuthData struct {
-	// The hcnet address of the customer that is initiating the send.
-	Sender string `json:"sender" valid:"required,hcnet_address"`
+	// The diamnet address of the customer that is initiating the send.
+	Sender string `json:"sender" valid:"required,diamnet_address"`
 	// If the caller needs the recipient's AML info in order to send the payment.
 	NeedInfo bool `json:"need_info" valid:"-"`
 	// The transaction that the sender would like to send in XDR format. This transaction is unsigned.
@@ -40,7 +40,7 @@ type AuthResponse struct {
 	InfoStatus AuthStatus `json:"info_status"`
 	// If this FI is willing to accept this transaction. {ok, denied, pending, error}
 	TxStatus AuthStatus `json:"tx_status"`
-	// (only present if info_status is ok) JSON of the recipient's AML information. in the HcNet attachment convention
+	// (only present if info_status is ok) JSON of the recipient's AML information. in the DiamNet attachment convention
 	DestInfo string `json:"dest_info,omitempty"`
 	// (only present if info_status or tx_status is pending) Estimated number of seconds till the sender can check back for a change in status. The sender should just resubmit this request after the given number of seconds.
 	Pending int `json:"pending,omitempty"`
@@ -49,14 +49,14 @@ type AuthResponse struct {
 }
 
 // Attachment represents preimage object of compliance protocol in
-// HcNet attachment convention
+// DiamNet attachment convention
 type Attachment struct {
 	Nonce       string `json:"nonce"`
 	Transaction `json:"transaction"`
 	Operations  []Operation `json:"operations"`
 }
 
-// Transaction represents transaction field in HcNet attachment
+// Transaction represents transaction field in DiamNet attachment
 type Transaction struct {
 	SenderInfo map[string]string `json:"sender_info"`
 	Route      Route             `json:"route"`
@@ -64,7 +64,7 @@ type Transaction struct {
 	Extra      string            `json:"extra"`
 }
 
-// Operation represents a single operation object in HcNet attachment
+// Operation represents a single operation object in DiamNet attachment
 type Operation struct {
 	// Overriddes Transaction field for this operation
 	SenderInfo map[string]string `json:"sender_info"`
@@ -106,13 +106,13 @@ const (
 
 	// TransactionStatusApproved is a value of `status` field for the
 	// tx_status endpoint response. It represents that the
-	// payment was approved by the receiving FI but the HcNet
+	// payment was approved by the receiving FI but the DiamNet
 	// transaction hasn't been received yet
 	TransactionStatusApproved TransactionStatus = "approved"
 
 	// TransactionStatusNotApproved is a value of `status` field for the
 	// tx_status endpoint response. It represents that the
-	// HcNet transaction was found but it was never approved
+	// DiamNet transaction was found but it was never approved
 	// by the receiving FI.
 	TransactionStatusNotApproved TransactionStatus = "not_approved"
 

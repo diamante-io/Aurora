@@ -3,12 +3,12 @@ package ingest
 import (
 	"sync"
 
-	"github.com/hcnet/go/clients/hcnetcore"
-	"github.com/hcnet/go/exp/ingest/io"
-	"github.com/hcnet/go/exp/ingest/ledgerbackend"
-	"github.com/hcnet/go/exp/ingest/pipeline"
-	"github.com/hcnet/go/support/historyarchive"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/clients/diamnetcore"
+	"github.com/diamnet/go/exp/ingest/io"
+	"github.com/diamnet/go/exp/ingest/ledgerbackend"
+	"github.com/diamnet/go/exp/ingest/pipeline"
+	"github.com/diamnet/go/support/historyarchive"
+	"github.com/diamnet/go/xdr"
 )
 
 // standardSession contains common methods used by all sessions.
@@ -28,11 +28,11 @@ type LiveSession struct {
 
 	Archive           historyarchive.ArchiveInterface
 	LedgerBackend     ledgerbackend.LedgerBackend
-	HcNetCoreClient *hcnetcore.Client
-	// HcNetCoreCursor defines cursor name used in `setcursor` command of
-	// hcnet-core. If you run multiple sessions against a single hcnet-core
+	DiamNetCoreClient *diamnetcore.Client
+	// DiamNetCoreCursor defines cursor name used in `setcursor` command of
+	// diamnet-core. If you run multiple sessions against a single diamnet-core
 	// instance the cursor name needs to be different in each session.
-	HcNetCoreCursor string
+	DiamNetCoreCursor string
 	StatePipeline     *pipeline.StatePipeline
 	StateReporter     StateReporter
 	LedgerPipeline    *pipeline.LedgerPipeline

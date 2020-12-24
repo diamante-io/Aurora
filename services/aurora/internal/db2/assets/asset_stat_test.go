@@ -4,9 +4,9 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hcnet/go/services/aurora/internal/db2"
-	"github.com/hcnet/go/services/aurora/internal/db2/history"
-	"github.com/hcnet/go/services/aurora/internal/test"
+	"github.com/diamnet/go/services/aurora/internal/db2"
+	"github.com/diamnet/go/services/aurora/internal/db2/history"
+	"github.com/diamnet/go/services/aurora/internal/test"
 )
 
 func TestAssetsStatsQExec(t *testing.T) {
@@ -18,7 +18,7 @@ func TestAssetsStatsQExec(t *testing.T) {
 		Amount:      "1009876000",
 		NumAccounts: 1,
 		Flags:       1,
-		Toml:        "https://test.com/.well-known/hcnet.toml",
+		Toml:        "https://test.com/.well-known/diamnet.toml",
 	}
 
 	item1 := AssetStatsR{
@@ -40,7 +40,7 @@ func TestAssetsStatsQExec(t *testing.T) {
 		Amount:      "3000010434000",
 		NumAccounts: 2,
 		Flags:       1,
-		Toml:        "https://test.com/.well-known/hcnet.toml",
+		Toml:        "https://test.com/.well-known/diamnet.toml",
 	}
 
 	testCases := []struct {

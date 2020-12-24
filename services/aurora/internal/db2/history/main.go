@@ -9,9 +9,9 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/guregu/null"
 
-	"github.com/hcnet/go/services/aurora/internal/db2"
-	"github.com/hcnet/go/support/db"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/services/aurora/internal/db2"
+	"github.com/diamnet/go/support/db"
+	"github.com/diamnet/go/xdr"
 )
 
 const (
@@ -271,7 +271,7 @@ type Operation struct {
 	TransactionSuccessful *bool `db:"transaction_successful"`
 }
 
-// Offer is row of data from the `offers` table from hcnet-core
+// Offer is row of data from the `offers` table from diamnet-core
 type Offer struct {
 	SellerID string    `db:"sellerid"`
 	OfferID  xdr.Int64 `db:"offerid"`

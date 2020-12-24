@@ -1,12 +1,12 @@
 # This is the big kahuna test scenario.  It aims to comprehensively use
-# hcnet's features, exercising each feature and option at least once.
+# diamnet's features, exercising each feature and option at least once.
 #
-# As new features are added to hcnet, this scenario will get updated to
+# As new features are added to diamnet, this scenario will get updated to
 # exercise those new features.  This scenario is used during the aurora
 # ingestion tests.
 #
 use_manual_close
-KP = HcNet::KeyPair
+KP = DiamNet::KeyPair
 close_ledger #2
 
 
@@ -17,7 +17,7 @@ close_ledger #2
   # Public: GAXI33UCLQTCKM2NMRBS7XYBR535LLEVAHL5YBN4FTCB4HZHT7ZA5CVK
   account :time_bounds, KP.from_seed("SBQGG7PY4JZQT6F2MBXDDI4VNDKZYG2Y5TJLKNG7AG6ETNNTJT6MCBOF")
   create_account :time_bounds do |env|
-    env.tx.time_bounds = HcNet::TimeBounds.new(min_time: 100, max_time: Time.parse("2020-01-01").to_i)
+    env.tx.time_bounds = DiamNet::TimeBounds.new(min_time: 100, max_time: Time.parse("2020-01-01").to_i)
     env.signatures = [env.tx.sign_decorated(get_account :master)]
   end
 
@@ -333,7 +333,7 @@ close_ledger #47
   close_ledger #53
 
   payment :master, :different_source,  [:native, "10.00"] do |env|
-    newop = HcNet::Operation.from_xdr env.tx.operations[0].to_xdr
+    newop = DiamNet::Operation.from_xdr env.tx.operations[0].to_xdr
 
     newop.source_account         = env.tx.operations[0].body.value.destination
     newop.body.value.destination = env.tx.source_account

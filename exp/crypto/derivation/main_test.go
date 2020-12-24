@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hcnet/go/keypair"
+	"github.com/diamnet/go/keypair"
 	"github.com/stretchr/testify/assert"
 )
 
 func ExampleDeriveFromPath() {
 	seed, _ := hex.DecodeString("000102030405060708090a0b0c0d0e0f")
-	key, err := DeriveForPath(HcNetPrimaryAccountPath, seed)
+	key, err := DeriveForPath(DiamNetPrimaryAccountPath, seed)
 	if err != nil {
 		panic(err)
 	}
@@ -33,7 +33,7 @@ func ExampleDeriveMultipleKeys() {
 	seed, _ := hex.DecodeString("000102030405060708090a0b0c0d0e0f")
 
 	for i := 0; i < 10; i++ {
-		path := fmt.Sprintf(HcNetAccountPathFormat, i)
+		path := fmt.Sprintf(DiamNetAccountPathFormat, i)
 		key, err := DeriveForPath(path, seed)
 		if err != nil {
 			panic(err)
@@ -62,7 +62,7 @@ func ExampleDeriveMultipleKeys() {
 
 func ExampleDeriveMultipleKeysFaster() {
 	seed, _ := hex.DecodeString("000102030405060708090a0b0c0d0e0f")
-	mainKey, err := DeriveForPath(HcNetAccountPrefix, seed)
+	mainKey, err := DeriveForPath(DiamNetAccountPrefix, seed)
 	if err != nil {
 		panic(err)
 	}
@@ -78,7 +78,7 @@ func ExampleDeriveMultipleKeysFaster() {
 			panic(err)
 		}
 
-		fmt.Println(fmt.Sprintf(HcNetAccountPathFormat, i), kp.Seed(), kp.Address())
+		fmt.Println(fmt.Sprintf(DiamNetAccountPathFormat, i), kp.Seed(), kp.Address())
 	}
 
 	// Output:
@@ -98,7 +98,7 @@ func BenchmarkDerive(b *testing.B) {
 	seed, _ := hex.DecodeString("000102030405060708090a0b0c0d0e0f")
 
 	for i := 0; i < b.N; i++ {
-		_, err := DeriveForPath(HcNetPrimaryAccountPath, seed)
+		_, err := DeriveForPath(DiamNetPrimaryAccountPath, seed)
 		if err != nil {
 			panic(err)
 		}
@@ -107,7 +107,7 @@ func BenchmarkDerive(b *testing.B) {
 
 func BenchmarkDeriveFast(b *testing.B) {
 	seed, _ := hex.DecodeString("000102030405060708090a0b0c0d0e0f")
-	mainKey, err := DeriveForPath(HcNetAccountPrefix, seed)
+	mainKey, err := DeriveForPath(DiamNetAccountPrefix, seed)
 	if err != nil {
 		panic(err)
 	}

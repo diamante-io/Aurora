@@ -2,9 +2,9 @@ package simplepath
 
 import (
 	"github.com/go-errors/errors"
-	"github.com/hcnet/go/exp/orderbook"
-	"github.com/hcnet/go/services/aurora/internal/paths"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/exp/orderbook"
+	"github.com/diamnet/go/services/aurora/internal/paths"
+	"github.com/diamnet/go/xdr"
 )
 
 const (

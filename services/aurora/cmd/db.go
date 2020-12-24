@@ -10,12 +10,12 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/hcnet/go/services/aurora/internal/db2/schema"
-	"github.com/hcnet/go/services/aurora/internal/ingest"
-	"github.com/hcnet/go/services/aurora/internal/util"
-	"github.com/hcnet/go/support/db"
-	"github.com/hcnet/go/support/errors"
-	hlog "github.com/hcnet/go/support/log"
+	"github.com/diamnet/go/services/aurora/internal/db2/schema"
+	"github.com/diamnet/go/services/aurora/internal/ingest"
+	"github.com/diamnet/go/services/aurora/internal/util"
+	"github.com/diamnet/go/support/db"
+	"github.com/diamnet/go/support/errors"
+	hlog "github.com/diamnet/go/support/log"
 )
 
 type reingestType int
@@ -70,7 +70,7 @@ var dbInitAssetStatsCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		cdb, err := db.Open("postgres", config.HcNetCoreDatabaseURL)
+		cdb, err := db.Open("postgres", config.DiamNetCoreDatabaseURL)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -188,7 +188,7 @@ var dbReapCmd = &cobra.Command{
 
 var dbRebaseCmd = &cobra.Command{
 	Use:   "rebase",
-	Short: "rebases clears the aurora db and ingests the latest ledger segment from hcnet-core",
+	Short: "rebases clears the aurora db and ingests the latest ledger segment from diamnet-core",
 	Long:  "...",
 	Run: func(cmd *cobra.Command, args []string) {
 		initConfig()
@@ -286,7 +286,7 @@ func ingestSystem(ingestConfig ingest.Config) *ingest.System {
 		log.Fatal(err)
 	}
 
-	cdb, err := db.Open("postgres", config.HcNetCoreDatabaseURL)
+	cdb, err := db.Open("postgres", config.DiamNetCoreDatabaseURL)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -296,7 +296,7 @@ func ingestSystem(ingestConfig ingest.Config) *ingest.System {
 		log.Fatal("network-passphrase is blank: reingestion requires manually setting passphrase")
 	}
 
-	return ingest.New(passphrase, config.HcNetCoreURL, cdb, hdb, ingestConfig)
+	return ingest.New(passphrase, config.DiamNetCoreURL, cdb, hdb, ingestConfig)
 }
 
 func reingest(cmd reingestType, args ...int32) {

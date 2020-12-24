@@ -3,18 +3,18 @@ package server
 import (
 	"encoding/json"
 
-	"github.com/hcnet/go/services/bifrost/sse"
+	"github.com/diamnet/go/services/bifrost/sse"
 )
 
-func (s *Server) onHcNetAccountCreated(destination string) {
-	association, err := s.Database.GetAssociationByHcNetPublicKey(destination)
+func (s *Server) onDiamNetAccountCreated(destination string) {
+	association, err := s.Database.GetAssociationByDiamNetPublicKey(destination)
 	if err != nil {
 		s.log.WithField("err", err).Error("Error getting association")
 		return
 	}
 
 	if association == nil {
-		s.log.WithField("hcnetPublicKey", destination).Error("Association not found")
+		s.log.WithField("diamnetPublicKey", destination).Error("Association not found")
 		return
 	}
 
@@ -22,14 +22,14 @@ func (s *Server) onHcNetAccountCreated(destination string) {
 }
 
 func (s *Server) onExchanged(destination string) {
-	association, err := s.Database.GetAssociationByHcNetPublicKey(destination)
+	association, err := s.Database.GetAssociationByDiamNetPublicKey(destination)
 	if err != nil {
 		s.log.WithField("err", err).Error("Error getting association")
 		return
 	}
 
 	if association == nil {
-		s.log.WithField("hcnetPublicKey", destination).Error("Association not found")
+		s.log.WithField("diamnetPublicKey", destination).Error("Association not found")
 		return
 	}
 
@@ -37,14 +37,14 @@ func (s *Server) onExchanged(destination string) {
 }
 
 func (s *Server) OnExchangedTimelocked(destination, transaction string) {
-	association, err := s.Database.GetAssociationByHcNetPublicKey(destination)
+	association, err := s.Database.GetAssociationByDiamNetPublicKey(destination)
 	if err != nil {
 		s.log.WithField("err", err).Error("Error getting association")
 		return
 	}
 
 	if association == nil {
-		s.log.WithField("hcnetPublicKey", destination).Error("Association not found")
+		s.log.WithField("diamnetPublicKey", destination).Error("Association not found")
 		return
 	}
 

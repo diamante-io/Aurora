@@ -3,19 +3,19 @@ package aurora
 import (
 	"net/http"
 
-	"github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/services/aurora/internal/actions"
-	hProblem "github.com/hcnet/go/services/aurora/internal/render/problem"
-	"github.com/hcnet/go/services/aurora/internal/resourceadapter"
-	"github.com/hcnet/go/services/aurora/internal/txsub"
-	"github.com/hcnet/go/support/render/hal"
-	"github.com/hcnet/go/support/render/problem"
+	"github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/services/aurora/internal/actions"
+	hProblem "github.com/diamnet/go/services/aurora/internal/render/problem"
+	"github.com/diamnet/go/services/aurora/internal/resourceadapter"
+	"github.com/diamnet/go/services/aurora/internal/txsub"
+	"github.com/diamnet/go/support/render/hal"
+	"github.com/diamnet/go/support/render/problem"
 )
 
 // Interface verification
 var _ actions.JSONer = (*TransactionCreateAction)(nil)
 
-// TransactionCreateAction submits a transaction to the hcnet-core network
+// TransactionCreateAction submits a transaction to the diamnet-core network
 // on behalf of the requesting client.
 type TransactionCreateAction struct {
 	Action
@@ -76,10 +76,10 @@ func (action *TransactionCreateAction) loadResource() {
 			Type:   "transaction_failed",
 			Title:  "Transaction Failed",
 			Status: http.StatusBadRequest,
-			Detail: "The transaction failed when submitted to the hcnet network. " +
+			Detail: "The transaction failed when submitted to the diamnet network. " +
 				"The `extras.result_codes` field on this response contains further " +
 				"details.  Descriptions of each code can be found at: " +
-				"https://www.hcnet.org/developers/learn/concepts/list-of-operations.html",
+				"https://www.diamnet.org/developers/learn/concepts/list-of-operations.html",
 			Extras: map[string]interface{}{
 				"envelope_xdr": action.Result.EnvelopeXDR,
 				"result_xdr":   err.ResultXDR,

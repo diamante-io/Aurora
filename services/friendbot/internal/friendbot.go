@@ -4,7 +4,7 @@ import (
 	"log"
 	"sync"
 
-	hProtocol "github.com/hcnet/go/protocols/aurora"
+	hProtocol "github.com/diamnet/go/protocols/aurora"
 )
 
 // Bot represents the friendbot subsystem and primarily delegates work

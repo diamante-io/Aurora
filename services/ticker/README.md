@@ -1,5 +1,5 @@
 # Ticker
-This project aims to provide an easy-to-deploy HcNet ticker.
+This project aims to provide an easy-to-deploy DiamNet ticker.
 
 ## Quick Start
 This project provides a docker setup that makes it easy to get a Ticker up and running (you can
@@ -7,7 +7,7 @@ check an architecture overview [here](docs/Architecture.md)). In order to get up
 follow these steps:
 
 1. Install [Docker](https://hub.docker.com/editions/community/docker-ce-desktop-mac)
-2. Clone the [monorepo](https://github.com/hcnet/go) and `$ cd services/ticker`
+2. Clone the [monorepo](https://github.com/diamnet/go) and `$ cd services/ticker`
 3. Build the Ticker's docker image: `$ docker build -t ticker .`
 4. Run the Ticker: `$ docker run --rm -it -p "8000:8000" ticker` (you'll be asked to enter a
    PostgreSQL password)
@@ -22,7 +22,7 @@ you want to do this, replace step `4` with the following steps:
 
 1. Create a folder for the persisting data `$ mkdir /path/to/data/folder`
 2. Run the ticker with the mounted folder: `$ docker run --rm -it -p "8000:8000" -v
-   "/path/to/data/folder:/opt/hcnet/postgresql" ticker` (you'll also be asked to enter a
+   "/path/to/data/folder:/opt/diamnet/postgresql" ticker` (you'll also be asked to enter a
    PostgreSQL password in the first time you run, but shouldn't happen the next time you run this
    command).
 3. Voilà! After the initial setup / population is done, you should be able to visit you should be

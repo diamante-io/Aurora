@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hcnet/go/protocols/aurora/effects"
-	"github.com/hcnet/go/support/http/httptest"
+	"github.com/diamnet/go/protocols/aurora/effects"
+	"github.com/diamnet/go/support/http/httptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -237,7 +237,7 @@ func TestNextEffectsPage(t *testing.T) {
 
 	hmock.On(
 		"GET",
-		"https://aurora-testnet.hcnet.org/accounts/GCDIZFWLOTBWHTPODXCBH6XNXPFMSQFRVIDRP3JLEKQZN66G7NF3ANOD/effects?cursor=1557363731492865-3&limit=10&order=asc",
+		"https://aurora-testnet.diamnet.org/accounts/GCDIZFWLOTBWHTPODXCBH6XNXPFMSQFRVIDRP3JLEKQZN66G7NF3ANOD/effects?cursor=1557363731492865-3&limit=10&order=asc",
 	).ReturnString(200, emptyEffectsPage)
 
 	nextPage, err := client.NextEffectsPage(efp)
@@ -246,19 +246,19 @@ func TestNextEffectsPage(t *testing.T) {
 	}
 }
 
-var effectStreamResponse = `data: {"_links":{"operation":{"href":"https://aurora-testnet.hcnet.org/operations/2531135896703017"},"succeeds":{"href":"https://aurora-testnet.hcnet.org/effects?order=desc\u0026cursor=2531135896703017-1"},"precedes":{"href":"https://aurora-testnet.hcnet.org/effects?order=asc\u0026cursor=2531135896703017-1"}},"id":"0002531135896703017-0000000001","paging_token":"2531135896703017-1","account":"GBNZN27NAOHRJRCMHQF2ZN2F6TAPVEWKJIGZIRNKIADWIS2HDENIS6CI","type":"account_credited","type_i":2,"created_at":"2019-04-03T10:14:17Z","asset_type":"credit_alphanum4","asset_code":"qwop","asset_issuer":"GBM4HXXNDBWWQBXOL4QCTZIUQAP6XFUI3FPINUGUPBMULMTEHJPIKX6T","amount":"0.0460000"}
+var effectStreamResponse = `data: {"_links":{"operation":{"href":"https://aurora-testnet.diamnet.org/operations/2531135896703017"},"succeeds":{"href":"https://aurora-testnet.diamnet.org/effects?order=desc\u0026cursor=2531135896703017-1"},"precedes":{"href":"https://aurora-testnet.diamnet.org/effects?order=asc\u0026cursor=2531135896703017-1"}},"id":"0002531135896703017-0000000001","paging_token":"2531135896703017-1","account":"GBNZN27NAOHRJRCMHQF2ZN2F6TAPVEWKJIGZIRNKIADWIS2HDENIS6CI","type":"account_credited","type_i":2,"created_at":"2019-04-03T10:14:17Z","asset_type":"credit_alphanum4","asset_code":"qwop","asset_issuer":"GBM4HXXNDBWWQBXOL4QCTZIUQAP6XFUI3FPINUGUPBMULMTEHJPIKX6T","amount":"0.0460000"}
 `
 
 var firstEffectsPage = `{
   "_links": {
     "self": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GCDIZFWLOTBWHTPODXCBH6XNXPFMSQFRVIDRP3JLEKQZN66G7NF3ANOD/effects?cursor=&limit=10&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/accounts/GCDIZFWLOTBWHTPODXCBH6XNXPFMSQFRVIDRP3JLEKQZN66G7NF3ANOD/effects?cursor=&limit=10&order=asc"
     },
     "next": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GCDIZFWLOTBWHTPODXCBH6XNXPFMSQFRVIDRP3JLEKQZN66G7NF3ANOD/effects?cursor=1557363731492865-3&limit=10&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/accounts/GCDIZFWLOTBWHTPODXCBH6XNXPFMSQFRVIDRP3JLEKQZN66G7NF3ANOD/effects?cursor=1557363731492865-3&limit=10&order=asc"
     },
     "prev": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GCDIZFWLOTBWHTPODXCBH6XNXPFMSQFRVIDRP3JLEKQZN66G7NF3ANOD/effects?cursor=1557363731492865-1&limit=10&order=desc"
+      "href": "https://aurora-testnet.diamnet.org/accounts/GCDIZFWLOTBWHTPODXCBH6XNXPFMSQFRVIDRP3JLEKQZN66G7NF3ANOD/effects?cursor=1557363731492865-1&limit=10&order=desc"
     }
   },
   "_embedded": {
@@ -266,13 +266,13 @@ var firstEffectsPage = `{
       {
         "_links": {
           "operation": {
-            "href": "https://aurora-testnet.hcnet.org/operations/1557363731492865"
+            "href": "https://aurora-testnet.diamnet.org/operations/1557363731492865"
           },
           "succeeds": {
-            "href": "https://aurora-testnet.hcnet.org/effects?order=desc&cursor=1557363731492865-1"
+            "href": "https://aurora-testnet.diamnet.org/effects?order=desc&cursor=1557363731492865-1"
           },
           "precedes": {
-            "href": "https://aurora-testnet.hcnet.org/effects?order=asc&cursor=1557363731492865-1"
+            "href": "https://aurora-testnet.diamnet.org/effects?order=asc&cursor=1557363731492865-1"
           }
         },
         "id": "0001557363731492865-0000000001",
@@ -286,13 +286,13 @@ var firstEffectsPage = `{
       {
         "_links": {
           "operation": {
-            "href": "https://aurora-testnet.hcnet.org/operations/1557363731492865"
+            "href": "https://aurora-testnet.diamnet.org/operations/1557363731492865"
           },
           "succeeds": {
-            "href": "https://aurora-testnet.hcnet.org/effects?order=desc&cursor=1557363731492865-3"
+            "href": "https://aurora-testnet.diamnet.org/effects?order=desc&cursor=1557363731492865-3"
           },
           "precedes": {
-            "href": "https://aurora-testnet.hcnet.org/effects?order=asc&cursor=1557363731492865-3"
+            "href": "https://aurora-testnet.diamnet.org/effects?order=asc&cursor=1557363731492865-3"
           }
         },
         "id": "0001557363731492865-0000000003",
@@ -312,13 +312,13 @@ var firstEffectsPage = `{
 var emptyEffectsPage = `{
   "_links": {
     "self": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GCDIZFWLOTBWHTPODXCBH6XNXPFMSQFRVIDRP3JLEKQZN66G7NF3ANOD/effects?cursor=1557363731492865-3&limit=10&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/accounts/GCDIZFWLOTBWHTPODXCBH6XNXPFMSQFRVIDRP3JLEKQZN66G7NF3ANOD/effects?cursor=1557363731492865-3&limit=10&order=asc"
     },
     "next": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GCDIZFWLOTBWHTPODXCBH6XNXPFMSQFRVIDRP3JLEKQZN66G7NF3ANOD/effects?cursor=1557363731492865-3&limit=10&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/accounts/GCDIZFWLOTBWHTPODXCBH6XNXPFMSQFRVIDRP3JLEKQZN66G7NF3ANOD/effects?cursor=1557363731492865-3&limit=10&order=asc"
     },
     "prev": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GCDIZFWLOTBWHTPODXCBH6XNXPFMSQFRVIDRP3JLEKQZN66G7NF3ANOD/effects?cursor=1557363731492865-3&limit=10&order=desc"
+      "href": "https://aurora-testnet.diamnet.org/accounts/GCDIZFWLOTBWHTPODXCBH6XNXPFMSQFRVIDRP3JLEKQZN66G7NF3ANOD/effects?cursor=1557363731492865-3&limit=10&order=desc"
     }
   },
   "_embedded": {

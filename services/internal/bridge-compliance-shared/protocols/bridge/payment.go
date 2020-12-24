@@ -5,18 +5,18 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/hcnet/go/keypair"
-	"github.com/hcnet/go/services/internal/bridge-compliance-shared/http/helpers"
-	"github.com/hcnet/go/services/internal/bridge-compliance-shared/protocols"
-	complianceServer "github.com/hcnet/go/services/internal/bridge-compliance-shared/protocols/compliance"
-	"github.com/hcnet/go/support/errors"
+	"github.com/diamnet/go/keypair"
+	"github.com/diamnet/go/services/internal/bridge-compliance-shared/http/helpers"
+	"github.com/diamnet/go/services/internal/bridge-compliance-shared/protocols"
+	complianceServer "github.com/diamnet/go/services/internal/bridge-compliance-shared/protocols/compliance"
+	"github.com/diamnet/go/support/errors"
 )
 
 var (
 	// input errors
 
 	// PaymentCannotResolveDestination is an error response
-	PaymentCannotResolveDestination = &helpers.ErrorResponse{Code: "cannot_resolve_destination", Message: "Cannot resolve federated HcNet address.", Status: http.StatusBadRequest}
+	PaymentCannotResolveDestination = &helpers.ErrorResponse{Code: "cannot_resolve_destination", Message: "Cannot resolve federated DiamNet address.", Status: http.StatusBadRequest}
 	// PaymentCannotUseMemo is an error response
 	PaymentCannotUseMemo = &helpers.ErrorResponse{Code: "cannot_use_memo", Message: "Memo given in request but federation returned memo fields.", Status: http.StatusBadRequest}
 	// PaymentSourceNotExist is an error response
@@ -37,11 +37,11 @@ type PaymentRequest struct {
 	// Payment ID
 	ID string `form:"id" valid:"optional"`
 	// Source account secret
-	Source string `form:"source" valid:"optional,hcnet_seed"`
-	// Sender address (like alice*hcnet.org)
-	Sender string `form:"sender" valid:"optional,hcnet_address"`
-	// Destination address (like bob*hcnet.org)
-	Destination string `form:"destination" valid:"optional,hcnet_destination"`
+	Source string `form:"source" valid:"optional,diamnet_seed"`
+	// Sender address (like alice*diamnet.org)
+	Sender string `form:"sender" valid:"optional,diamnet_address"`
+	// Destination address (like bob*diamnet.org)
+	Destination string `form:"destination" valid:"optional,diamnet_destination"`
 	// ForwardDestination
 	ForwardDestination *protocols.ForwardDestination `form:"forward_destination" valid:"-"`
 	// Memo type
@@ -49,17 +49,17 @@ type PaymentRequest struct {
 	// Memo value
 	Memo string `form:"memo" valid:"optional"`
 	// Amount destination should receive
-	Amount string `form:"amount" valid:"required,hcnet_amount"`
+	Amount string `form:"amount" valid:"required,diamnet_amount"`
 	// Code of the asset destination should receive
-	AssetCode string `form:"asset_code" valid:"optional,hcnet_asset_code"`
+	AssetCode string `form:"asset_code" valid:"optional,diamnet_asset_code"`
 	// Issuer of the asset destination should receive
-	AssetIssuer string `form:"asset_issuer" valid:"optional,hcnet_accountid"`
+	AssetIssuer string `form:"asset_issuer" valid:"optional,diamnet_accountid"`
 	// Only for path_payment
-	SendMax string `form:"send_max" valid:"optional,hcnet_amount"`
+	SendMax string `form:"send_max" valid:"optional,diamnet_amount"`
 	// Only for path_payment
-	SendAssetCode string `form:"send_asset_code" valid:"optional,hcnet_asset_code"`
+	SendAssetCode string `form:"send_asset_code" valid:"optional,diamnet_asset_code"`
 	// Only for path_payment
-	SendAssetIssuer string `form:"send_asset_issuer" valid:"optional,hcnet_accountid"`
+	SendAssetIssuer string `form:"send_asset_issuer" valid:"optional,diamnet_accountid"`
 	// path[n][asset_code] path[n][asset_issuer]
 	Path []protocols.Asset `form:"path" valid:"optional"`
 	// Determined whether to use compliance protocol or to send a simple payment.

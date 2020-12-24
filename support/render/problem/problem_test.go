@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	ge "github.com/go-errors/errors"
-	"github.com/hcnet/go/support/test"
+	"github.com/diamnet/go/support/test"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -39,8 +39,8 @@ func TestRender(t *testing.T) {
 			201,
 		}, {
 			"renders the extras correctly",
-			P{Extras: map[string]interface{}{"hello": "hcnet"}},
-			[]string{"hello", "hcnet"},
+			P{Extras: map[string]interface{}{"hello": "diamnet"}},
+			[]string{"hello", "diamnet"},
 			0,
 		},
 	}
@@ -105,8 +105,8 @@ func TestInflate(t *testing.T) {
 		want string
 	}{
 		"renders the type correctly",
-		P{Type: "https://hcnet.org/aurora-errors/not_found"},
-		"https://hcnet.org/aurora-errors/not_found",
+		P{Type: "https://diamnet.org/aurora-errors/not_found"},
+		"https://diamnet.org/aurora-errors/not_found",
 	}
 
 	t.Run(testCase.name, func(t *testing.T) {

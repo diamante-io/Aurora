@@ -1,7 +1,7 @@
 package ticker
 
 import (
-	"github.com/hcnet/go/services/ticker/internal/scraper"
+	"github.com/diamnet/go/services/ticker/internal/scraper"
 )
 
 // MarketSummary represents a summary of statistics of all valid markets

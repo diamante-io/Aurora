@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hcnet/go/amount"
-	protocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/services/aurora/internal/db2/history"
-	"github.com/hcnet/go/services/aurora/internal/httpx"
-	"github.com/hcnet/go/support/render/hal"
+	"github.com/diamnet/go/amount"
+	protocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/services/aurora/internal/db2/history"
+	"github.com/diamnet/go/services/aurora/internal/httpx"
+	"github.com/diamnet/go/support/render/hal"
 )
 
 // Populate fills out the details of a trade using a row from the history_trades

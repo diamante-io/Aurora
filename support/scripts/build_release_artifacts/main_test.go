@@ -16,7 +16,7 @@ func TestExtractFromTag(t *testing.T) {
 	}{
 		// Successful cases
 		{"No hyphen in binary", "federation-v1.0.0", "federation", "v1.0.0"},
-		{"hyphen in binary", "hcnet-sign-v1.0.0", "hcnet-sign", "v1.0.0"},
+		{"hyphen in binary", "diamnet-sign-v1.0.0", "diamnet-sign", "v1.0.0"},
 		{"non-semver", "federation-master", "federation", "master"},
 		// Faileds cases
 		{"capitalized", "Federation-v1.0.0", "", ""},

@@ -3,7 +3,7 @@ package build
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/xdr"
 )
 
 var _ = Describe("CreateAccountBuilder Mutators", func() {
@@ -22,7 +22,7 @@ var _ = Describe("CreateAccountBuilder Mutators", func() {
 	})
 
 	Describe("Destination", func() {
-		Context("using a valid hcnet address", func() {
+		Context("using a valid diamnet address", func() {
 			BeforeEach(func() { mut = Destination{address} })
 
 			It("succeeds", func() {
@@ -43,7 +43,7 @@ var _ = Describe("CreateAccountBuilder Mutators", func() {
 	})
 
 	Describe("SourceAccount", func() {
-		Context("using a valid hcnet address", func() {
+		Context("using a valid diamnet address", func() {
 			BeforeEach(func() { mut = SourceAccount{address} })
 
 			It("succeeds", func() {

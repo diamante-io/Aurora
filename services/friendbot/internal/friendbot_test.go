@@ -4,9 +4,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/hcnet/go/clients/auroraclient"
-	"github.com/hcnet/go/keypair"
-	hProtocol "github.com/hcnet/go/protocols/aurora"
+	"github.com/diamnet/go/clients/auroraclient"
+	"github.com/diamnet/go/keypair"
+	hProtocol "github.com/diamnet/go/protocols/aurora"
 	"github.com/stretchr/testify/assert"
 )
 

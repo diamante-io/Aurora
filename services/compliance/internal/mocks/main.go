@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/hcnet/go/support/http/httptest"
+	"github.com/diamnet/go/support/http/httptest"
 )
 
 // BuildHTTPResponse is used in tests

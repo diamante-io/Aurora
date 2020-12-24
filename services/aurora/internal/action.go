@@ -6,21 +6,21 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/services/aurora/internal/actions"
-	"github.com/hcnet/go/services/aurora/internal/db2"
-	"github.com/hcnet/go/services/aurora/internal/db2/core"
-	"github.com/hcnet/go/services/aurora/internal/db2/history"
-	"github.com/hcnet/go/services/aurora/internal/httpx"
-	"github.com/hcnet/go/services/aurora/internal/ledger"
-	hProblem "github.com/hcnet/go/services/aurora/internal/render/problem"
-	"github.com/hcnet/go/services/aurora/internal/render/sse"
-	"github.com/hcnet/go/services/aurora/internal/resourceadapter"
-	"github.com/hcnet/go/services/aurora/internal/toid"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/support/log"
-	"github.com/hcnet/go/support/render/httpjson"
-	"github.com/hcnet/go/support/render/problem"
+	"github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/services/aurora/internal/actions"
+	"github.com/diamnet/go/services/aurora/internal/db2"
+	"github.com/diamnet/go/services/aurora/internal/db2/core"
+	"github.com/diamnet/go/services/aurora/internal/db2/history"
+	"github.com/diamnet/go/services/aurora/internal/httpx"
+	"github.com/diamnet/go/services/aurora/internal/ledger"
+	hProblem "github.com/diamnet/go/services/aurora/internal/render/problem"
+	"github.com/diamnet/go/services/aurora/internal/render/sse"
+	"github.com/diamnet/go/services/aurora/internal/resourceadapter"
+	"github.com/diamnet/go/services/aurora/internal/toid"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/support/log"
+	"github.com/diamnet/go/support/render/httpjson"
+	"github.com/diamnet/go/support/render/problem"
 )
 
 // Action is the "base type" for all actions in aurora.  It provides
@@ -38,7 +38,7 @@ type Action struct {
 	cq *core.Q
 }
 
-// CoreQ provides access to queries that access the hcnet core database.
+// CoreQ provides access to queries that access the diamnet core database.
 func (action *Action) CoreQ() *core.Q {
 	if action.cq == nil {
 		action.cq = &core.Q{Session: action.App.CoreSession(action.R.Context())}

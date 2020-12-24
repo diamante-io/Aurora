@@ -3,7 +3,7 @@ package adapters
 import (
 	"testing"
 
-	"github.com/hcnet/go/exp/ingest/ledgerbackend"
+	"github.com/diamnet/go/exp/ingest/ledgerbackend"
 	"github.com/stretchr/testify/assert"
 )
 

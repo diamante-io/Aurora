@@ -2,10 +2,10 @@
 package trades
 
 import (
-	"github.com/hcnet/go/keypair"
-	"github.com/hcnet/go/services/aurora/internal/db2/history"
-	"github.com/hcnet/go/support/time"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/keypair"
+	"github.com/diamnet/go/services/aurora/internal/db2/history"
+	"github.com/diamnet/go/support/time"
+	"github.com/diamnet/go/xdr"
 )
 
 //GetTestAsset generates an issuer on the fly and creates a CreditAlphanum4 Asset with given code

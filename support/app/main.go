@@ -3,7 +3,7 @@
 package app
 
 import "time"
-import "github.com/hcnet/go/support/errors"
+import "github.com/diamnet/go/support/errors"
 
 var (
 	// ErrNoBuildTime is the error returned when no build time for the current

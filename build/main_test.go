@@ -10,11 +10,11 @@ import (
 
 func TestBuild(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Package: github.com/hcnet/go/build")
+	RunSpecs(t, "Package: github.com/diamnet/go/build")
 }
 
 // ExampleTransactionBuilder creates and signs a simple transaction, and then
-// encodes it into a base64 string capable of being submitted to hcnet-core.
+// encodes it into a base64 string capable of being submitted to diamnet-core.
 //
 // It uses the transaction builder system
 func ExampleTransactionBuilder() {
@@ -52,7 +52,7 @@ func ExampleTransactionBuilder() {
 }
 
 // ExampleCreateAccount creates a transaction to fund a new stallar account with a balance. It then
-// encodes the transaction into a base64 string capable of being submitted to hcnet-core. It uses
+// encodes the transaction into a base64 string capable of being submitted to diamnet-core. It uses
 // the transaction builder system.
 func ExampleCreateAccount() {
 	seed := "SDOTALIMPAM2IV65IOZA7KZL7XWZI5BODFXTRVLIHLQZQCKK57PH5F3H"
@@ -89,7 +89,7 @@ func ExampleCreateAccount() {
 }
 
 // ExampleBumpSequence creates a transaction to bump sequence of a given account. It then
-// encodes the transaction into a base64 string capable of being submitted to hcnet-core. It uses
+// encodes the transaction into a base64 string capable of being submitted to diamnet-core. It uses
 // the transaction builder system.
 func ExampleBumpSequence() {
 	seed := "SDOTALIMPAM2IV65IOZA7KZL7XWZI5BODFXTRVLIHLQZQCKK57PH5F3H"
@@ -125,7 +125,7 @@ func ExampleBumpSequence() {
 }
 
 // ExamplePayment creates and signs a native-asset Payment, encodes it into a base64 string capable of
-// being submitted to hcnet-core. It uses the transaction builder system.
+// being submitted to diamnet-core. It uses the transaction builder system.
 func ExamplePayment() {
 	seed := "SDOTALIMPAM2IV65IOZA7KZL7XWZI5BODFXTRVLIHLQZQCKK57PH5F3H"
 	tx, err := Transaction(
@@ -161,7 +161,7 @@ func ExamplePayment() {
 }
 
 // ExamplePathPayment creates and signs a simple transaction with PathPayment operation, and then
-// encodes it into a base64 string capable of being submitted to hcnet-core.
+// encodes it into a base64 string capable of being submitted to diamnet-core.
 func ExamplePathPayment() {
 	seed := "SDOTALIMPAM2IV65IOZA7KZL7XWZI5BODFXTRVLIHLQZQCKK57PH5F3H"
 	tx, err := Transaction(
@@ -200,7 +200,7 @@ func ExamplePathPayment() {
 }
 
 // ExampleSetOptions creates and signs a simple transaction with SetOptions operation, and then
-// encodes it into a base64 string capable of being submitted to hcnet-core.
+// encodes it into a base64 string capable of being submitted to diamnet-core.
 func ExampleSetOptions() {
 	seed := "SDOTALIMPAM2IV65IOZA7KZL7XWZI5BODFXTRVLIHLQZQCKK57PH5F3H"
 	tx, err := Transaction(
@@ -217,7 +217,7 @@ func ExampleSetOptions() {
 			ClearAuthImmutable(),
 			MasterWeight(1),
 			SetThresholds(2, 3, 4),
-			HomeDomain("hcnet.org"),
+			HomeDomain("diamnet.org"),
 			AddSigner("GC6DDGPXVWXD5V6XOWJ7VUTDYI7VKPV2RAJWBVBHR47OPV5NASUNHTJW", 5),
 		),
 	)
@@ -245,7 +245,7 @@ func ExampleSetOptions() {
 }
 
 // ExampleSetOptions_manyOperations creates and signs a simple transaction with many SetOptions operations, and then
-// encodes it into a base64 string capable of being submitted to hcnet-core.
+// encodes it into a base64 string capable of being submitted to diamnet-core.
 func ExampleSetOptions_manyOperations() {
 	seed := "SDOTALIMPAM2IV65IOZA7KZL7XWZI5BODFXTRVLIHLQZQCKK57PH5F3H"
 	tx, err := Transaction(
@@ -261,7 +261,7 @@ func ExampleSetOptions_manyOperations() {
 		ClearAuthImmutable(),
 		MasterWeight(1),
 		SetThresholds(2, 3, 4),
-		HomeDomain("hcnet.org"),
+		HomeDomain("diamnet.org"),
 		RemoveSigner("GC6DDGPXVWXD5V6XOWJ7VUTDYI7VKPV2RAJWBVBHR47OPV5NASUNHTJW"),
 	)
 
@@ -288,7 +288,7 @@ func ExampleSetOptions_manyOperations() {
 }
 
 // ExampleChangeTrust creates and signs a simple transaction with ChangeTrust operation, and then
-// encodes it into a base64 string capable of being submitted to hcnet-core.
+// encodes it into a base64 string capable of being submitted to diamnet-core.
 func ExampleChangeTrust() {
 	seed := "SDOTALIMPAM2IV65IOZA7KZL7XWZI5BODFXTRVLIHLQZQCKK57PH5F3H"
 	tx, err := Transaction(
@@ -321,7 +321,7 @@ func ExampleChangeTrust() {
 }
 
 // ExampleChangeTrust_maxLimit creates and signs a simple transaction with ChangeTrust operation (maximum limit), and then
-// encodes it into a base64 string capable of being submitted to hcnet-core.
+// encodes it into a base64 string capable of being submitted to diamnet-core.
 func ExampleChangeTrust_maxLimit() {
 	seed := "SDOTALIMPAM2IV65IOZA7KZL7XWZI5BODFXTRVLIHLQZQCKK57PH5F3H"
 	tx, err := Transaction(
@@ -354,7 +354,7 @@ func ExampleChangeTrust_maxLimit() {
 }
 
 // ExampleRemoveTrust creates and signs a simple transaction with ChangeTrust operation (remove trust), and then
-// encodes it into a base64 string capable of being submitted to hcnet-core.
+// encodes it into a base64 string capable of being submitted to diamnet-core.
 func ExampleRemoveTrust() {
 	seed := "SDOTALIMPAM2IV65IOZA7KZL7XWZI5BODFXTRVLIHLQZQCKK57PH5F3H"
 	operationSource := "GCVJCNUHSGKOTBBSXZJ7JJZNOSE2YDNGRLIDPMQDUEQWJQSE6QZSDPNU"
@@ -392,7 +392,7 @@ func ExampleRemoveTrust() {
 }
 
 // ExampleManageOffer creates and signs a simple transaction with ManageOffer operations, and then
-// encodes it into a base64 string capable of being submitted to hcnet-core.
+// encodes it into a base64 string capable of being submitted to diamnet-core.
 func ExampleManageOffer() {
 	rate := Rate{
 		Selling: NativeAsset(),
@@ -433,7 +433,7 @@ func ExampleManageOffer() {
 }
 
 // ExampleCreatePassiveOffer creates and signs a simple transaction with CreatePassiveOffer operation, and then
-// encodes it into a base64 string capable of being submitted to hcnet-core.
+// encodes it into a base64 string capable of being submitted to diamnet-core.
 func ExampleCreatePassiveOffer() {
 	rate := Rate{
 		Selling: NativeAsset(),
@@ -472,7 +472,7 @@ func ExampleCreatePassiveOffer() {
 }
 
 // ExampleAccountMerge creates and signs a simple transaction with AccountMerge operation, and then
-// encodes it into a base64 string capable of being submitted to hcnet-core.
+// encodes it into a base64 string capable of being submitted to diamnet-core.
 func ExampleAccountMerge() {
 	seed := "SDOTALIMPAM2IV65IOZA7KZL7XWZI5BODFXTRVLIHLQZQCKK57PH5F3H"
 	tx, err := Transaction(
@@ -507,7 +507,7 @@ func ExampleAccountMerge() {
 }
 
 // ExampleInflation creates and signs a simple transaction with Inflation operation, and then
-// encodes it into a base64 string capable of being submitted to hcnet-core.
+// encodes it into a base64 string capable of being submitted to diamnet-core.
 func ExampleInflation() {
 	seed := "SDOTALIMPAM2IV65IOZA7KZL7XWZI5BODFXTRVLIHLQZQCKK57PH5F3H"
 	tx, err := Transaction(

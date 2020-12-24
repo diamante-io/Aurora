@@ -4,7 +4,7 @@ import (
 	"net/url"
 	"testing"
 
-	hProtocol "github.com/hcnet/go/protocols/aurora"
+	hProtocol "github.com/diamnet/go/protocols/aurora"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -51,7 +51,7 @@ func TestShouldDiscardAsset(t *testing.T) {
 		NumAccounts: 40,
 	}
 	testAsset.Code = "SOMETHINGVALID"
-	testAsset.Links.Toml.Href = "http://www.hcnet.org/.well-known/hcnet.toml"
+	testAsset.Links.Toml.Href = "http://www.diamnet.org/.well-known/diamnet.toml"
 	assert.Equal(t, shouldDiscardAsset(testAsset, true), true)
 
 	testAsset = hProtocol.AssetStat{
@@ -67,39 +67,39 @@ func TestShouldDiscardAsset(t *testing.T) {
 		NumAccounts: 40,
 	}
 	testAsset.Code = "SOMETHINGVALID"
-	testAsset.Links.Toml.Href = "https://www.hcnet.org/.well-known/hcnet.toml"
+	testAsset.Links.Toml.Href = "https://www.diamnet.org/.well-known/diamnet.toml"
 	assert.Equal(t, shouldDiscardAsset(testAsset, true), false)
 }
 
 func TestDomainsMatch(t *testing.T) {
-	tomlURL, _ := url.Parse("https://hcnet.org/hcnet.toml")
-	orgURL, _ := url.Parse("https://hcnet.org/")
+	tomlURL, _ := url.Parse("https://diamnet.org/diamnet.toml")
+	orgURL, _ := url.Parse("https://diamnet.org/")
 	assert.True(t, domainsMatch(tomlURL, orgURL))
 
-	tomlURL, _ = url.Parse("https://assets.hcnet.org/hcnet.toml")
-	orgURL, _ = url.Parse("https://hcnet.org/")
+	tomlURL, _ = url.Parse("https://assets.diamnet.org/diamnet.toml")
+	orgURL, _ = url.Parse("https://diamnet.org/")
 	assert.False(t, domainsMatch(tomlURL, orgURL))
 
-	tomlURL, _ = url.Parse("https://hcnet.org/hcnet.toml")
-	orgURL, _ = url.Parse("https://home.hcnet.org/")
+	tomlURL, _ = url.Parse("https://diamnet.org/diamnet.toml")
+	orgURL, _ = url.Parse("https://home.diamnet.org/")
 	assert.True(t, domainsMatch(tomlURL, orgURL))
 
-	tomlURL, _ = url.Parse("https://hcnet.org/hcnet.toml")
-	orgURL, _ = url.Parse("https://home.hcnet.com/")
+	tomlURL, _ = url.Parse("https://diamnet.org/diamnet.toml")
+	orgURL, _ = url.Parse("https://home.diamnet.com/")
 	assert.False(t, domainsMatch(tomlURL, orgURL))
 
-	tomlURL, _ = url.Parse("https://hcnet.org/hcnet.toml")
-	orgURL, _ = url.Parse("https://hcnet.com/")
+	tomlURL, _ = url.Parse("https://diamnet.org/diamnet.toml")
+	orgURL, _ = url.Parse("https://diamnet.com/")
 	assert.False(t, domainsMatch(tomlURL, orgURL))
 }
 
 func TestIsDomainVerified(t *testing.T) {
-	tomlURL := "https://hcnet.org/hcnet.toml"
-	orgURL := "https://hcnet.org/"
+	tomlURL := "https://diamnet.org/diamnet.toml"
+	orgURL := "https://diamnet.org/"
 	hasCurrency := true
 	assert.True(t, isDomainVerified(orgURL, tomlURL, hasCurrency))
 
-	tomlURL = "https://hcnet.org/hcnet.toml"
+	tomlURL = "https://diamnet.org/diamnet.toml"
 	orgURL = ""
 	hasCurrency = true
 	assert.True(t, isDomainVerified(orgURL, tomlURL, hasCurrency))
@@ -109,23 +109,23 @@ func TestIsDomainVerified(t *testing.T) {
 	hasCurrency = true
 	assert.False(t, isDomainVerified(orgURL, tomlURL, hasCurrency))
 
-	tomlURL = "https://hcnet.org/hcnet.toml"
-	orgURL = "https://hcnet.org/"
+	tomlURL = "https://diamnet.org/diamnet.toml"
+	orgURL = "https://diamnet.org/"
 	hasCurrency = false
 	assert.False(t, isDomainVerified(orgURL, tomlURL, hasCurrency))
 
-	tomlURL = "http://hcnet.org/hcnet.toml"
-	orgURL = "https://hcnet.org/"
+	tomlURL = "http://diamnet.org/diamnet.toml"
+	orgURL = "https://diamnet.org/"
 	hasCurrency = true
 	assert.False(t, isDomainVerified(orgURL, tomlURL, hasCurrency))
 
-	tomlURL = "https://hcnet.org/hcnet.toml"
-	orgURL = "http://hcnet.org/"
+	tomlURL = "https://diamnet.org/diamnet.toml"
+	orgURL = "http://diamnet.org/"
 	hasCurrency = true
 	assert.False(t, isDomainVerified(orgURL, tomlURL, hasCurrency))
 
-	tomlURL = "https://hcnet.org/hcnet.toml"
-	orgURL = "https://hcnet.com/"
+	tomlURL = "https://diamnet.org/diamnet.toml"
+	orgURL = "https://diamnet.com/"
 	hasCurrency = true
 	assert.False(t, isDomainVerified(orgURL, tomlURL, hasCurrency))
 }

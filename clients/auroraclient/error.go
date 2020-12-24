@@ -3,9 +3,9 @@ package auroraclient
 import (
 	"encoding/json"
 
-	hProtocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/xdr"
+	hProtocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/xdr"
 )
 
 func (herr Error) Error() string {
@@ -26,7 +26,7 @@ func (herr *Error) Envelope() (*xdr.TransactionEnvelope, error) {
 }
 
 // EnvelopeXDR returns the base 64 serialised string representation of the XDR envelope.
-// This can be stored, or decoded in the HcNet Laboratory XDR viewer for example.
+// This can be stored, or decoded in the DiamNet Laboratory XDR viewer for example.
 func (herr *Error) EnvelopeXDR() (string, error) {
 	raw, ok := herr.Problem.Extras["envelope_xdr"]
 	if !ok {

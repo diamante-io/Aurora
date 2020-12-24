@@ -5,8 +5,8 @@ import (
 	"encoding"
 	"testing"
 
-	"github.com/hcnet/go/keypair"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/keypair"
+	"github.com/diamnet/go/xdr"
 )
 
 var (

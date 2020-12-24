@@ -1,14 +1,14 @@
 ---
 title: All Transactions
 clientData:
-  laboratoryUrl: https://www.hcnet.org/laboratory/#explorer?resource=transactions&endpoint=all
+  laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=transactions&endpoint=all
 ---
 
 This endpoint represents all successful [transactions](../resources/transaction.md).
 Please note that this endpoint returns failed transactions that are included in the ledger if
 `include_failed` parameter is `true` and Aurora is ingesting failed transactions.
 This endpoint can also be used in [streaming](../streaming.md) mode. This makes it possible to use
-it to listen for new transactions as they get made in the HcNet network. If called in streaming
+it to listen for new transactions as they get made in the DiamNet network. If called in streaming
 mode Aurora will start at the earliest known transaction unless a `cursor` is set. In that case it
 will start from the `cursor`. You can also set `cursor` value to `now` to only stream transaction
 created since your request time.
@@ -32,14 +32,14 @@ GET /transactions{?cursor,limit,order,include_failed}
 
 ```sh
 # Retrieve the 200 latest transactions, ordered chronologically:
-curl "https://aurora-testnet.hcnet.org/transactions?limit=200&order=desc"
+curl "https://aurora-testnet.diamnet.org/transactions?limit=200&order=desc"
 ```
 
 ### JavaScript Example Request
 
 ```javascript
-var HcNetSdk = require('hcnet-sdk');
-var server = new HcNetSdk.Server('https://aurora-testnet.hcnet.org');
+var DiamNetSdk = require('diamnet-sdk');
+var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.transactions()
   .call()
@@ -59,8 +59,8 @@ server.transactions()
 ### JavaScript Streaming Example
 
 ```javascript
-var HcNetSdk = require('hcnet-sdk')
-var server = new HcNetSdk.Server('https://aurora-testnet.hcnet.org');
+var DiamNetSdk = require('diamnet-sdk')
+var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
 
 var txHandler = function (txResponse) {
   console.log(txResponse);

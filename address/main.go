@@ -1,6 +1,6 @@
-// Package address provides utility functions for working with hcnet
-// addresses. See https://www.hcnet.org/developers/guides/concepts/federation.
-// html#hcnet-addresses for more on addresses.
+// Package address provides utility functions for working with diamnet
+// addresses. See https://www.diamnet.org/developers/guides/concepts/federation.
+// html#diamnet-addresses for more on addresses.
 package address
 
 import (
@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/asaskevich/govalidator"
-	"github.com/hcnet/go/support/errors"
+	"github.com/diamnet/go/support/errors"
 )
 
 // Separator seperates the name and domain portions of an address

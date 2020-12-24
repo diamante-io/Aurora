@@ -1,4 +1,4 @@
-// Package demo is an interactive demonstration of the Go SDK using the HcNet TestNet.
+// Package demo is an interactive demonstration of the Go SDK using the DiamNet TestNet.
 package demo
 
 import (
@@ -9,15 +9,15 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/hcnet/go/clients/auroraclient"
-	"github.com/hcnet/go/network"
-	hProtocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/strkey"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/txnbuild"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/clients/auroraclient"
+	"github.com/diamnet/go/network"
+	hProtocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/strkey"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/txnbuild"
+	"github.com/diamnet/go/xdr"
 
-	"github.com/hcnet/go/keypair"
+	"github.com/diamnet/go/keypair"
 )
 
 // The account address of the TestNet "friendbot"
@@ -27,7 +27,7 @@ const friendbotAddress = "GAIH3ULLFQ4DGSECF2AR555KZ4KNDGEKN4AFI4SU2M7B43MGK3QJZN
 // For convenience, the address is also stored so you can look up accounts on the network
 const accountsFile = "demo.keys"
 
-// Account represents a HcNet account for this demo.
+// Account represents a DiamNet account for this demo.
 type Account struct {
 	Seed     string             `json:"name"`
 	Address  string             `json:"address"`
@@ -86,7 +86,7 @@ func Reset(client *auroraclient.Client, keys []Account) {
 		}
 
 		// It exists - so we will proceed to deconstruct any existing account entries, and then merge it
-		// See https://www.hcnet.org/developers/guides/concepts/ledger.html#ledger-entries
+		// See https://www.diamnet.org/developers/guides/concepts/ledger.html#ledger-entries
 		log.Info("Found testnet account with ID:", k.HAccount.ID)
 
 		// Find any offers that need deleting...

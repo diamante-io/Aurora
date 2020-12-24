@@ -1,13 +1,13 @@
 # Clients package
 
-Packages here provide client libraries for accessing the ecosystem of HcNet services.
+Packages here provide client libraries for accessing the ecosystem of DiamNet services.
 
 * `auroraclient` - programmatic client access to Aurora (use in conjunction with [txnbuild](../txnbuild))
-* `hcnettoml` - parse HcNet.toml files from the internet
-* `federation` - resolve federation addresses into hcnet account IDs, suitable for use within a transaction
+* `diamnettoml` - parse DiamNet.toml files from the internet
+* `federation` - resolve federation addresses into diamnet account IDs, suitable for use within a transaction
 * `aurora` (DEPRECATED) - the original Aurora client, now superceded by `auroraclient`
 
-See [GoDoc](https://godoc.org/github.com/hcnet/go/clients) for more details.
+See [GoDoc](https://godoc.org/github.com/diamnet/go/clients) for more details.
 
 ## For developers: Adding new client packages
 

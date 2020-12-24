@@ -6,8 +6,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/hcnet/go/keypair"
-	"github.com/hcnet/go/services/internal/bridge-compliance-shared/http/helpers"
+	"github.com/diamnet/go/keypair"
+	"github.com/diamnet/go/services/internal/bridge-compliance-shared/http/helpers"
 )
 
 // KeyPair struct contains key pair public and private key

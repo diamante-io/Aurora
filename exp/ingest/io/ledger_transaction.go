@@ -1,7 +1,7 @@
 package io
 
 import (
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/xdr"
 )
 
 // Change is a developer friendly representation of LedgerEntryChanges.
@@ -97,8 +97,8 @@ func (t *LedgerTransaction) GetChanges() []Change {
 // - for update, pre is previous state and post is the current state,
 // - for removed, pre is previous state and post is null.
 //
-// hcnet-core source:
-// https://github.com/hcnet/hcnet-core/blob/e584b43/src/ledger/LedgerTxn.cpp#L582
+// diamnet-core source:
+// https://github.com/diamnet/diamnet-core/blob/e584b43/src/ledger/LedgerTxn.cpp#L582
 func getChangesFromLedgerEntryChanges(ledgerEntryChanges xdr.LedgerEntryChanges) []Change {
 	changes := []Change{}
 

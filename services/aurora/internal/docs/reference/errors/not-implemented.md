@@ -26,9 +26,9 @@ draft specification guide and thus has the following attributes:
 ## Example
 
 ```shell
-$ curl -X GET "https://aurora-testnet.hcnet.org/offers/1234"
+$ curl -X GET "https://aurora-testnet.diamnet.org/offers/1234"
 {
-  "type": "https://hcnet.org/aurora-errors/not_implemented",
+  "type": "https://diamnet.org/aurora-errors/not_implemented",
   "title": "Resource Not Yet Implemented",
   "status": 404,
   "detail": "While the requested URL is expected to eventually point to a valid resource, the work to implement the resource has not yet been completed."

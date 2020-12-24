@@ -1,8 +1,8 @@
 package processors
 
 import (
-	"github.com/hcnet/go/exp/orderbook"
-	"github.com/hcnet/go/services/aurora/internal/db2/history"
+	"github.com/diamnet/go/exp/orderbook"
+	"github.com/diamnet/go/services/aurora/internal/db2/history"
 )
 
 type PipelineContextKey string

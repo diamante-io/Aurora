@@ -1,13 +1,13 @@
 ---
 title: All Operations
 clientData:
-  laboratoryUrl: https://www.hcnet.org/laboratory/#explorer?resource=operations&endpoint=all
+  laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=operations&endpoint=all
 ---
 
 This endpoint represents [operations](../resources/operation.md) that are part of successfully validated [transactions](../resources/transaction.md).
 Please note that this endpoint returns operations that are part of failed transactions if `include_failed` parameter is `true`
 and Aurora is ingesting failed transactions.
-This endpoint can also be used in [streaming](../streaming.md) mode so it is possible to use it to listen as operations are processed in the HcNet network.
+This endpoint can also be used in [streaming](../streaming.md) mode so it is possible to use it to listen as operations are processed in the DiamNet network.
 If called in streaming mode Aurora will start at the earliest known operation unless a `cursor` is set. In that case it will start from the `cursor`. You can also set `cursor` value to `now` to only stream operations created since your request time.
 
 ## Request
@@ -29,14 +29,14 @@ GET /operations{?cursor,limit,order,include_failed}
 ### curl Example Request
 
 ```sh
-curl "https://aurora-testnet.hcnet.org/operations?limit=200&order=desc"
+curl "https://aurora-testnet.diamnet.org/operations?limit=200&order=desc"
 ```
 
 ### JavaScript Example Request
 
 ```js
-var HcNetSdk = require('hcnet-sdk');
-var server = new HcNetSdk.Server('https://aurora-testnet.hcnet.org');
+var DiamNetSdk = require('diamnet-sdk');
+var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.operations()
   .call()
@@ -57,8 +57,8 @@ server.operations()
 ### JavaScript Streaming Example
 
 ```javascript
-var HcNetSdk = require('hcnet-sdk')
-var server = new HcNetSdk.Server('https://aurora-testnet.hcnet.org');
+var DiamNetSdk = require('diamnet-sdk')
+var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
 
 var operationHandler = function (operationResponse) {
   console.log(operationResponse);

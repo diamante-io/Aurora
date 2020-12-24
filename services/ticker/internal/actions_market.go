@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/hcnet/go/services/ticker/internal/tickerdb"
-	"github.com/hcnet/go/services/ticker/internal/utils"
-	hlog "github.com/hcnet/go/support/log"
+	"github.com/diamnet/go/services/ticker/internal/tickerdb"
+	"github.com/diamnet/go/services/ticker/internal/utils"
+	hlog "github.com/diamnet/go/support/log"
 )
 
 // GenerateMarketSummaryFile generates a MarketSummary with the statistics for all

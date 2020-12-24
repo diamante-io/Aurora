@@ -1,7 +1,7 @@
 package history
 
 import (
-	"github.com/hcnet/go/support/errors"
+	"github.com/diamnet/go/support/errors"
 )
 
 // Queue adds `seq` to the load queue for the cache.

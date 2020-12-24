@@ -1,13 +1,13 @@
 ---
 title: All Payments
 clientData:
-  laboratoryUrl: https://www.hcnet.org/laboratory/#explorer?resource=payments&endpoint=all
+  laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=payments&endpoint=all
 ---
 
 This endpoint represents all payment-related [operations](../resources/operation.md) that are part
 of validated [transactions](../resources/transaction.md). This endpoint can also be used in
 [streaming](../streaming.md) mode so it is possible to use it to listen for new payments as they
-get made in the HcNet network.
+get made in the DiamNet network.
 
 If called in streaming mode Aurora will start at the earliest known payment unless a `cursor` is
 set. In that case it will start from the `cursor`. You can also set `cursor` value to `now` to only
@@ -39,20 +39,20 @@ GET /payments{?cursor,limit,order,include_failed}
 
 ```sh
 # Retrieve the first 200 payments, ordered chronologically.
-curl "https://aurora-testnet.hcnet.org/payments?limit=200"
+curl "https://aurora-testnet.diamnet.org/payments?limit=200"
 ```
 
 ```sh
 # Retrieve a page of payments to occur immediately before the transaction
 # specified by the paging token "1234".
-curl "https://aurora-testnet.hcnet.org/payments?cursor=1234&order=desc"
+curl "https://aurora-testnet.diamnet.org/payments?cursor=1234&order=desc"
 ```
 
 ### JavaScript Example Request
 
 ```javascript
-var HcNetSdk = require('hcnet-sdk');
-var server = new HcNetSdk.Server('https://aurora-testnet.hcnet.org');
+var DiamNetSdk = require('diamnet-sdk');
+var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.payments()
   .call()
@@ -67,8 +67,8 @@ server.payments()
 ### JavaScript Streaming Example
 
 ```javascript
-var HcNetSdk = require('hcnet-sdk')
-var server = new HcNetSdk.Server('https://aurora-testnet.hcnet.org');
+var DiamNetSdk = require('diamnet-sdk')
+var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
 
 var paymentHandler = function (paymentResponse) {
   console.log(paymentResponse);

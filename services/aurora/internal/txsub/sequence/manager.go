@@ -10,7 +10,7 @@ import (
 // a set of addresses.  Requests to submit at a certain sequence number are
 // registered using the Push() method, and as the system is updated with
 // account sequence information (through the Update() method) requests are
-// notified that they can safely submit to hcnet-core.
+// notified that they can safely submit to diamnet-core.
 type Manager struct {
 	mutex   sync.Mutex
 	MaxSize int

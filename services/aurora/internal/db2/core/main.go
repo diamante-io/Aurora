@@ -1,15 +1,15 @@
 // Package core contains database record definitions useable for
-// reading rows from a HcNet Core db
+// reading rows from a DiamNet Core db
 package core
 
 import (
 	"strconv"
 
 	"github.com/guregu/null"
-	"github.com/hcnet/go/strkey"
-	"github.com/hcnet/go/support/db"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/strkey"
+	"github.com/diamnet/go/support/db"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/xdr"
 )
 
 // Account is a row of data from the `accounts` table
@@ -44,7 +44,7 @@ type LedgerHeader struct {
 	Data           xdr.LedgerHeader `db:"data"`
 }
 
-// Offer is row of data from the `offers` table from hcnet-core
+// Offer is row of data from the `offers` table from diamnet-core
 type Offer struct {
 	SellerID string `db:"sellerid"`
 	OfferID  int64  `db:"offerid"`
@@ -65,7 +65,7 @@ func (o Offer) get() Offer {
 	return o
 }
 
-// internalOffer is row of data from the `offers` table from hcnet-core used
+// internalOffer is row of data from the `offers` table from diamnet-core used
 // internally only to support schema <=8.
 type internalOffer struct {
 	Offer
@@ -91,7 +91,7 @@ type OrderBookSummaryPriceLevel struct {
 // counter currency
 type OrderBookSummary []OrderBookSummaryPriceLevel
 
-// Q is a helper struct on which to hang common queries against a hcnet
+// Q is a helper struct on which to hang common queries against a diamnet
 // core database.
 type Q struct {
 	*db.Session
@@ -111,14 +111,14 @@ type SequenceProvider struct {
 	Q *Q
 }
 
-// Signer is a row of data from the `signers` table from hcnet-core
+// Signer is a row of data from the `signers` table from diamnet-core
 type Signer struct {
 	Accountid string
 	Publickey string
 	Weight    int32
 }
 
-// Transaction is row of data from the `txhistory` table from hcnet-core
+// Transaction is row of data from the `txhistory` table from diamnet-core
 type Transaction struct {
 	TransactionHash string                    `db:"txid"`
 	LedgerSequence  int32                     `db:"ledgerseq"`
@@ -128,7 +128,7 @@ type Transaction struct {
 	ResultMeta      xdr.TransactionMeta       `db:"txmeta"`
 }
 
-// TransactionFee is row of data from the `txfeehistory` table from hcnet-core
+// TransactionFee is row of data from the `txfeehistory` table from diamnet-core
 type TransactionFee struct {
 	TransactionHash string                 `db:"txid"`
 	LedgerSequence  int32                  `db:"ledgerseq"`
@@ -136,7 +136,7 @@ type TransactionFee struct {
 	Changes         xdr.LedgerEntryChanges `db:"txchanges"`
 }
 
-// Trustline is a row of data from the `trustlines` table from hcnet-core
+// Trustline is a row of data from the `trustlines` table from diamnet-core
 type Trustline struct {
 	Accountid          string
 	Assettype          xdr.AssetType
@@ -200,7 +200,7 @@ func AssetFromDB(typ xdr.AssetType, code string, issuer string) (result xdr.Asse
 }
 
 // ElderLedger represents the oldest "ingestable" ledger known to the
-// hcnet-core database this ingestion system is communicating with.  Aurora,
+// diamnet-core database this ingestion system is communicating with.  Aurora,
 // which wants to operate on a contiguous range of ledger data (i.e. free from
 // gaps) uses the elder ledger to start importing in the case of an empty
 // database.  NOTE:  This current query used is correct, but slow.  Please keep

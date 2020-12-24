@@ -1,11 +1,11 @@
 # federation server
 
 
-Go implementation of [Federation](https://www.hcnet.org/developers/learn/concepts/federation.html) protocol server. This federation server is designed to be dropped in to your existing infrastructure. It can be configured to pull the data it needs out of your existing DB.
+Go implementation of [Federation](https://www.diamnet.org/developers/learn/concepts/federation.html) protocol server. This federation server is designed to be dropped in to your existing infrastructure. It can be configured to pull the data it needs out of your existing DB.
 
 ## Downloading the server
 
-[Prebuilt binaries](https://github.com/hcnet/go/releases) of the federation server are available on the [releases page](https://github.com/hcnet/go/releases).
+[Prebuilt binaries](https://github.com/diamnet/go/releases) of the federation server are available on the [releases page](https://github.com/diamnet/go/releases).
 
 ## Config
 
@@ -18,10 +18,10 @@ By default this server uses a config file named `federation.cfg` in the current 
     * for `mysql`: `user:password@(host:port)/dbname` ([more info](https://github.com/go-sql-driver/mysql#dsn-data-source-name))
     * for `postgres`: `postgres://user:password@host/dbname?sslmode=sslmode` ([more info](https://godoc.org/github.com/lib/pq#hdr-Connection_String_Parameters))
 * `queries`
-  * `federation` - Implementation dependent query to fetch federation results, should return either 1 or 3 columns. These columns should be labeled `id`,`memo`,`memo_type`. Memo and memo_type are optional - see [Federation](https://www.hcnet.org/developers/learn/concepts/federation.html) docs for more detail).  When executed, this query will be provided with two input parameters, the first will be the name portion of a hcnet address and the second will be the domain portion of a hcnet address.  For example, a request for `scott*hcnet.org` would trigger a query with two input parameters, `scott` and `hcnet.org` respectively. 
-  * `reverse-federation` - A SQL query to fetch reverse federation results that should return two columns, labeled `name` and `domain`.   When executed, this query will be provided with one input parameter, a [hcnet account ID](https://www.hcnet.org/developers/guides/concepts/accounts.html#account-id) used to lookup the name and domain mapping.
+  * `federation` - Implementation dependent query to fetch federation results, should return either 1 or 3 columns. These columns should be labeled `id`,`memo`,`memo_type`. Memo and memo_type are optional - see [Federation](https://www.diamnet.org/developers/learn/concepts/federation.html) docs for more detail).  When executed, this query will be provided with two input parameters, the first will be the name portion of a diamnet address and the second will be the domain portion of a diamnet address.  For example, a request for `scott*diamnet.org` would trigger a query with two input parameters, `scott` and `diamnet.org` respectively. 
+  * `reverse-federation` - A SQL query to fetch reverse federation results that should return two columns, labeled `name` and `domain`.   When executed, this query will be provided with one input parameter, a [diamnet account ID](https://www.diamnet.org/developers/guides/concepts/accounts.html#account-id) used to lookup the name and domain mapping.
 
-    If reverse-lookup isn't supported (e.g. you have a single HcNet account for all users), leave this entry out.
+    If reverse-lookup isn't supported (e.g. you have a single DiamNet account for all users), leave this entry out.
 
 * `tls` (only when running HTTPS server)
   * `certificate-file` - a file containing a certificate
@@ -35,9 +35,9 @@ By default this server uses a config file named `federation.cfg` in the current 
 ## Example `federation.cfg`
 In this section you can find config examples for the two main ways of setting up a federation server.
 
-### #1: Every user has their own HcNet account
+### #1: Every user has their own DiamNet account
 
-In the case that every user owns a HcNet account, you don't need `memo`. You can simply return `id` based on the username. Your `queries` section could look like this:
+In the case that every user owns a DiamNet account, you don't need `memo`. You can simply return `id` based on the username. Your `queries` section could look like this:
 
 ```toml
 port = 8000
@@ -52,11 +52,11 @@ reverse-federation = "SELECT username as name, domain FROM Users WHERE account_i
 ```
 
 
-### #2: Single HcNet account for all incoming transactions
+### #2: Single DiamNet account for all incoming transactions
 
-If you have a single HcNet account for all incoming transactions you need to use `memo` to check which internal account should receive the payment.
+If you have a single DiamNet account for all incoming transactions you need to use `memo` to check which internal account should receive the payment.
 
-Let's say that your HcNet account ID is: `GD6WU64OEP5C4LRBH6NK3MHYIA2ADN6K6II6EXPNVUR3ERBXT4AN4ACD` and every user has an `id` and `username` in your database. Then your `queries` section could look like this:
+Let's say that your DiamNet account ID is: `GD6WU64OEP5C4LRBH6NK3MHYIA2ADN6K6II6EXPNVUR3ERBXT4AN4ACD` and every user has an `id` and `username` in your database. Then your `queries` section could look like this:
 
 ```toml
 port = 8000
@@ -98,7 +98,7 @@ This service can built from source, provided you have installed the [go tools](h
 Given you have a running golang installation, you can build the server with:
 
 ```
-go get -u github.com/hcnet/go/services/federation
+go get -u github.com/diamnet/go/services/federation
 ```
 
 After successful completion, you should find `bin/federation` is present in your configured GOPATH.

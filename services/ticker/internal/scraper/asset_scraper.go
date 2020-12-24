@@ -14,9 +14,9 @@ import (
 
 	"github.com/BurntSushi/toml"
 
-	auroraclient "github.com/hcnet/go/clients/auroraclient"
-	hProtocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/services/ticker/internal/utils"
+	auroraclient "github.com/diamnet/go/clients/auroraclient"
+	hProtocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/services/ticker/internal/utils"
 )
 
 // shouldDiscardAsset maps the criteria for discarding an asset from the asset index
@@ -28,14 +28,14 @@ func shouldDiscardAsset(asset hProtocol.AssetStat, shouldValidateTOML bool) bool
 	if f == 0.0 {
 		return true
 	}
-	// [HcNetX Ticker]: assets need at least some adoption to show up
+	// [DiamNetX Ticker]: assets need at least some adoption to show up
 	if asset.NumAccounts < 10 {
 		return true
 	}
 	if asset.Code == "REMOVE" {
 		return true
 	}
-	// [HcNetX Ticker]: assets with at least 100 accounts get a pass,
+	// [DiamNetX Ticker]: assets with at least 100 accounts get a pass,
 	// even with toml issues
 	if asset.NumAccounts >= 100 {
 		return false
@@ -45,7 +45,7 @@ func shouldDiscardAsset(asset hProtocol.AssetStat, shouldValidateTOML bool) bool
 		if asset.Links.Toml.Href == "" {
 			return true
 		}
-		// [HcNetX Ticker]: TOML files should be hosted on HTTPS
+		// [DiamNetX Ticker]: TOML files should be hosted on HTTPS
 		if !strings.HasPrefix(asset.Links.Toml.Href, "https://") {
 			return true
 		}
@@ -75,7 +75,7 @@ func fetchTOMLData(asset hProtocol.AssetStat) (data string, err error) {
 	}
 
 	req, err := http.NewRequest("GET", tomlURL, nil)
-	req.Header.Set("User-Agent", "HcNet Ticker v1.0")
+	req.Header.Set("User-Agent", "DiamNet Ticker v1.0")
 
 	resp, err := client.Do(req)
 	if err != nil {

@@ -13,16 +13,16 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/hcnet/go/keypair"
-	"github.com/hcnet/go/services/bifrost/bitcoin"
-	"github.com/hcnet/go/services/bifrost/common"
-	"github.com/hcnet/go/services/bifrost/database"
-	"github.com/hcnet/go/services/bifrost/ethereum"
-	"github.com/hcnet/go/support/app"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/support/http"
-	"github.com/hcnet/go/support/log"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/keypair"
+	"github.com/diamnet/go/services/bifrost/bitcoin"
+	"github.com/diamnet/go/services/bifrost/common"
+	"github.com/diamnet/go/services/bifrost/database"
+	"github.com/diamnet/go/services/bifrost/ethereum"
+	"github.com/diamnet/go/support/app"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/support/http"
+	"github.com/diamnet/go/support/log"
+	"github.com/diamnet/go/xdr"
 )
 
 func (s *Server) Start() error {
@@ -32,9 +32,9 @@ func (s *Server) Start() error {
 	// Register callbacks
 	s.BitcoinListener.TransactionHandler = s.onNewBitcoinTransaction
 	s.EthereumListener.TransactionHandler = s.onNewEthereumTransaction
-	s.HcNetAccountConfigurator.OnAccountCreated = s.onHcNetAccountCreated
-	s.HcNetAccountConfigurator.OnExchanged = s.onExchanged
-	s.HcNetAccountConfigurator.OnExchangedTimelocked = s.OnExchangedTimelocked
+	s.DiamNetAccountConfigurator.OnAccountCreated = s.onDiamNetAccountCreated
+	s.DiamNetAccountConfigurator.OnExchanged = s.onExchanged
+	s.DiamNetAccountConfigurator.OnExchangedTimelocked = s.OnExchangedTimelocked
 
 	if !s.BitcoinListener.Enabled && !s.EthereumListener.Enabled {
 		return errors.New("At least one listener (BitcoinListener or EthereumListener) must be enabled")
@@ -78,9 +78,9 @@ func (s *Server) Start() error {
 		s.log.Warn("EthereumListener disabled")
 	}
 
-	err := s.HcNetAccountConfigurator.Start()
+	err := s.DiamNetAccountConfigurator.Start()
 	if err != nil {
-		return errors.Wrap(err, "Error starting HcNetAccountConfigurator")
+		return errors.Wrap(err, "Error starting DiamNetAccountConfigurator")
 	}
 
 	err = s.SSEServer.StartPublishing()
@@ -178,10 +178,10 @@ func (s *Server) HandlerGenerateEthereumAddress(w stdhttp.ResponseWriter, r *std
 func (s *Server) handlerGenerateAddress(w stdhttp.ResponseWriter, r *stdhttp.Request, chain database.Chain) {
 	w.Header().Set("Access-Control-Allow-Origin", s.Config.AccessControlAllowOriginHeader)
 
-	hcnetPublicKey := r.PostFormValue("hcnet_public_key")
-	_, err := keypair.Parse(hcnetPublicKey)
-	if err != nil || (err == nil && hcnetPublicKey[0] != 'G') {
-		log.WithField("hcnetPublicKey", hcnetPublicKey).Warn("Invalid hcnetPublicKey")
+	diamnetPublicKey := r.PostFormValue("diamnet_public_key")
+	_, err := keypair.Parse(diamnetPublicKey)
+	if err != nil || (err == nil && diamnetPublicKey[0] != 'G') {
+		log.WithField("diamnetPublicKey", diamnetPublicKey).Warn("Invalid diamnetPublicKey")
 		w.WriteHeader(stdhttp.StatusBadRequest)
 		return
 	}
@@ -212,13 +212,13 @@ func (s *Server) handlerGenerateAddress(w stdhttp.ResponseWriter, r *stdhttp.Req
 		return
 	}
 
-	err = s.Database.CreateAddressAssociation(chain, hcnetPublicKey, address, index)
+	err = s.Database.CreateAddressAssociation(chain, diamnetPublicKey, address, index)
 	if err != nil {
 		log.WithFields(log.F{
 			"err":              err,
 			"chain":            chain,
 			"index":            index,
-			"hcnetPublicKey": hcnetPublicKey,
+			"diamnetPublicKey": diamnetPublicKey,
 			"address":          address,
 		}).Error("Error creating address association")
 		w.WriteHeader(stdhttp.StatusInternalServerError)

@@ -4,8 +4,8 @@ import (
 	"errors"
 
 	"github.com/graph-gophers/graphql-go"
-	"github.com/hcnet/go/services/ticker/internal/tickerdb"
-	"github.com/hcnet/go/services/ticker/internal/utils"
+	"github.com/diamnet/go/services/ticker/internal/tickerdb"
+	"github.com/diamnet/go/services/ticker/internal/utils"
 )
 
 // Markets resolves the markets() GraphQL query.

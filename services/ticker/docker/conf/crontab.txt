@@ -2,16 +2,16 @@
 # Ticker Crontab
 # ---------------
 # Refresh the database of assets, hourly:
-@hourly /opt/hcnet/bin/ticker ingest assets --db-url=postgres://127.0.0.1:5432/ticker > /home/hcnet/last-ingest-assets.log 2>&1
+@hourly /opt/diamnet/bin/ticker ingest assets --db-url=postgres://127.0.0.1:5432/ticker > /home/diamnet/last-ingest-assets.log 2>&1
 
 # Refresh the database of orderbooks, every 10 minutes:
-*/10 * * * * /opt/hcnet/bin/ticker ingest orderbooks --db-url=postgres://127.0.0.1:5432/ticker > /home/hcnet/last-ingest-orderbooks.log 2>&1
+*/10 * * * * /opt/diamnet/bin/ticker ingest orderbooks --db-url=postgres://127.0.0.1:5432/ticker > /home/diamnet/last-ingest-orderbooks.log 2>&1
 
 # Backfill the database of trades (including possible new assets), every 6 hours:
-0 */6 * * * /opt/hcnet/bin/ticker ingest trades --db-url=postgres://127.0.0.1:5432/ticker > /home/hcnet/last-ingest-trades.log 2>&1
+0 */6 * * * /opt/diamnet/bin/ticker ingest trades --db-url=postgres://127.0.0.1:5432/ticker > /home/diamnet/last-ingest-trades.log 2>&1
 
 # Update the assets.json file, hourly:
-@hourly /opt/hcnet/bin/ticker generate asset-data --db-url=postgres://127.0.0.1:5432/ticker -o /opt/hcnet/www/assets.json > /home/hcnet/last-generate-asset-data.log 2>&1
+@hourly /opt/diamnet/bin/ticker generate asset-data --db-url=postgres://127.0.0.1:5432/ticker -o /opt/diamnet/www/assets.json > /home/diamnet/last-generate-asset-data.log 2>&1
 
 # Update the markets.json file, every minute:
-* * * * * /opt/hcnet/bin/ticker generate market-data --db-url=postgres://127.0.0.1:5432/ticker -o /opt/hcnet/www/markets.json > /home/hcnet/last-generate-market-data.log 2>&1
+* * * * * /opt/diamnet/bin/ticker generate market-data --db-url=postgres://127.0.0.1:5432/ticker -o /opt/diamnet/www/markets.json > /home/diamnet/last-generate-market-data.log 2>&1

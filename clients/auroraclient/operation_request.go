@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/hcnet/go/protocols/aurora/operations"
-	"github.com/hcnet/go/support/errors"
+	"github.com/diamnet/go/protocols/aurora/operations"
+	"github.com/diamnet/go/support/errors"
 )
 
 // BuildURL creates the endpoint to be queried based on the data in the OperationRequest struct.
@@ -75,7 +75,7 @@ func (op *OperationRequest) SetOperationsEndpoint() *OperationRequest {
 // OperationHandler is a function that is called when a new operation is received
 type OperationHandler func(operations.Operation)
 
-// StreamOperations streams hcnet operations. It can be used to stream all operations or operations
+// StreamOperations streams diamnet operations. It can be used to stream all operations or operations
 // for and account. Use context.WithCancel to stop streaming or context.Background() if you want to
 // stream indefinitely. OperationHandler is a user-supplied function that is executed for each streamed
 //  operation received.

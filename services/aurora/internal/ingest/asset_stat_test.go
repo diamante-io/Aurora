@@ -5,10 +5,10 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/hcnet/go/keypair"
-	"github.com/hcnet/go/services/aurora/internal/test"
-	"github.com/hcnet/go/support/db"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/keypair"
+	"github.com/diamnet/go/services/aurora/internal/test"
+	"github.com/diamnet/go/support/db"
+	"github.com/diamnet/go/xdr"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -139,11 +139,11 @@ func TestStatAccountInfo(t *testing.T) {
 		{
 			"GCXKG6RN4ONIEPCMNFB732A436Z5PNDSRLGWK7GBLCMQLIFO4S7EYWVU",
 			0,
-			"https://example.com/.well-known/hcnet.toml",
+			"https://example.com/.well-known/diamnet.toml",
 		}, {
 			"GA5WBPYA5Y4WAEHXWR2UKO2UO4BUGHUQ74EUPKON2QHV4WRHOIRNKKH2",
 			1,
-			"https://abc.com/.well-known/hcnet.toml",
+			"https://abc.com/.well-known/diamnet.toml",
 		}, {
 			"GBXGQJWVLWOYHFLVTKWV5FGHA3LNYY2JQKM7OAJAUEQFU6LPCSEFVXON",
 			2,

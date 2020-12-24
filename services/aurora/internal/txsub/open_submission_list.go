@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/go-errors/errors"
-	"github.com/hcnet/go/support/log"
+	"github.com/diamnet/go/support/log"
 )
 
 // NewDefaultSubmissionList returns a list that manages open submissions purely

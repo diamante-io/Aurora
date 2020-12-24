@@ -3,17 +3,17 @@ package aurora
 import (
 	"testing"
 
-	"github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/protocols/aurora/base"
-	"github.com/hcnet/go/services/aurora/internal/test"
-	"github.com/hcnet/go/support/render/hal"
+	"github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/protocols/aurora/base"
+	"github.com/diamnet/go/services/aurora/internal/test"
+	"github.com/diamnet/go/support/render/hal"
 )
 
 func TestAssetsActions(t *testing.T) {
 	testDomain := struct {
 		Toml hal.Link `json:"toml"`
 	}{
-		Toml: hal.NewLink("https://test.com/.well-known/hcnet.toml"),
+		Toml: hal.NewLink("https://test.com/.well-known/diamnet.toml"),
 	}
 	empty := struct {
 		Toml hal.Link `json:"toml"`

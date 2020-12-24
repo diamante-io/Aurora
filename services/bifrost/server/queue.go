@@ -5,7 +5,7 @@ import (
 )
 
 // poolTransactionsQueue pools transactions queue which contains only processed and
-// validated transactions and sends it to HcNetAccountConfigurator for account configuration.
+// validated transactions and sends it to DiamNetAccountConfigurator for account configuration.
 func (s *Server) poolTransactionsQueue() {
 	s.log.Info("Started pooling transactions queue")
 
@@ -23,8 +23,8 @@ func (s *Server) poolTransactionsQueue() {
 		}
 
 		s.log.WithField("transaction", transaction).Info("Received transaction from transactions queue")
-		go s.HcNetAccountConfigurator.ConfigureAccount(
-			transaction.HcNetPublicKey,
+		go s.DiamNetAccountConfigurator.ConfigureAccount(
+			transaction.DiamNetPublicKey,
 			string(transaction.AssetCode),
 			transaction.Amount,
 		)

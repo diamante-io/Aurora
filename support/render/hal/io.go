@@ -3,7 +3,7 @@ package hal
 import (
 	"net/http"
 
-	"github.com/hcnet/go/support/render/httpjson"
+	"github.com/diamnet/go/support/render/httpjson"
 )
 
 // Render write data to w, after marshalling to json

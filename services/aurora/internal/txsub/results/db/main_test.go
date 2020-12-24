@@ -3,10 +3,10 @@ package results
 import (
 	"testing"
 
-	"github.com/hcnet/go/services/aurora/internal/db2/core"
-	"github.com/hcnet/go/services/aurora/internal/db2/history"
-	"github.com/hcnet/go/services/aurora/internal/test"
-	"github.com/hcnet/go/services/aurora/internal/txsub"
+	"github.com/diamnet/go/services/aurora/internal/db2/core"
+	"github.com/diamnet/go/services/aurora/internal/db2/history"
+	"github.com/diamnet/go/services/aurora/internal/test"
+	"github.com/diamnet/go/services/aurora/internal/txsub"
 )
 
 func TestResultProvider(t *testing.T) {

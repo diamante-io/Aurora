@@ -18,7 +18,7 @@ GET /fee_stats
 ### curl Example Request
 
 ```sh
-curl "https://aurora-testnet.hcnet.org/fee_stats"
+curl "https://aurora-testnet.diamnet.org/fee_stats"
 ```
 
 ## Response

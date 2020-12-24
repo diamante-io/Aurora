@@ -3,7 +3,7 @@ package ingest
 import (
 	"testing"
 
-	"github.com/hcnet/go/services/aurora/internal/test"
+	"github.com/diamnet/go/services/aurora/internal/test"
 )
 
 func TestCursor(t *testing.T) {

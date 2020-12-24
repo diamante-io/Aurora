@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	auroraContext "github.com/hcnet/go/services/aurora/internal/context"
-	"github.com/hcnet/go/support/log"
+	auroraContext "github.com/diamnet/go/services/aurora/internal/context"
+	"github.com/diamnet/go/support/log"
 )
 
 func RequestFromContext(ctx context.Context) *http.Request {

@@ -26,10 +26,10 @@ draft specification guide and thus has the following attributes:
 ```json
 {
 
-  "type": "https://hcnet.org/aurora-errors/stale_history",
+  "type": "https://diamnet.org/aurora-errors/stale_history",
   "title": "Historical DB Is Too Stale",
   "status": 503,
-  "detail": "This aurora instance is configured to reject client requests when it can determine that the history database is lagging too far behind the connected instance of hcnet-core.  If you operate this server, please ensure that the ingestion system is properly running."
+  "detail": "This aurora instance is configured to reject client requests when it can determine that the history database is lagging too far behind the connected instance of diamnet-core.  If you operate this server, please ensure that the ingestion system is properly running."
 }
 ```
 

@@ -11,7 +11,7 @@ do
   sort -o ${i}_sorted.csv ${i}.csv
 done
 
-echo "Sorting hcnet-core output files..."
+echo "Sorting diamnet-core output files..."
 for i in "${ENTRIES[@]}"
 do
   if test -f "${i}_core_sorted.csv"; then

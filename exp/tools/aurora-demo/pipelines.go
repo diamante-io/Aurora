@@ -7,12 +7,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hcnet/go/exp/ingest"
-	"github.com/hcnet/go/exp/ingest/pipeline"
-	"github.com/hcnet/go/exp/ingest/processors"
-	"github.com/hcnet/go/exp/orderbook"
-	supportPipeline "github.com/hcnet/go/exp/support/pipeline"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/exp/ingest"
+	"github.com/diamnet/go/exp/ingest/pipeline"
+	"github.com/diamnet/go/exp/ingest/processors"
+	"github.com/diamnet/go/exp/orderbook"
+	supportPipeline "github.com/diamnet/go/exp/support/pipeline"
+	"github.com/diamnet/go/xdr"
 )
 
 func buildStatePipeline(db *Database, orderBookGraph *orderbook.OrderBookGraph) *pipeline.StatePipeline {

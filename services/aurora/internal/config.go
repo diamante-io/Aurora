@@ -12,8 +12,8 @@ import (
 // app's main function and is provided to NewApp.
 type Config struct {
 	DatabaseURL            string
-	HcNetCoreDatabaseURL string
-	HcNetCoreURL         string
+	DiamNetCoreDatabaseURL string
+	DiamNetCoreURL         string
 	HistoryArchiveURLs     []string
 	Port                   uint
 
@@ -54,9 +54,9 @@ type Config struct {
 	IngestStateReaderTempSet string
 	// IngestFailedTransactions toggles whether to ingest failed transactions
 	IngestFailedTransactions bool
-	// CursorName is the cursor used for ingesting from hcnet-core.
+	// CursorName is the cursor used for ingesting from diamnet-core.
 	// Setting multiple cursors in different Aurora instances allows multiple
-	// Auroras to ingest from the same hcnet-core instance without cursor
+	// Auroras to ingest from the same diamnet-core instance without cursor
 	// collisions.
 	CursorName string
 	// HistoryRetentionCount represents the minimum number of ledgers worth of
@@ -69,7 +69,7 @@ type Config struct {
 	// requests.
 	StaleThreshold uint
 	// SkipCursorUpdate causes the ingestor to skip reporting the "last imported
-	// ledger" state to hcnet-core.
+	// ledger" state to diamnet-core.
 	SkipCursorUpdate bool
 	// EnableAssetStats is a feature flag that determines whether to calculate
 	// asset stats during the ingestion and expose `/assets` endpoint.

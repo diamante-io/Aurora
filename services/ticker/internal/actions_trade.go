@@ -7,11 +7,11 @@ import (
 	"strconv"
 	"time"
 
-	auroraclient "github.com/hcnet/go/clients/auroraclient"
-	hProtocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/services/ticker/internal/scraper"
-	"github.com/hcnet/go/services/ticker/internal/tickerdb"
-	hlog "github.com/hcnet/go/support/log"
+	auroraclient "github.com/diamnet/go/clients/auroraclient"
+	hProtocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/services/ticker/internal/scraper"
+	"github.com/diamnet/go/services/ticker/internal/tickerdb"
+	hlog "github.com/diamnet/go/support/log"
 )
 
 // StreamTrades constantly streams and ingests new trades directly from aurora.

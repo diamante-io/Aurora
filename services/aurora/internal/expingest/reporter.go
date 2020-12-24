@@ -3,7 +3,7 @@ package expingest
 import (
 	"time"
 
-	ilog "github.com/hcnet/go/support/log"
+	ilog "github.com/diamnet/go/support/log"
 )
 
 // LoggingStateReporter logs the progress of a session running its

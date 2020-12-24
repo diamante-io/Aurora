@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"net/url"
 
-	hProtocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/support/errors"
+	hProtocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/support/errors"
 )
 
 // BuildURL creates the endpoint to be queried based on the data in the TransactionRequest struct.

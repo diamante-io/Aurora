@@ -5,8 +5,8 @@ import (
 	stdio "io"
 	"testing"
 
-	"github.com/hcnet/go/exp/ingest/io"
-	"github.com/hcnet/go/support/historyarchive"
+	"github.com/diamnet/go/exp/ingest/io"
+	"github.com/diamnet/go/support/historyarchive"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -70,7 +70,7 @@ func TestGetState_Read(t *testing.T) {
 
 func getTestArchive() (*historyarchive.Archive, error) {
 	return historyarchive.Connect(
-		fmt.Sprintf("s3://history.hcnet.org/prd/core-live/core_live_001/"),
+		fmt.Sprintf("s3://history.diamnet.org/prd/core-live/core_live_001/"),
 		historyarchive.ConnectOptions{
 			S3Region:         "eu-west-1",
 			UnsignedRequests: true,

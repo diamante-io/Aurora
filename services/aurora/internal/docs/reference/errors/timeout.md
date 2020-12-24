@@ -4,12 +4,12 @@ title: Timeout
 
 If you are encountering this error it means that either:
 
-* Aurora has not received a confirmation from the HcNet Core server that the transaction you are
+* Aurora has not received a confirmation from the DiamNet Core server that the transaction you are
   trying to submit to the network was included in a ledger in a timely manner.
 * Aurora has not sent a response to a reverse-proxy before a specified amount of time has elapsed.
 
 The former case may happen because there was no room for your transaction for 3 consecutive
-ledgers. This is because HcNet Core removes each submitted transaction from a queue. To solve
+ledgers. This is because DiamNet Core removes each submitted transaction from a queue. To solve
 this you can:
 
 * Keep resubmitting the same transaction (with the same sequence number) and wait until it finally
@@ -35,7 +35,7 @@ draft specification guide and thus has the following attributes:
 ## Example
 ```json
 {
-  "type": "https://hcnet.org/aurora-errors/timeout",
+  "type": "https://diamnet.org/aurora-errors/timeout",
   "title": "Timeout",
   "status": 504,
   "detail": "Your request timed out before completing.  Please try your request again. If you are submitting a transaction make sure you are sending exactly the same transaction (with the same sequence number)."

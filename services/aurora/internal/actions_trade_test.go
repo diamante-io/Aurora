@@ -8,13 +8,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/services/aurora/internal/db2/history"
-	. "github.com/hcnet/go/services/aurora/internal/db2/history"
-	. "github.com/hcnet/go/services/aurora/internal/test/trades"
-	"github.com/hcnet/go/support/render/hal"
-	hcnetTime "github.com/hcnet/go/support/time"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/services/aurora/internal/db2/history"
+	. "github.com/diamnet/go/services/aurora/internal/db2/history"
+	. "github.com/diamnet/go/services/aurora/internal/test/trades"
+	"github.com/diamnet/go/support/render/hal"
+	diamnetTime "github.com/diamnet/go/support/time"
+	"github.com/diamnet/go/xdr"
 )
 
 func TestTradeActions_Index(t *testing.T) {
@@ -323,7 +323,7 @@ func TestTradeActions_AmountsExceedInt64(t *testing.T) {
 	ass1 := GetTestAsset("usd")
 	ass2 := GetTestAsset("euro")
 	for i := 1; i <= 3; i++ {
-		timestamp := hcnetTime.MillisFromInt64(start + (minute * int64(i-1)))
+		timestamp := diamnetTime.MillisFromInt64(start + (minute * int64(i-1)))
 		err := IngestTestTrade(
 			dbQ, ass1, ass2, acc1, acc2, int64(9131689504000000000), int64(9131689504000000000), timestamp, int64(i))
 		ht.Require.NoError(err)
@@ -350,7 +350,7 @@ func TestTradeActions_AmountsExceedInt64(t *testing.T) {
 }
 
 func TestTradeActions_IndexRegressions(t *testing.T) {
-	t.Run("Regression:  https://github.com/hcnet/go/services/aurora/internal/issues/318", func(t *testing.T) {
+	t.Run("Regression:  https://github.com/diamnet/go/services/aurora/internal/issues/318", func(t *testing.T) {
 		ht := StartHTTPTest(t, "trades")
 		defer ht.Finish()
 
@@ -365,7 +365,7 @@ func TestTradeActions_IndexRegressions(t *testing.T) {
 		ht.Assert.Equal(404, w.Code) //This used to be 200 with length 0
 	})
 
-	t.Run("Regression for nil prices: https://github.com/hcnet/go/issues/357", func(t *testing.T) {
+	t.Run("Regression for nil prices: https://github.com/diamnet/go/issues/357", func(t *testing.T) {
 		ht := StartHTTPTest(t, "trades")
 		defer ht.Finish()
 
@@ -380,7 +380,7 @@ func TestTradeActions_IndexRegressions(t *testing.T) {
 
 // TestTradeActions_AggregationOrdering checks that open/close aggregation
 // fields are correct for multiple trades that occur in the same ledger
-// https://github.com/hcnet/go/issues/215
+// https://github.com/diamnet/go/issues/215
 func TestTradeActions_AggregationOrdering(t *testing.T) {
 
 	ht := StartHTTPTest(t, "base")

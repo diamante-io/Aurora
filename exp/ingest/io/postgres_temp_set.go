@@ -7,8 +7,8 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/hcnet/go/support/db"
-	"github.com/hcnet/go/support/errors"
+	"github.com/diamnet/go/support/db"
+	"github.com/diamnet/go/support/errors"
 )
 
 const (

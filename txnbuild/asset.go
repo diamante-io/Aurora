@@ -1,22 +1,22 @@
 package txnbuild
 
 import (
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/xdr"
 )
 
-// AssetType represents the type of a HcNet asset.
+// AssetType represents the type of a DiamNet asset.
 type AssetType xdr.AssetType
 
 // AssetTypeNative, AssetTypeCreditAlphanum4, AssetTypeCreditAlphanum12 enumerate the different
-// types of asset on the HcNet network.
+// types of asset on the DiamNet network.
 const (
 	AssetTypeNative           AssetType = AssetType(xdr.AssetTypeAssetTypeNative)
 	AssetTypeCreditAlphanum4  AssetType = AssetType(xdr.AssetTypeAssetTypeCreditAlphanum4)
 	AssetTypeCreditAlphanum12 AssetType = AssetType(xdr.AssetTypeAssetTypeCreditAlphanum12)
 )
 
-// Asset represents a HcNet asset.
+// Asset represents a DiamNet asset.
 type Asset interface {
 	GetType() (AssetType, error)
 	IsNative() bool
@@ -52,7 +52,7 @@ func (na NativeAsset) ToXDR() (xdr.Asset, error) {
 	return xdrAsset, nil
 }
 
-// CreditAsset represents non-XLM assets on the HcNet network.
+// CreditAsset represents non-XLM assets on the DiamNet network.
 type CreditAsset struct {
 	Code   string
 	Issuer string

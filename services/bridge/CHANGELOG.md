@@ -42,7 +42,7 @@ Please migrate your `compliance` DB before running a new version using: `complia
 * Improved transaction submission code:
   * High rate transaction submission using `/payment` endpoint should work better.
   * Added `id` parameter to `/payment` request: payments with `id` set, when resubmitted, are using previously created transaction envelope stored in a DB instead of recreating a transaction with a new sequence number. This can prevent accidental double-spends.
-* Fix for a bug in `/builder` endpoint: sequence number is now incremented when loaded from Aurora server (https://github.com/hcnet/bridge-server/issues/86).
+* Fix for a bug in `/builder` endpoint: sequence number is now incremented when loaded from Aurora server (https://github.com/diamnet/bridge-server/issues/86).
 * Payment listener is now also sending `account_merge` operations and, for each operation, a new parameter: `transaction_id`.
 * Updated `github.com/BurntSushi/toml` dependency.
 
@@ -52,12 +52,12 @@ Please migrate your `bridge` DB before running a new version using: `bridge --mi
 
 ## 0.0.28
 
-* Added error messages to Compliance protocol ([SEP-0003](https://github.com/hcnet/hcnet-protocol/blob/master/ecosystem/sep-0003.md))
+* Added error messages to Compliance protocol ([SEP-0003](https://github.com/diamnet/diamnet-protocol/blob/master/ecosystem/sep-0003.md))
 
 ## 0.0.27
 
 * Admin Panel (`/admin` endpoint in `bridge` server).
-* `/tx_status` endpoint [More info](https://github.com/hcnet/hcnet-protocol/blob/master/ecosystem/sep-0001.md).
+* `/tx_status` endpoint [More info](https://github.com/diamnet/diamnet-protocol/blob/master/ecosystem/sep-0001.md).
 * Sequence number in automatically loaded if it's not set in `/builder`.
 * Fixed log levels in `PaymentListener` (#73).
 * Fixed `AllowedFI` table name under Windows (#72).
@@ -69,7 +69,7 @@ Please migrate your `bridge` DB before running a new version using: `bridge --mi
 
 ## 0.0.25
 
-* [XLM (lumen)](https://www.hcnet.org/lumens/) payments can be now used in `PaymentListener`.
+* [XLM (lumen)](https://www.diamnet.org/lumens/) payments can be now used in `PaymentListener`.
 * Fixed a loop in `PaymentListener` occurring when multiple payments fail.
 
 ## 0.0.24
@@ -91,7 +91,7 @@ Please migrate your `bridge` DB before running a new version using: `bridge --mi
 
 ## 0.0.20
 
-* Update `github.com/hcnet/go` dependency.
+* Update `github.com/diamnet/go` dependency.
 
 ## 0.0.19
 
@@ -113,7 +113,7 @@ Please migrate your `bridge` DB before running a new version using: `bridge --mi
 
 ## 0.0.15
 
-* Change hcnet.toml location to new standard.
+* Change diamnet.toml location to new standard.
 
 ## 0.0.14
 
@@ -143,11 +143,11 @@ Please migrate your `bridge` DB before running a new version using: `bridge --mi
 
 ## 0.0.8
 
-* [Compliance protocol](https://www.hcnet.org/developers/learn/integration-guides/compliance-protocol.html) support.
+* [Compliance protocol](https://www.diamnet.org/developers/learn/integration-guides/compliance-protocol.html) support.
 * Saving and reading memo preimage.
 * This repo will now contain two apps: `bridge` (for building, submitting and monitoring transactions) and `compliance` (for Compliance protocol). Both are built in a single build process. Each app has it's own README file.
 * Dependency injection is now done using [facebookgo/inject](https://godoc.org/github.com/facebookgo/inject).
-* Handling and validation of requests and responses is now done in `protocols` package. This package contains methods for transforming `url.Values` from/to request structs and for marshalling responses. It also contains common errors (missing/invalid fields, internal server error, etc.) and all protocol-specific error responses. It also includes hcnet.toml and federation resolving.
+* Handling and validation of requests and responses is now done in `protocols` package. This package contains methods for transforming `url.Values` from/to request structs and for marshalling responses. It also contains common errors (missing/invalid fields, internal server error, etc.) and all protocol-specific error responses. It also includes diamnet.toml and federation resolving.
 * New `net` and `server` packages that contain some helper network connected functions and structs.
 * Improvements to `db` package.
 
@@ -175,7 +175,7 @@ Please migrate your `bridge` DB before running a new version using: `bridge --mi
 
 * Send `create_account` operation in `/payment` if account does not exist.
 * Fixed major bug in `PaymentListener`.
-* Sending to HcNet address with memo in `/send`.
+* Sending to DiamNet address with memo in `/send`.
 * Standardized responses.
 * Updated README file.
 
@@ -186,7 +186,7 @@ Please migrate your `bridge` DB before running a new version using: `bridge --mi
 * Added config parameters validation.
 * Added `network_passphrase` config parameter.
 * `postgres` migration files.
-* Fixed sending to HcNet address.
+* Fixed sending to DiamNet address.
 * Fixed `aurora.AccountResponse.SequenceNumber` bug.
 * Fixed minor bugs.
 * Code refactoring.

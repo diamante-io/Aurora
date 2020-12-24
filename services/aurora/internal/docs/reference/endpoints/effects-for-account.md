@@ -1,7 +1,7 @@
 ---
 title: Effects for Account
 clientData:
-  laboratoryUrl: https://www.hcnet.org/laboratory/#explorer?resource=effects&endpoint=for_account
+  laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=effects&endpoint=for_account
 ---
 
 This endpoint represents all [effects](../resources/effect.md) that changed a given
@@ -9,7 +9,7 @@ This endpoint represents all [effects](../resources/effect.md) that changed a gi
 account to the current ledger.
 
 This endpoint can also be used in [streaming](../streaming.md) mode so it is possible to use it to
-listen for new effects as transactions happen in the HcNet network.
+listen for new effects as transactions happen in the DiamNet network.
 If called in streaming mode Aurora will start at the earliest known effect unless a `cursor` is
 set. In that case it will start from the `cursor`. You can also set `cursor` value to `now` to only
 stream effects created since your request time.
@@ -32,14 +32,14 @@ GET /accounts/{account}/effects{?cursor,limit,order}
 ### curl Example Request
 
 ```sh
-curl "https://aurora-testnet.hcnet.org/accounts/GA2HGBJIJKI6O4XEM7CZWY5PS6GKSXL6D34ERAJYQSPYA6X6AI7HYW36/effects?limit=1"
+curl "https://aurora-testnet.diamnet.org/accounts/GA2HGBJIJKI6O4XEM7CZWY5PS6GKSXL6D34ERAJYQSPYA6X6AI7HYW36/effects?limit=1"
 ```
 
 ### JavaScript Example Request
 
 ```javascript
-var HcNetSdk = require('hcnet-sdk');
-var server = new HcNetSdk.Server('https://aurora-testnet.hcnet.org');
+var DiamNetSdk = require('diamnet-sdk');
+var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.effects()
   .forAccount("GA2HGBJIJKI6O4XEM7CZWY5PS6GKSXL6D34ERAJYQSPYA6X6AI7HYW36")
@@ -56,8 +56,8 @@ server.effects()
 ### JavaScript Streaming Example
 
 ```javascript
-var HcNetSdk = require('hcnet-sdk')
-var server = new HcNetSdk.Server('https://aurora-testnet.hcnet.org');
+var DiamNetSdk = require('diamnet-sdk')
+var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
 
 var effectHandler = function (effectResponse) {
   console.log(effectResponse);
@@ -81,13 +81,13 @@ The list of effects.
 {
   "_links": {
     "self": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GA2HGBJIJKI6O4XEM7CZWY5PS6GKSXL6D34ERAJYQSPYA6X6AI7HYW36/effects?cursor=&limit=1&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/accounts/GA2HGBJIJKI6O4XEM7CZWY5PS6GKSXL6D34ERAJYQSPYA6X6AI7HYW36/effects?cursor=&limit=1&order=asc"
     },
     "next": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GA2HGBJIJKI6O4XEM7CZWY5PS6GKSXL6D34ERAJYQSPYA6X6AI7HYW36/effects?cursor=1919197546291201-1&limit=1&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/accounts/GA2HGBJIJKI6O4XEM7CZWY5PS6GKSXL6D34ERAJYQSPYA6X6AI7HYW36/effects?cursor=1919197546291201-1&limit=1&order=asc"
     },
     "prev": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GA2HGBJIJKI6O4XEM7CZWY5PS6GKSXL6D34ERAJYQSPYA6X6AI7HYW36/effects?cursor=1919197546291201-1&limit=1&order=desc"
+      "href": "https://aurora-testnet.diamnet.org/accounts/GA2HGBJIJKI6O4XEM7CZWY5PS6GKSXL6D34ERAJYQSPYA6X6AI7HYW36/effects?cursor=1919197546291201-1&limit=1&order=desc"
     }
   },
   "_embedded": {
@@ -95,13 +95,13 @@ The list of effects.
       {
         "_links": {
           "operation": {
-            "href": "https://aurora-testnet.hcnet.org/operations/1919197546291201"
+            "href": "https://aurora-testnet.diamnet.org/operations/1919197546291201"
           },
           "succeeds": {
-            "href": "https://aurora-testnet.hcnet.org/effects?order=desc&cursor=1919197546291201-1"
+            "href": "https://aurora-testnet.diamnet.org/effects?order=desc&cursor=1919197546291201-1"
           },
           "precedes": {
-            "href": "https://aurora-testnet.hcnet.org/effects?order=asc&cursor=1919197546291201-1"
+            "href": "https://aurora-testnet.diamnet.org/effects?order=asc&cursor=1919197546291201-1"
           }
         },
         "id": "0001919197546291201-0000000001",

@@ -1,5 +1,5 @@
 development:
     dialect: postgres
-    datasource: dbname=hcnetticker01 sslmode=disable
+    datasource: dbname=diamnetticker01 sslmode=disable
     dir: internal/tickerdb/migrations
     table: migrations

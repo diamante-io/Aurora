@@ -3,8 +3,8 @@ package aurora
 import (
 	"net/http"
 
-	hProblem "github.com/hcnet/go/services/aurora/internal/render/problem"
-	"github.com/hcnet/go/support/render/problem"
+	hProblem "github.com/diamnet/go/services/aurora/internal/render/problem"
+	"github.com/diamnet/go/support/render/problem"
 )
 
 // RateLimitExceededAction renders a 429 response

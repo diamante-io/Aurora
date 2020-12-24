@@ -6,17 +6,17 @@ import (
 	"net/http"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/hcnet/go/address"
-	"github.com/hcnet/go/clients/hcnettoml"
-	"github.com/hcnet/go/protocols/compliance"
-	"github.com/hcnet/go/protocols/federation"
-	"github.com/hcnet/go/services/compliance/internal/db"
-	shared "github.com/hcnet/go/services/internal/bridge-compliance-shared"
-	"github.com/hcnet/go/services/internal/bridge-compliance-shared/http/helpers"
-	"github.com/hcnet/go/services/internal/bridge-compliance-shared/protocols"
-	"github.com/hcnet/go/services/internal/bridge-compliance-shared/protocols/bridge"
-	callback "github.com/hcnet/go/services/internal/bridge-compliance-shared/protocols/compliance"
-	"github.com/hcnet/go/txnbuild"
+	"github.com/diamnet/go/address"
+	"github.com/diamnet/go/clients/diamnettoml"
+	"github.com/diamnet/go/protocols/compliance"
+	"github.com/diamnet/go/protocols/federation"
+	"github.com/diamnet/go/services/compliance/internal/db"
+	shared "github.com/diamnet/go/services/internal/bridge-compliance-shared"
+	"github.com/diamnet/go/services/internal/bridge-compliance-shared/http/helpers"
+	"github.com/diamnet/go/services/internal/bridge-compliance-shared/protocols"
+	"github.com/diamnet/go/services/internal/bridge-compliance-shared/protocols/bridge"
+	callback "github.com/diamnet/go/services/internal/bridge-compliance-shared/protocols/compliance"
+	"github.com/diamnet/go/txnbuild"
 )
 
 // HandlerSend implements /send endpoint
@@ -49,8 +49,8 @@ func (rh *RequestHandler) HandlerSend(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if authDataEntity != nil {
-		var hcnetToml *hcnettoml.Response
-		hcnetToml, err = rh.HcNetTomlResolver.GetHcNetToml(authDataEntity.Domain)
+		var diamnetToml *diamnettoml.Response
+		diamnetToml, err = rh.DiamNetTomlResolver.GetDiamNetToml(authDataEntity.Domain)
 		if err != nil {
 			log.WithFields(log.Fields{
 				"destination": request.Destination,
@@ -60,13 +60,13 @@ func (rh *RequestHandler) HandlerSend(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if hcnetToml.AuthServer == "" {
-			log.Print("No AUTH_SERVER in hcnet.toml")
+		if diamnetToml.AuthServer == "" {
+			log.Print("No AUTH_SERVER in diamnet.toml")
 			helpers.Write(w, callback.AuthServerNotDefined)
 			return
 		}
 
-		rh.sendAuthData(w, hcnetToml.AuthServer, []byte(authDataEntity.AuthData))
+		rh.sendAuthData(w, diamnetToml.AuthServer, []byte(authDataEntity.AuthData))
 		return
 	}
 
@@ -107,7 +107,7 @@ func (rh *RequestHandler) HandlerSend(w http.ResponseWriter, r *http.Request) {
 		domain = request.ForwardDestination.Domain
 	}
 
-	hcnetToml, err := rh.HcNetTomlResolver.GetHcNetToml(domain)
+	diamnetToml, err := rh.DiamNetTomlResolver.GetDiamNetToml(domain)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"destination": request.Destination,
@@ -117,8 +117,8 @@ func (rh *RequestHandler) HandlerSend(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if hcnetToml.AuthServer == "" {
-		log.Print("No AUTH_SERVER in hcnet.toml")
+	if diamnetToml.AuthServer == "" {
+		log.Print("No AUTH_SERVER in diamnet.toml")
 		helpers.Write(w, callback.AuthServerNotDefined)
 		return
 	}
@@ -279,7 +279,7 @@ func (rh *RequestHandler) HandlerSend(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rh.sendAuthData(w, hcnetToml.AuthServer, data)
+	rh.sendAuthData(w, diamnetToml.AuthServer, data)
 }
 
 func (rh *RequestHandler) sendAuthData(w http.ResponseWriter, authServer string, data []byte) {

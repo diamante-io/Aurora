@@ -1,7 +1,7 @@
 ---
 title: Payments for Transaction
 clientData:
-  laboratoryUrl: https://www.hcnet.org/laboratory/#explorer?resource=payments&endpoint=for_transaction
+  laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=payments&endpoint=for_transaction
 ---
 
 This endpoint represents all payment-related [operations](../resources/operation.md) that are part
@@ -16,7 +16,7 @@ The operations that can be returned in by this endpoint are:
 ### Warning - failed transactions
 
 "Payments for Transaction" endpoint returns list of payments of successful or failed transactions
-(that are also included in HcNet ledger). Always check the payment status in this endpoint using
+(that are also included in DiamNet ledger). Always check the payment status in this endpoint using
 `transaction_successful` field!
 
 ## Request
@@ -38,14 +38,14 @@ GET /transactions/{hash}/payments{?cursor,limit,order}
 ### curl Example Request
 
 ```sh
-curl "https://aurora-testnet.hcnet.org/transactions/f65278b36875d170e865853838da400515f59ca23836f072e8d62cac18b803e5/payments"
+curl "https://aurora-testnet.diamnet.org/transactions/f65278b36875d170e865853838da400515f59ca23836f072e8d62cac18b803e5/payments"
 ```
 
 ### JavaScript Example Request
 
 ```javascript
-var HcNetSdk = require('hcnet-sdk');
-var server = new HcNetSdk.Server('https://aurora-testnet.hcnet.org');
+var DiamNetSdk = require('diamnet-sdk');
+var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.payments()
   .forTransaction("f65278b36875d170e865853838da400515f59ca23836f072e8d62cac18b803e5")
@@ -70,13 +70,13 @@ operations).
 {
   "_links": {
     "self": {
-      "href": "https://aurora-testnet.hcnet.org/transactions/f65278b36875d170e865853838da400515f59ca23836f072e8d62cac18b803e5/payments?cursor=&limit=10&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/transactions/f65278b36875d170e865853838da400515f59ca23836f072e8d62cac18b803e5/payments?cursor=&limit=10&order=asc"
     },
     "next": {
-      "href": "https://aurora-testnet.hcnet.org/transactions/f65278b36875d170e865853838da400515f59ca23836f072e8d62cac18b803e5/payments?cursor=2993420406628353&limit=10&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/transactions/f65278b36875d170e865853838da400515f59ca23836f072e8d62cac18b803e5/payments?cursor=2993420406628353&limit=10&order=asc"
     },
     "prev": {
-      "href": "https://aurora-testnet.hcnet.org/transactions/f65278b36875d170e865853838da400515f59ca23836f072e8d62cac18b803e5/payments?cursor=2993420406628353&limit=10&order=desc"
+      "href": "https://aurora-testnet.diamnet.org/transactions/f65278b36875d170e865853838da400515f59ca23836f072e8d62cac18b803e5/payments?cursor=2993420406628353&limit=10&order=desc"
     }
   },
   "_embedded": {
@@ -84,19 +84,19 @@ operations).
       {
         "_links": {
           "self": {
-            "href": "https://aurora-testnet.hcnet.org/operations/2993420406628353"
+            "href": "https://aurora-testnet.diamnet.org/operations/2993420406628353"
           },
           "transaction": {
-            "href": "https://aurora-testnet.hcnet.org/transactions/f65278b36875d170e865853838da400515f59ca23836f072e8d62cac18b803e5"
+            "href": "https://aurora-testnet.diamnet.org/transactions/f65278b36875d170e865853838da400515f59ca23836f072e8d62cac18b803e5"
           },
           "effects": {
-            "href": "https://aurora-testnet.hcnet.org/operations/2993420406628353/effects"
+            "href": "https://aurora-testnet.diamnet.org/operations/2993420406628353/effects"
           },
           "succeeds": {
-            "href": "https://aurora-testnet.hcnet.org/effects?order=desc&cursor=2993420406628353"
+            "href": "https://aurora-testnet.diamnet.org/effects?order=desc&cursor=2993420406628353"
           },
           "precedes": {
-            "href": "https://aurora-testnet.hcnet.org/effects?order=asc&cursor=2993420406628353"
+            "href": "https://aurora-testnet.diamnet.org/effects?order=asc&cursor=2993420406628353"
           }
         },
         "id": "2993420406628353",

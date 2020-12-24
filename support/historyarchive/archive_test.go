@@ -1,4 +1,4 @@
-// Copyright 2016 HcNet Development Foundation and contributors. Licensed
+// Copyright 2016 DiamNet Development Foundation and contributors. Licensed
 // under the Apache License, Version 2.0. See the COPYING file at the root
 // of this distribution or at http://www.apache.org/licenses/LICENSE-2.0
 
@@ -14,7 +14,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/xdr"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,7 +24,7 @@ func GetTestS3Archive() *Archive {
 	if e != nil {
 		panic(e)
 	}
-	return MustConnect(fmt.Sprintf("s3://history-stg.hcnet.org/dev/archivist/test-%s", r),
+	return MustConnect(fmt.Sprintf("s3://history-stg.diamnet.org/dev/archivist/test-%s", r),
 		ConnectOptions{S3Region: "eu-west-1"})
 }
 

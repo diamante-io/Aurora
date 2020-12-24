@@ -1,6 +1,6 @@
 package main
 
-import "github.com/hcnet/go/services/ticker/cmd"
+import "github.com/diamnet/go/services/ticker/cmd"
 
 func main() {
 	cmd.Execute()

@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/hcnet/go/support/errors"
+	"github.com/diamnet/go/support/errors"
 )
 
 // decodeResponse decodes the response from a request to a aurora server

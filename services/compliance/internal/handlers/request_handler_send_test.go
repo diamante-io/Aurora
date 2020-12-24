@@ -6,20 +6,20 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hcnet/go/clients/hcnettoml"
-	"github.com/hcnet/go/protocols/compliance"
-	"github.com/hcnet/go/protocols/federation"
-	"github.com/hcnet/go/support/http/httptest"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/clients/diamnettoml"
+	"github.com/diamnet/go/protocols/compliance"
+	"github.com/diamnet/go/protocols/federation"
+	"github.com/diamnet/go/support/http/httptest"
+	"github.com/diamnet/go/xdr"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/hcnet/go/services/compliance/internal/config"
-	"github.com/hcnet/go/services/compliance/internal/db"
-	"github.com/hcnet/go/services/compliance/internal/mocks"
-	"github.com/hcnet/go/services/compliance/internal/test"
-	"github.com/hcnet/go/txnbuild"
+	"github.com/diamnet/go/services/compliance/internal/config"
+	"github.com/diamnet/go/services/compliance/internal/db"
+	"github.com/diamnet/go/services/compliance/internal/mocks"
+	"github.com/diamnet/go/services/compliance/internal/test"
+	"github.com/diamnet/go/txnbuild"
 )
 
 func TestRequestHandlerSendInvalidParams(t *testing.T) {
@@ -38,7 +38,7 @@ func TestRequestHandlerSendInvalidParams(t *testing.T) {
 	var mockDatabase = new(mocks.MockDatabase)
 	var mockFederationResolver = new(mocks.MockFederationResolver)
 	var mockSignerVerifier = new(mocks.MockSignerVerifier)
-	var mockHcNettomlResolver = new(mocks.MockHcNettomlResolver)
+	var mockDiamNettomlResolver = new(mocks.MockDiamNettomlResolver)
 	var mockNonceGenerator = new(mocks.MockNonceGenerator)
 
 	requestHandler := RequestHandler{
@@ -47,7 +47,7 @@ func TestRequestHandlerSendInvalidParams(t *testing.T) {
 		Database:                mockDatabase,
 		FederationResolver:      mockFederationResolver,
 		SignatureSignerVerifier: mockSignerVerifier,
-		HcNetTomlResolver:     mockHcNettomlResolver,
+		DiamNetTomlResolver:     mockDiamNettomlResolver,
 		NonceGenerator:          mockNonceGenerator,
 	}
 
@@ -58,8 +58,8 @@ func TestRequestHandlerSendInvalidParams(t *testing.T) {
 	params := url.Values{
 		// "id":           {"id"},
 		"source":      {"GAW77Z6GPWXSODJOMF5L5BMX6VMYGEJRKUNBC2CZ725JTQZORK74HQQD"},
-		"sender":      {"alice*hcnet.org"}, // GAW77Z6GPWXSODJOMF5L5BMX6VMYGEJRKUNBC2CZ725JTQZORK74HQQD
-		"destination": {"bob*hcnet.org"},   // GAMVF7G4GJC4A7JMFJWLUAEIBFQD5RT3DCB5DC5TJDEKQBBACQ4JZVEE
+		"sender":      {"alice*diamnet.org"}, // GAW77Z6GPWXSODJOMF5L5BMX6VMYGEJRKUNBC2CZ725JTQZORK74HQQD
+		"destination": {"bob*diamnet.org"},   // GAMVF7G4GJC4A7JMFJWLUAEIBFQD5RT3DCB5DC5TJDEKQBBACQ4JZVEE
 		"amount":      {"20"},
 	}
 
@@ -79,8 +79,8 @@ func TestRequestHandlerSendInvalidParams(t *testing.T) {
 	params = url.Values{
 		"id": {"id"},
 		// "source":      {"bad"},
-		"sender":      {"alice*hcnet.org"}, // GAW77Z6GPWXSODJOMF5L5BMX6VMYGEJRKUNBC2CZ725JTQZORK74HQQD
-		"destination": {"bob*hcnet.org"},   // GAMVF7G4GJC4A7JMFJWLUAEIBFQD5RT3DCB5DC5TJDEKQBBACQ4JZVEE
+		"sender":      {"alice*diamnet.org"}, // GAW77Z6GPWXSODJOMF5L5BMX6VMYGEJRKUNBC2CZ725JTQZORK74HQQD
+		"destination": {"bob*diamnet.org"},   // GAMVF7G4GJC4A7JMFJWLUAEIBFQD5RT3DCB5DC5TJDEKQBBACQ4JZVEE
 		"amount":      {"20"},
 	}
 
@@ -100,8 +100,8 @@ func TestRequestHandlerSendInvalidParams(t *testing.T) {
 	params = url.Values{
 		"id":           {"id"},
 		"source":       {"bad"},
-		"sender":       {"alice*hcnet.org"}, // GAW77Z6GPWXSODJOMF5L5BMX6VMYGEJRKUNBC2CZ725JTQZORK74HQQD
-		"destination":  {"bob*hcnet.org"},   // GAMVF7G4GJC4A7JMFJWLUAEIBFQD5RT3DCB5DC5TJDEKQBBACQ4JZVEE
+		"sender":       {"alice*diamnet.org"}, // GAW77Z6GPWXSODJOMF5L5BMX6VMYGEJRKUNBC2CZ725JTQZORK74HQQD
+		"destination":  {"bob*diamnet.org"},   // GAMVF7G4GJC4A7JMFJWLUAEIBFQD5RT3DCB5DC5TJDEKQBBACQ4JZVEE
 		"amount":       {"20"},
 		"asset_code":   {"USD"},
 		"asset_issuer": {"GAMVF7G4GJC4A7JMFJWLUAEIBFQD5RT3DCB5DC5TJDEKQBBACQ4JZVEE"},
@@ -137,7 +137,7 @@ func TestRequestHandlerSendValidParams(t *testing.T) {
 	var mockDatabase = new(mocks.MockDatabase)
 	var mockFederationResolver = new(mocks.MockFederationResolver)
 	var mockSignerVerifier = new(mocks.MockSignerVerifier)
-	var mockHcNettomlResolver = new(mocks.MockHcNettomlResolver)
+	var mockDiamNettomlResolver = new(mocks.MockDiamNettomlResolver)
 	var mockNonceGenerator = new(mocks.MockNonceGenerator)
 
 	requestHandler := RequestHandler{
@@ -146,7 +146,7 @@ func TestRequestHandlerSendValidParams(t *testing.T) {
 		Database:                mockDatabase,
 		FederationResolver:      mockFederationResolver,
 		SignatureSignerVerifier: mockSignerVerifier,
-		HcNetTomlResolver:     mockHcNettomlResolver,
+		DiamNetTomlResolver:     mockDiamNettomlResolver,
 		NonceGenerator:          mockNonceGenerator,
 	}
 
@@ -157,8 +157,8 @@ func TestRequestHandlerSendValidParams(t *testing.T) {
 	params := url.Values{
 		"id":           {"id"},
 		"source":       {"GAW77Z6GPWXSODJOMF5L5BMX6VMYGEJRKUNBC2CZ725JTQZORK74HQQD"},
-		"sender":       {"alice*hcnet.org"}, // GAW77Z6GPWXSODJOMF5L5BMX6VMYGEJRKUNBC2CZ725JTQZORK74HQQD
-		"destination":  {"bob*hcnet.org"},   // GAMVF7G4GJC4A7JMFJWLUAEIBFQD5RT3DCB5DC5TJDEKQBBACQ4JZVEE
+		"sender":       {"alice*diamnet.org"}, // GAW77Z6GPWXSODJOMF5L5BMX6VMYGEJRKUNBC2CZ725JTQZORK74HQQD
+		"destination":  {"bob*diamnet.org"},   // GAMVF7G4GJC4A7JMFJWLUAEIBFQD5RT3DCB5DC5TJDEKQBBACQ4JZVEE
 		"amount":       {"20"},
 		"asset_code":   {"USD"},
 		"asset_issuer": {"GAMVF7G4GJC4A7JMFJWLUAEIBFQD5RT3DCB5DC5TJDEKQBBACQ4JZVEE"},
@@ -170,7 +170,7 @@ func TestRequestHandlerSendValidParams(t *testing.T) {
 		entity, ok := args.Get(0).(*db.AuthData)
 		assert.True(t, ok, "Invalid conversion")
 		assert.Equal(t, "id", entity.RequestID)
-		assert.Equal(t, "hcnet.org", entity.Domain)
+		assert.Equal(t, "diamnet.org", entity.Domain)
 	}).Return(nil).Once()
 
 	senderInfo := compliance.SenderInfo{FirstName: "John", LastName: "Doe"}
@@ -181,17 +181,17 @@ func TestRequestHandlerSendValidParams(t *testing.T) {
 
 	mockFederationResolver.On(
 		"LookupByAddress",
-		"bob*hcnet.org",
+		"bob*diamnet.org",
 	).Return(&federation.NameResponse{
 		AccountID: "GAMVF7G4GJC4A7JMFJWLUAEIBFQD5RT3DCB5DC5TJDEKQBBACQ4JZVEE",
 		MemoType:  "text",
 		Memo:      federation.Memo{"bob"},
 	}, nil).Once()
 
-	mockHcNettomlResolver.On(
-		"GetHcNetToml",
-		"hcnet.org",
-	).Return(&hcnettoml.Response{AuthServer: authServer}, nil).Once()
+	mockDiamNettomlResolver.On(
+		"GetDiamNetToml",
+		"diamnet.org",
+	).Return(&diamnettoml.Response{AuthServer: authServer}, nil).Once()
 
 	attachment := compliance.Attachment{
 		Nonce: "nonce",
@@ -239,7 +239,7 @@ func TestRequestHandlerSendValidParams(t *testing.T) {
 	require.NoError(t, err)
 
 	authData := compliance.AuthData{
-		Sender:         "alice*hcnet.org",
+		Sender:         "alice*diamnet.org",
 		NeedInfo:       false,
 		Tx:             txB64,
 		AttachmentJSON: string(attachmentJSON),
@@ -264,7 +264,7 @@ func TestRequestHandlerSendValidParams(t *testing.T) {
 	mockHTTPClient.On(
 		"PostForm",
 		rhconfig.Callbacks.FetchInfo,
-		url.Values{"address": {"alice*hcnet.org"}},
+		url.Values{"address": {"alice*diamnet.org"}},
 	).Return(
 		mocks.BuildHTTPResponse(200, "{\"first_name\": \"John\", \"last_name\": \"Doe\"}"),
 		nil,
@@ -314,7 +314,7 @@ func TestRequestHandlerSendValidParams(t *testing.T) {
 		entity, ok := args.Get(0).(*db.AuthData)
 		assert.True(t, ok, "Invalid conversion")
 		assert.Equal(t, "id", entity.RequestID)
-		assert.Equal(t, "hcnet.org", entity.Domain)
+		assert.Equal(t, "diamnet.org", entity.Domain)
 	}).Return(nil).Once()
 
 	senderInfo = compliance.SenderInfo{FirstName: "John", LastName: "Doe"}
@@ -325,17 +325,17 @@ func TestRequestHandlerSendValidParams(t *testing.T) {
 
 	mockFederationResolver.On(
 		"LookupByAddress",
-		"bob*hcnet.org",
+		"bob*diamnet.org",
 	).Return(&federation.NameResponse{
 		AccountID: "GAMVF7G4GJC4A7JMFJWLUAEIBFQD5RT3DCB5DC5TJDEKQBBACQ4JZVEE",
 		MemoType:  "text",
 		Memo:      federation.Memo{"bob"},
 	}, nil).Once()
 
-	mockHcNettomlResolver.On(
-		"GetHcNetToml",
-		"hcnet.org",
-	).Return(&hcnettoml.Response{AuthServer: authServer}, nil).Once()
+	mockDiamNettomlResolver.On(
+		"GetDiamNetToml",
+		"diamnet.org",
+	).Return(&diamnettoml.Response{AuthServer: authServer}, nil).Once()
 
 	attachment = compliance.Attachment{
 		Nonce: "nonce",
@@ -385,7 +385,7 @@ func TestRequestHandlerSendValidParams(t *testing.T) {
 	require.NoError(t, err)
 
 	authData = compliance.AuthData{
-		Sender:         "alice*hcnet.org",
+		Sender:         "alice*diamnet.org",
 		NeedInfo:       false,
 		Tx:             txB64,
 		AttachmentJSON: string(attachmentJSON),
@@ -410,7 +410,7 @@ func TestRequestHandlerSendValidParams(t *testing.T) {
 	mockHTTPClient.On(
 		"PostForm",
 		rhconfig.Callbacks.FetchInfo,
-		url.Values{"address": {"alice*hcnet.org"}},
+		url.Values{"address": {"alice*diamnet.org"}},
 	).Return(
 		mocks.BuildHTTPResponse(200, "{\"first_name\": \"John\", \"last_name\": \"Doe\"}"),
 		nil,
@@ -447,15 +447,15 @@ func TestRequestHandlerSendValidParams(t *testing.T) {
 	params = url.Values{
 		"id":           {"id"},
 		"source":       {"GAW77Z6GPWXSODJOMF5L5BMX6VMYGEJRKUNBC2CZ725JTQZORK74HQQD"},
-		"sender":       {"alice*hcnet.org"}, // GAW77Z6GPWXSODJOMF5L5BMX6VMYGEJRKUNBC2CZ725JTQZORK74HQQD
-		"destination":  {"bob*hcnet.org"},   // GAMVF7G4GJC4A7JMFJWLUAEIBFQD5RT3DCB5DC5TJDEKQBBACQ4JZVEE
+		"sender":       {"alice*diamnet.org"}, // GAW77Z6GPWXSODJOMF5L5BMX6VMYGEJRKUNBC2CZ725JTQZORK74HQQD
+		"destination":  {"bob*diamnet.org"},   // GAMVF7G4GJC4A7JMFJWLUAEIBFQD5RT3DCB5DC5TJDEKQBBACQ4JZVEE
 		"amount":       {"20"},
 		"asset_code":   {"USD"},
 		"asset_issuer": {"GAMVF7G4GJC4A7JMFJWLUAEIBFQD5RT3DCB5DC5TJDEKQBBACQ4JZVEE"},
 		"extra_memo":   {"hello world"},
 	}
 
-	params["forward_destination[domain]"] = []string{"hcnet.org"}
+	params["forward_destination[domain]"] = []string{"diamnet.org"}
 	params["forward_destination[fields][federation_type]"] = []string{"bank_account"}
 	params["forward_destination[fields][swift]"] = []string{"BOPBPHMM"}
 	params["forward_destination[fields][acct]"] = []string{"2382376"}
@@ -465,7 +465,7 @@ func TestRequestHandlerSendValidParams(t *testing.T) {
 		entity, ok := args.Get(0).(*db.AuthData)
 		assert.True(t, ok, "Invalid conversion")
 		assert.Equal(t, "id", entity.RequestID)
-		assert.Equal(t, "hcnet.org", entity.Domain)
+		assert.Equal(t, "diamnet.org", entity.Domain)
 	}).Return(nil).Once()
 
 	senderInfo = compliance.SenderInfo{FirstName: "John", LastName: "Doe"}
@@ -476,7 +476,7 @@ func TestRequestHandlerSendValidParams(t *testing.T) {
 
 	mockFederationResolver.On(
 		"ForwardRequest",
-		"hcnet.org",
+		"diamnet.org",
 		url.Values{
 			"federation_type": []string{"bank_account"},
 			"swift":           []string{"BOPBPHMM"},
@@ -488,10 +488,10 @@ func TestRequestHandlerSendValidParams(t *testing.T) {
 		Memo:      federation.Memo{"bob"},
 	}, nil).Once()
 
-	mockHcNettomlResolver.On(
-		"GetHcNetToml",
-		"hcnet.org",
-	).Return(&hcnettoml.Response{AuthServer: authServer}, nil).Once()
+	mockDiamNettomlResolver.On(
+		"GetDiamNetToml",
+		"diamnet.org",
+	).Return(&diamnettoml.Response{AuthServer: authServer}, nil).Once()
 
 	attachment = compliance.Attachment{
 		Nonce: "nonce",
@@ -538,7 +538,7 @@ func TestRequestHandlerSendValidParams(t *testing.T) {
 	require.NoError(t, err)
 
 	authData = compliance.AuthData{
-		Sender:         "alice*hcnet.org",
+		Sender:         "alice*diamnet.org",
 		NeedInfo:       false,
 		Tx:             txB64,
 		AttachmentJSON: string(attachmentJSON),
@@ -563,7 +563,7 @@ func TestRequestHandlerSendValidParams(t *testing.T) {
 	mockHTTPClient.On(
 		"PostForm",
 		rhconfig.Callbacks.FetchInfo,
-		url.Values{"address": {"alice*hcnet.org"}},
+		url.Values{"address": {"alice*diamnet.org"}},
 	).Return(
 		mocks.BuildHTTPResponse(200, "{\"first_name\": \"John\", \"last_name\": \"Doe\"}"),
 		nil,

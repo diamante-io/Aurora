@@ -2,15 +2,15 @@ package compliance
 
 import (
 	"github.com/asaskevich/govalidator"
-	"github.com/hcnet/go/address"
+	"github.com/diamnet/go/address"
 )
 
 func init() {
 	govalidator.SetFieldsRequiredByDefault(true)
-	govalidator.CustomTypeTagMap.Set("hcnet_address", govalidator.CustomTypeValidator(isHcNetAddress))
+	govalidator.CustomTypeTagMap.Set("diamnet_address", govalidator.CustomTypeValidator(isDiamNetAddress))
 }
 
-func isHcNetAddress(i interface{}, context interface{}) bool {
+func isDiamNetAddress(i interface{}, context interface{}) bool {
 	addr, ok := i.(string)
 
 	if !ok {

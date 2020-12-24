@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hcnet/go/protocols/aurora/operations"
-	"github.com/hcnet/go/support/http/httptest"
+	"github.com/diamnet/go/protocols/aurora/operations"
+	"github.com/diamnet/go/support/http/httptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -201,7 +201,7 @@ func TestNextOperationsPage(t *testing.T) {
 
 	hmock.On(
 		"GET",
-		"https://aurora-testnet.hcnet.org/operations?cursor=661424967682&limit=2&order=asc",
+		"https://aurora-testnet.diamnet.org/operations?cursor=661424967682&limit=2&order=asc",
 	).ReturnString(200, emptyOperationsPage)
 
 	nextPage, err := client.NextOperationsPage(ops)
@@ -275,19 +275,19 @@ func TestOperationRequestStreamOperations(t *testing.T) {
 	}
 }
 
-var operationStreamResponse = `data: {"_links":{"self":{"href":"https://aurora-testnet.hcnet.org/operations/4934917427201"},"transaction":{"href":"https://aurora-testnet.hcnet.org/transactions/1c1449106a54cccd8a2ec2094815ad9db30ae54c69c3309dd08d13fdb8c749de"},"effects":{"href":"https://aurora-testnet.hcnet.org/operations/4934917427201/effects"},"succeeds":{"href":"https://aurora-testnet.hcnet.org/effects?order=desc\u0026cursor=4934917427201"},"precedes":{"href":"https://aurora-testnet.hcnet.org/effects?order=asc\u0026cursor=4934917427201"}},"id":"4934917427201","paging_token":"4934917427201","transaction_successful":true,"source_account":"GAIH3ULLFQ4DGSECF2AR555KZ4KNDGEKN4AFI4SU2M7B43MGK3QJZNSR","type":"create_account","type_i":0,"created_at":"2019-02-27T11:32:39Z","transaction_hash":"1c1449106a54cccd8a2ec2094815ad9db30ae54c69c3309dd08d13fdb8c749de","starting_balance":"10000.0000000","funder":"GAIH3ULLFQ4DGSECF2AR555KZ4KNDGEKN4AFI4SU2M7B43MGK3QJZNSR","account":"GDBLBBDIUULY3HGIKXNK6WVBISY7DCNCDA45EL7NTXWX5R4UZ26HGMGS"}
+var operationStreamResponse = `data: {"_links":{"self":{"href":"https://aurora-testnet.diamnet.org/operations/4934917427201"},"transaction":{"href":"https://aurora-testnet.diamnet.org/transactions/1c1449106a54cccd8a2ec2094815ad9db30ae54c69c3309dd08d13fdb8c749de"},"effects":{"href":"https://aurora-testnet.diamnet.org/operations/4934917427201/effects"},"succeeds":{"href":"https://aurora-testnet.diamnet.org/effects?order=desc\u0026cursor=4934917427201"},"precedes":{"href":"https://aurora-testnet.diamnet.org/effects?order=asc\u0026cursor=4934917427201"}},"id":"4934917427201","paging_token":"4934917427201","transaction_successful":true,"source_account":"GAIH3ULLFQ4DGSECF2AR555KZ4KNDGEKN4AFI4SU2M7B43MGK3QJZNSR","type":"create_account","type_i":0,"created_at":"2019-02-27T11:32:39Z","transaction_hash":"1c1449106a54cccd8a2ec2094815ad9db30ae54c69c3309dd08d13fdb8c749de","starting_balance":"10000.0000000","funder":"GAIH3ULLFQ4DGSECF2AR555KZ4KNDGEKN4AFI4SU2M7B43MGK3QJZNSR","account":"GDBLBBDIUULY3HGIKXNK6WVBISY7DCNCDA45EL7NTXWX5R4UZ26HGMGS"}
 `
 
 var firstOperationsPage = `{
   "_links": {
     "self": {
-      "href": "https://aurora-testnet.hcnet.org/operations?cursor=&limit=2&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/operations?cursor=&limit=2&order=asc"
     },
     "next": {
-      "href": "https://aurora-testnet.hcnet.org/operations?cursor=661424967682&limit=2&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/operations?cursor=661424967682&limit=2&order=asc"
     },
     "prev": {
-      "href": "https://aurora-testnet.hcnet.org/operations?cursor=661424967681&limit=2&order=desc"
+      "href": "https://aurora-testnet.diamnet.org/operations?cursor=661424967681&limit=2&order=desc"
     }
   },
   "_embedded": {
@@ -295,19 +295,19 @@ var firstOperationsPage = `{
       {
         "_links": {
           "self": {
-            "href": "https://aurora-testnet.hcnet.org/operations/661424967681"
+            "href": "https://aurora-testnet.diamnet.org/operations/661424967681"
           },
           "transaction": {
-            "href": "https://aurora-testnet.hcnet.org/transactions/749e4f8933221b9942ef38a02856803f379789ec8d971f1f60535db70135673e"
+            "href": "https://aurora-testnet.diamnet.org/transactions/749e4f8933221b9942ef38a02856803f379789ec8d971f1f60535db70135673e"
           },
           "effects": {
-            "href": "https://aurora-testnet.hcnet.org/operations/661424967681/effects"
+            "href": "https://aurora-testnet.diamnet.org/operations/661424967681/effects"
           },
           "succeeds": {
-            "href": "https://aurora-testnet.hcnet.org/effects?order=desc&cursor=661424967681"
+            "href": "https://aurora-testnet.diamnet.org/effects?order=desc&cursor=661424967681"
           },
           "precedes": {
-            "href": "https://aurora-testnet.hcnet.org/effects?order=asc&cursor=661424967681"
+            "href": "https://aurora-testnet.diamnet.org/effects?order=asc&cursor=661424967681"
           }
         },
         "id": "661424967681",
@@ -325,19 +325,19 @@ var firstOperationsPage = `{
       {
         "_links": {
           "self": {
-            "href": "https://aurora-testnet.hcnet.org/operations/661424967682"
+            "href": "https://aurora-testnet.diamnet.org/operations/661424967682"
           },
           "transaction": {
-            "href": "https://aurora-testnet.hcnet.org/transactions/749e4f8933221b9942ef38a02856803f379789ec8d971f1f60535db70135673e"
+            "href": "https://aurora-testnet.diamnet.org/transactions/749e4f8933221b9942ef38a02856803f379789ec8d971f1f60535db70135673e"
           },
           "effects": {
-            "href": "https://aurora-testnet.hcnet.org/operations/661424967682/effects"
+            "href": "https://aurora-testnet.diamnet.org/operations/661424967682/effects"
           },
           "succeeds": {
-            "href": "https://aurora-testnet.hcnet.org/effects?order=desc&cursor=661424967682"
+            "href": "https://aurora-testnet.diamnet.org/effects?order=desc&cursor=661424967682"
           },
           "precedes": {
-            "href": "https://aurora-testnet.hcnet.org/effects?order=asc&cursor=661424967682"
+            "href": "https://aurora-testnet.diamnet.org/effects?order=asc&cursor=661424967682"
           }
         },
         "id": "661424967682",
@@ -359,13 +359,13 @@ var firstOperationsPage = `{
 var emptyOperationsPage = `{
   "_links": {
     "self": {
-      "href": "https://aurora-testnet.hcnet.org/operations?cursor=661424967682&limit=2&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/operations?cursor=661424967682&limit=2&order=asc"
     },
     "next": {
-      "href": "https://aurora-testnet.hcnet.org/operations?cursor=661424967684&limit=2&order=asc"
+      "href": "https://aurora-testnet.diamnet.org/operations?cursor=661424967684&limit=2&order=asc"
     },
     "prev": {
-      "href": "https://aurora-testnet.hcnet.org/operations?cursor=661424967683&limit=2&order=desc"
+      "href": "https://aurora-testnet.diamnet.org/operations?cursor=661424967683&limit=2&order=desc"
     }
   },
   "_embedded": {

@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hcnet/go/support/http/httptest"
+	"github.com/diamnet/go/support/http/httptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -12,14 +12,14 @@ import (
 func TestClient(t *testing.T) {
 	h := httptest.NewClient()
 	auroraClient := &Client{
-		URL:  "https://aurora.hcnet.org",
+		URL:  "https://aurora.diamnet.org",
 		HTTP: h,
 	}
 
 	// happy path
 	h.On(
 		"GET",
-		"https://aurora.hcnet.org/trades/?base_asset_type=native&counter_asset_code=SLT&counter_asset_issuer=GCKA6K5PCQ6PNF5RQBF7PQDJWRHO6UOGFMRLK3DYHDOI244V47XKQ4GP&counter_asset_type=credit_alphanum4&limit=3&offer_id=0&order=asc&resolution=300000",
+		"https://aurora.diamnet.org/trades/?base_asset_type=native&counter_asset_code=SLT&counter_asset_issuer=GCKA6K5PCQ6PNF5RQBF7PQDJWRHO6UOGFMRLK3DYHDOI244V47XKQ4GP&counter_asset_type=credit_alphanum4&limit=3&offer_id=0&order=asc&resolution=300000",
 	).ReturnString(http.StatusOK, tradesNormalResponse)
 
 	trades, err := auroraClient.LoadTrades(
@@ -59,13 +59,13 @@ func TestClient(t *testing.T) {
 var tradesNormalResponse = `{
 "_links": {
 "self": {
-"href": "https://aurora.hcnet.org/trades?base_asset_code=&base_asset_issuer=&base_asset_type=native&counter_asset_code=SLT&counter_asset_issuer=GCKA6K5PCQ6PNF5RQBF7PQDJWRHO6UOGFMRLK3DYHDOI244V47XKQ4GP&counter_asset_type=credit_alphanum4&cursor=&limit=3&offer_id=0&order=asc&resolution=300000"
+"href": "https://aurora.diamnet.org/trades?base_asset_code=&base_asset_issuer=&base_asset_type=native&counter_asset_code=SLT&counter_asset_issuer=GCKA6K5PCQ6PNF5RQBF7PQDJWRHO6UOGFMRLK3DYHDOI244V47XKQ4GP&counter_asset_type=credit_alphanum4&cursor=&limit=3&offer_id=0&order=asc&resolution=300000"
 },
 "next": {
-"href": "https://aurora.hcnet.org/trades?base_asset_code=&base_asset_issuer=&base_asset_type=native&counter_asset_code=SLT&counter_asset_issuer=GCKA6K5PCQ6PNF5RQBF7PQDJWRHO6UOGFMRLK3DYHDOI244V47XKQ4GP&counter_asset_type=credit_alphanum4&cursor=61560277354680321-0&limit=3&offer_id=0&order=asc&resolution=300000"
+"href": "https://aurora.diamnet.org/trades?base_asset_code=&base_asset_issuer=&base_asset_type=native&counter_asset_code=SLT&counter_asset_issuer=GCKA6K5PCQ6PNF5RQBF7PQDJWRHO6UOGFMRLK3DYHDOI244V47XKQ4GP&counter_asset_type=credit_alphanum4&cursor=61560277354680321-0&limit=3&offer_id=0&order=asc&resolution=300000"
 },
 "prev": {
-"href": "https://aurora.hcnet.org/trades?base_asset_code=&base_asset_issuer=&base_asset_type=native&counter_asset_code=SLT&counter_asset_issuer=GCKA6K5PCQ6PNF5RQBF7PQDJWRHO6UOGFMRLK3DYHDOI244V47XKQ4GP&counter_asset_type=credit_alphanum4&cursor=61557992432078849-0&limit=3&offer_id=0&order=desc&resolution=300000"
+"href": "https://aurora.diamnet.org/trades?base_asset_code=&base_asset_issuer=&base_asset_type=native&counter_asset_code=SLT&counter_asset_issuer=GCKA6K5PCQ6PNF5RQBF7PQDJWRHO6UOGFMRLK3DYHDOI244V47XKQ4GP&counter_asset_type=credit_alphanum4&cursor=61557992432078849-0&limit=3&offer_id=0&order=desc&resolution=300000"
 }
 },
 "_embedded": {
@@ -76,13 +76,13 @@ var tradesNormalResponse = `{
 "href": ""
 },
 "base": {
-"href": "https://aurora.hcnet.org/accounts/GAKLCFRTFDXKOEEUSBS23FBSUUVJRMDQHGCHNGGGJZQRK7BCPIMHUC4P"
+"href": "https://aurora.diamnet.org/accounts/GAKLCFRTFDXKOEEUSBS23FBSUUVJRMDQHGCHNGGGJZQRK7BCPIMHUC4P"
 },
 "counter": {
-"href": "https://aurora.hcnet.org/accounts/GAYDG77BFUUHYXC4IMFGXNBFDS5TMBB545Q6MON3EXYXHDOEJWU2LD2P"
+"href": "https://aurora.diamnet.org/accounts/GAYDG77BFUUHYXC4IMFGXNBFDS5TMBB545Q6MON3EXYXHDOEJWU2LD2P"
 },
 "operation": {
-"href": "https://aurora.hcnet.org/operations/61557992432078849"
+"href": "https://aurora.diamnet.org/operations/61557992432078849"
 }
 },
 "id": "61557992432078849-0",
@@ -109,13 +109,13 @@ var tradesNormalResponse = `{
 "href": ""
 },
 "base": {
-"href": "https://aurora.hcnet.org/accounts/GDHFBKVJO3VVQHPR56FV4YOILEGX3PYZBFNHVRJCDZTDULFPPWZHNNVL"
+"href": "https://aurora.diamnet.org/accounts/GDHFBKVJO3VVQHPR56FV4YOILEGX3PYZBFNHVRJCDZTDULFPPWZHNNVL"
 },
 "counter": {
-"href": "https://aurora.hcnet.org/accounts/GAYDG77BFUUHYXC4IMFGXNBFDS5TMBB545Q6MON3EXYXHDOEJWU2LD2P"
+"href": "https://aurora.diamnet.org/accounts/GAYDG77BFUUHYXC4IMFGXNBFDS5TMBB545Q6MON3EXYXHDOEJWU2LD2P"
 },
 "operation": {
-"href": "https://aurora.hcnet.org/operations/61560234405007361"
+"href": "https://aurora.diamnet.org/operations/61560234405007361"
 }
 },
 "id": "61560234405007361-0",
@@ -142,13 +142,13 @@ var tradesNormalResponse = `{
 "href": ""
 },
 "base": {
-"href": "https://aurora.hcnet.org/accounts/GDLHSCWRFUNEEJL6PR67OZL7QVO2L57MKQOMS6LGKNLGZPX6KCHXREMP"
+"href": "https://aurora.diamnet.org/accounts/GDLHSCWRFUNEEJL6PR67OZL7QVO2L57MKQOMS6LGKNLGZPX6KCHXREMP"
 },
 "counter": {
-"href": "https://aurora.hcnet.org/accounts/GAYDG77BFUUHYXC4IMFGXNBFDS5TMBB545Q6MON3EXYXHDOEJWU2LD2P"
+"href": "https://aurora.diamnet.org/accounts/GAYDG77BFUUHYXC4IMFGXNBFDS5TMBB545Q6MON3EXYXHDOEJWU2LD2P"
 },
 "operation": {
-"href": "https://aurora.hcnet.org/operations/61560277354680321"
+"href": "https://aurora.diamnet.org/operations/61560277354680321"
 }
 },
 "id": "61560277354680321-0",

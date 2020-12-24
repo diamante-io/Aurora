@@ -14,15 +14,15 @@ INSERT INTO public.issuers (
     org_twitter
 ) VALUES (
     'native',
-    'HcNet Development Foundation',
-    'http://hcnet.org',
+    'DiamNet Development Foundation',
+    'http://diamnet.org',
     '',
     '',
     '',
     '',
     '',
     '',
-    'https://twitter.com/hcnetorg'
+    'https://twitter.com/diamnetorg'
 );
 
 INSERT INTO public.assets (
@@ -69,7 +69,7 @@ INSERT INTO public.assets (
     now(),
     now(),
     7,
-    'HcNet Lumens',
+    'DiamNet Lumens',
     '',
     '',
     FALSE,
@@ -81,7 +81,7 @@ INSERT INTO public.assets (
     '',
     '',
     '',
-    (SELECT id FROM public.issuers WHERE public_key = 'native' AND org_twitter = 'https://twitter.com/hcnetorg'),
+    (SELECT id FROM public.issuers WHERE public_key = 'native' AND org_twitter = 'https://twitter.com/diamnetorg'),
     'native'
 );
 

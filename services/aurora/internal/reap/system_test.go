@@ -3,7 +3,7 @@ package reap
 import (
 	"testing"
 
-	"github.com/hcnet/go/services/aurora/internal/test"
+	"github.com/diamnet/go/services/aurora/internal/test"
 )
 
 func TestDeleteUnretainedHistory(t *testing.T) {

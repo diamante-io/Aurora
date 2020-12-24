@@ -13,12 +13,12 @@ import (
 	"strings"
 
 	"github.com/manucorporat/sse"
-	"github.com/hcnet/go/support/app"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/support/app"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/xdr"
 )
 
-const clientName = "go-hcnet-sdk-old"
+const clientName = "go-diamnet-sdk-old"
 
 // HomeDomainForAccount returns the home domain for the provided strkey-encoded
 // account id.

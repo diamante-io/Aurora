@@ -5,8 +5,8 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/hcnet/go/build"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/build"
+	"github.com/diamnet/go/xdr"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -46,7 +46,7 @@ func TestValidateSuccess(t *testing.T) {
 			SenderInfo: map[string]string{
 				"first_name": "Bartek",
 			},
-			Route: "jed*hcnet.org",
+			Route: "jed*diamnet.org",
 		},
 	}
 	attachment.GenerateNonce()
@@ -72,7 +72,7 @@ func TestValidateSuccess(t *testing.T) {
 	require.NoError(t, err)
 
 	authData := &AuthData{
-		Sender:         "bartek*hcnet.org",
+		Sender:         "bartek*diamnet.org",
 		NeedInfo:       false,
 		Tx:             txB64,
 		AttachmentJSON: string(attachMarshalled),
@@ -98,13 +98,13 @@ func TestValidateError(t *testing.T) {
 	assert.EqualError(t, authRequest.Validate(), "DataJSON: non zero value required")
 
 	authData := &AuthData{
-		Sender:         "bartekhcnet.org",
+		Sender:         "bartekdiamnet.org",
 		NeedInfo:       false,
 		Tx:             "&^%",
 		AttachmentJSON: "abc",
 	}
 
-	assert.EqualError(t, authData.Validate(), "sender: bartekhcnet.org does not validate as hcnet_address;tx: &^% does not validate as base64;attachment: abc does not validate as json")
+	assert.EqualError(t, authData.Validate(), "sender: bartekdiamnet.org does not validate as diamnet_address;tx: &^% does not validate as base64;attachment: abc does not validate as json")
 }
 
 func TestData(t *testing.T) {

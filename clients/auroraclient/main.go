@@ -1,12 +1,12 @@
 /*
 Package auroraclient provides client access to a Aurora server, allowing an application to post transactions and look up ledger information.
 
-This library provides an interface to the HcNet Aurora service. It supports the building of Go applications on
-top of the HcNet network (https://www.hcnet.org/). Transactions may be constructed using the sister package to
-this one, txnbuild (https://github.com/hcnet/go/tree/master/txnbuild), and then submitted with this client to any
-Aurora instance for processing onto the ledger. Together, these two libraries provide a complete HcNet SDK.
+This library provides an interface to the DiamNet Aurora service. It supports the building of Go applications on
+top of the DiamNet network (https://www.diamnet.org/). Transactions may be constructed using the sister package to
+this one, txnbuild (https://github.com/diamnet/go/tree/master/txnbuild), and then submitted with this client to any
+Aurora instance for processing onto the ledger. Together, these two libraries provide a complete DiamNet SDK.
 
-For more information and further examples, see https://www.hcnet.org/developers/go/reference/index.html.
+For more information and further examples, see https://www.diamnet.org/developers/go/reference/index.html.
 */
 package auroraclient
 
@@ -18,11 +18,11 @@ import (
 	"sync"
 	"time"
 
-	hProtocol "github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/protocols/aurora/effects"
-	"github.com/hcnet/go/protocols/aurora/operations"
-	"github.com/hcnet/go/support/render/problem"
-	"github.com/hcnet/go/txnbuild"
+	hProtocol "github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/protocols/aurora/effects"
+	"github.com/diamnet/go/protocols/aurora/operations"
+	"github.com/diamnet/go/support/render/problem"
+	"github.com/diamnet/go/txnbuild"
 )
 
 // cursor represents `cursor` param in queries
@@ -55,7 +55,7 @@ const (
 	AssetType4 AssetType = "credit_alphanum4"
 	// AssetType12 represents an asset type that is 12 characters long
 	AssetType12 AssetType = "credit_alphanum12"
-	// AssetTypeNative represents the asset type for HcNet Lumens (XLM)
+	// AssetTypeNative represents the asset type for DiamNet Lumens (XLM)
 	AssetTypeNative AssetType = "native"
 )
 
@@ -110,7 +110,7 @@ type HTTP interface {
 	PostForm(url string, data url.Values) (resp *http.Response, err error)
 }
 
-// Client struct contains data for creating a aurora client that connects to the hcnet network.
+// Client struct contains data for creating a aurora client that connects to the diamnet network.
 type Client struct {
 	// URL of Aurora server to connect
 	AuroraURL string
@@ -180,7 +180,7 @@ type ClientInterface interface {
 
 // DefaultTestNetClient is a default client to connect to test network.
 var DefaultTestNetClient = &Client{
-	AuroraURL:     "https://aurora-testnet.hcnet.org/",
+	AuroraURL:     "https://aurora-testnet.diamnet.org/",
 	HTTP:           http.DefaultClient,
 	auroraTimeOut: AuroraTimeOut,
 	isTestNet:      true,
@@ -188,7 +188,7 @@ var DefaultTestNetClient = &Client{
 
 // DefaultPublicNetClient is a default client to connect to public network.
 var DefaultPublicNetClient = &Client{
-	AuroraURL:     "https://aurora.hcnet.org/",
+	AuroraURL:     "https://aurora.diamnet.org/",
 	HTTP:           http.DefaultClient,
 	auroraTimeOut: AuroraTimeOut,
 }

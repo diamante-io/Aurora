@@ -5,10 +5,10 @@ import (
 	"math"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/hcnet/go/services/aurora/internal/db2"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/support/time"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/services/aurora/internal/db2"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/support/time"
+	"github.com/diamnet/go/xdr"
 )
 
 // PagingToken returns a cursor for this trade
@@ -243,7 +243,7 @@ func (q *Q) InsertTrade(
 
 	sellOfferId := EncodeOfferId(uint64(trade.OfferId), CoreOfferIDType)
 
-	// if the buy offer exists, encode the hcnet core generated id as the offer id
+	// if the buy offer exists, encode the diamnet core generated id as the offer id
 	// if not, encode the toid as the offer id
 	var buyOfferId int64
 	if buyOfferExists {

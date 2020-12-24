@@ -1,12 +1,12 @@
 ---
 title: Trades for Offer
 clientData:
-  laboratoryUrl: https://www.hcnet.org/laboratory/#explorer?resource=trades&endpoint=for_offer
+  laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=trades&endpoint=for_offer
 ---
 
 This endpoint represents all [trades](../resources/trade.md) for a given [offer](../resources/offer.md).
 
-This endpoint can also be used in [streaming](../streaming.md) mode, making it possible to listen for new trades for the given offer as they occur on the HcNet network.
+This endpoint can also be used in [streaming](../streaming.md) mode, making it possible to listen for new trades for the given offer as they occur on the DiamNet network.
 If called in streaming mode Aurora will start at the earliest known trade unless a `cursor` is set. In that case it will start from the `cursor`. You can also set `cursor` value to `now` to only stream trades created since your request time.
 ## Request
 
@@ -26,14 +26,14 @@ GET /offers/{offer_id}/trades{?cursor,limit,order}
 ### curl Example Request
 
 ```sh
-curl "https://aurora-testnet.hcnet.org/offers/323223/trades"
+curl "https://aurora-testnet.diamnet.org/offers/323223/trades"
 ```
 
 ### JavaScript Example Request
 
 ```js
-var HcNetSdk = require('hcnet-sdk');
-var server = new HcNetSdk.Server('https://aurora-testnet.hcnet.org');
+var DiamNetSdk = require('diamnet-sdk');
+var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.trades()
     .forOffer(323223)
@@ -56,13 +56,13 @@ This endpoint responds with a list of trades that consumed a given offer. See th
 {
   "_links": {
     "self": {
-      "href": "https://aurora-testnet.hcnet.org/offers/323223/trades?cursor=\u0026limit=10\u0026order=asc"
+      "href": "https://aurora-testnet.diamnet.org/offers/323223/trades?cursor=\u0026limit=10\u0026order=asc"
     },
     "next": {
-      "href": "https://aurora-testnet.hcnet.org/offers/323223/trades?cursor=35789107779080193-0\u0026limit=10\u0026order=asc"
+      "href": "https://aurora-testnet.diamnet.org/offers/323223/trades?cursor=35789107779080193-0\u0026limit=10\u0026order=asc"
     },
     "prev": {
-      "href": "https://aurora-testnet.hcnet.org/offers/323223/trades?cursor=35789107779080193-0\u0026limit=10\u0026order=desc"
+      "href": "https://aurora-testnet.diamnet.org/offers/323223/trades?cursor=35789107779080193-0\u0026limit=10\u0026order=desc"
     }
   },
   "_embedded": {
@@ -73,13 +73,13 @@ This endpoint responds with a list of trades that consumed a given offer. See th
             "href": ""
           },
           "base": {
-            "href": "https://aurora-testnet.hcnet.org/accounts/GDRCFIQAUEFUQ6GXF5DPRO2M77E4UB7RW7EWI2FTKOW7CWYKZCHSI75K"
+            "href": "https://aurora-testnet.diamnet.org/accounts/GDRCFIQAUEFUQ6GXF5DPRO2M77E4UB7RW7EWI2FTKOW7CWYKZCHSI75K"
           },
           "counter": {
-            "href": "https://aurora-testnet.hcnet.org/accounts/GCUD7CBKTQI4D7ZR7IKHMGXZKKVABML7XFBHV4AIYBOEN5UQFZ5DSPPT"
+            "href": "https://aurora-testnet.diamnet.org/accounts/GCUD7CBKTQI4D7ZR7IKHMGXZKKVABML7XFBHV4AIYBOEN5UQFZ5DSPPT"
           },
           "operation": {
-            "href": "https://aurora-testnet.hcnet.org/operations/35789107779080193"
+            "href": "https://aurora-testnet.diamnet.org/operations/35789107779080193"
           }
         },
         "id": "35789107779080193-0",

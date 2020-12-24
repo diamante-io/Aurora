@@ -3,8 +3,8 @@ package adapters
 import (
 	"errors"
 
-	"github.com/hcnet/go/exp/ingest/io"
-	"github.com/hcnet/go/exp/ingest/ledgerbackend"
+	"github.com/diamnet/go/exp/ingest/io"
+	"github.com/diamnet/go/exp/ingest/ledgerbackend"
 )
 
 const noBackendErr = "missing LedgerBackendAdapter.Backend"

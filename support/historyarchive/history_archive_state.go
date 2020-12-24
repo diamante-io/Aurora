@@ -1,4 +1,4 @@
-// Copyright 2016 HcNet Development Foundation and contributors. Licensed
+// Copyright 2016 DiamNet Development Foundation and contributors. Licensed
 // under the Apache License, Version 2.0. See the COPYING file at the root
 // of this distribution or at http://www.apache.org/licenses/LICENSE-2.0
 
@@ -9,8 +9,8 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/xdr"
 )
 
 const NumLevels = 11
@@ -86,7 +86,7 @@ func (h *HistoryArchiveState) Buckets() ([]Hash, error) {
 // This can be later compared with LedgerHeader.BucketListHash of the checkpoint
 // ledger to ensure data in history archive has not been changed by a malicious
 // actor.
-// Warning: Ledger header should be fetched from a trusted (!) hcnet-core
+// Warning: Ledger header should be fetched from a trusted (!) diamnet-core
 // instead of ex. history archives!
 func (h *HistoryArchiveState) BucketListHash() (xdr.Hash, error) {
 	total := []byte{}

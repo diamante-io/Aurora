@@ -1,13 +1,13 @@
 package txnbuild
 
 import (
-	"github.com/hcnet/go/amount"
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/amount"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/xdr"
 )
 
-// CreateAccount represents the HcNet create account operation. See
-// https://www.hcnet.org/developers/guides/concepts/list-of-operations.html
+// CreateAccount represents the DiamNet create account operation. See
+// https://www.diamnet.org/developers/guides/concepts/list-of-operations.html
 type CreateAccount struct {
 	Destination   string
 	Amount        string

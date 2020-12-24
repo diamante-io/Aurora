@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/goji/httpauth"
-	"github.com/hcnet/go/services/compliance/internal/config"
-	"github.com/hcnet/go/services/compliance/internal/mocks"
-	"github.com/hcnet/go/support/http/httptest"
+	"github.com/diamnet/go/services/compliance/internal/config"
+	"github.com/diamnet/go/services/compliance/internal/mocks"
+	"github.com/diamnet/go/support/http/httptest"
 )
 
 func TestRequestHandlerTxStatus(t *testing.T) {
@@ -29,7 +29,7 @@ func TestRequestHandlerTxStatus(t *testing.T) {
 	mockDatabase := new(mocks.MockDatabase)
 	mockFederationResolver := new(mocks.MockFederationResolver)
 	mockSignerVerifier := new(mocks.MockSignerVerifier)
-	mockHcNettomlResolver := new(mocks.MockHcNettomlResolver)
+	mockDiamNettomlResolver := new(mocks.MockDiamNettomlResolver)
 
 	requestHandler := RequestHandler{
 		Config:                  rhconfig,
@@ -37,7 +37,7 @@ func TestRequestHandlerTxStatus(t *testing.T) {
 		Database:                mockDatabase,
 		FederationResolver:      mockFederationResolver,
 		SignatureSignerVerifier: mockSignerVerifier,
-		HcNetTomlResolver:     mockHcNettomlResolver,
+		DiamNetTomlResolver:     mockDiamNettomlResolver,
 	}
 	testServer := httptest.NewServer(t, httpauth.SimpleBasicAuth(rhconfig.TxStatusAuth.Username,
 		rhconfig.TxStatusAuth.Password)(http.HandlerFunc(requestHandler.HandlerTxStatus)))

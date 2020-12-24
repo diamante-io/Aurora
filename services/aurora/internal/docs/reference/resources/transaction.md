@@ -2,11 +2,11 @@
 title: Transaction
 ---
 
-**Transactions** are the basic unit of change in the HcNet Network.
+**Transactions** are the basic unit of change in the DiamNet Network.
 
 A transaction is a grouping of [operations](./operation.md).
 
-To learn more about the concept of transactions in the HcNet network, take a look at the [HcNet transactions concept guide](https://www.hcnet.org/developers/learn/concepts/transactions.html).
+To learn more about the concept of transactions in the DiamNet network, take a look at the [DiamNet transactions concept guide](https://www.diamnet.org/developers/learn/concepts/transactions.html).
 
 ## Attributes
 
@@ -36,13 +36,13 @@ To learn more about the concept of transactions in the HcNet network, take a loo
 
 |                   rel                    |                                           Example                                           |                             Description                          |
 | ---------------------------------------- | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| self | `https://aurora-testnet.hcnet.org/transactions/cb9a25394acb6fe0d1d9bdea5afc01cafe2c6fde59a96ddceb2564a65780a81f` |  |
-| account | `https://aurora-testnet.hcnet.org/accounts/GCDLRUXOD6KA53G5ILL435TZAISNLPS4EKIHSOVY3MVD3DVJ333NO4DT` | The source [account](../accounts-single.md) for this transaction. |
-| ledger | `https://aurora-testnet.hcnet.org/ledgers/2352988` | The [ledger](../ledgers-single.md) in which this transaction was applied. |
-| operations | `https://aurora-testnet.hcnet.org/transactions/cb9a25394acb6fe0d1d9bdea5afc01cafe2c6fde59a96ddceb2564a65780a81f/operations{?cursor,limit,order}"` | [Operations](../operations-for-transaction.md) included in this transaction. |
-| effects | `https://aurora-testnet.hcnet.org/transactions/cb9a25394acb6fe0d1d9bdea5afc01cafe2c6fde59a96ddceb2564a65780a81f/effects{?cursor,limit,order}"` | [Effects](../effects-for-transaction.md) which resulted by operations in this transaction. |
-| precedes | `https://aurora-testnet.hcnet.org/transactions?order=asc&cursor=10106006507900928` | A collection of transactions that occur after this transaction. |
-| succeeds | `https://aurora-testnet.hcnet.org/transactions?order=desc&cursor=10106006507900928` | A collection of transactions that occur before this transaction. |
+| self | `https://aurora-testnet.diamnet.org/transactions/cb9a25394acb6fe0d1d9bdea5afc01cafe2c6fde59a96ddceb2564a65780a81f` |  |
+| account | `https://aurora-testnet.diamnet.org/accounts/GCDLRUXOD6KA53G5ILL435TZAISNLPS4EKIHSOVY3MVD3DVJ333NO4DT` | The source [account](../accounts-single.md) for this transaction. |
+| ledger | `https://aurora-testnet.diamnet.org/ledgers/2352988` | The [ledger](../ledgers-single.md) in which this transaction was applied. |
+| operations | `https://aurora-testnet.diamnet.org/transactions/cb9a25394acb6fe0d1d9bdea5afc01cafe2c6fde59a96ddceb2564a65780a81f/operations{?cursor,limit,order}"` | [Operations](../operations-for-transaction.md) included in this transaction. |
+| effects | `https://aurora-testnet.diamnet.org/transactions/cb9a25394acb6fe0d1d9bdea5afc01cafe2c6fde59a96ddceb2564a65780a81f/effects{?cursor,limit,order}"` | [Effects](../effects-for-transaction.md) which resulted by operations in this transaction. |
+| precedes | `https://aurora-testnet.diamnet.org/transactions?order=asc&cursor=10106006507900928` | A collection of transactions that occur after this transaction. |
+| succeeds | `https://aurora-testnet.diamnet.org/transactions?order=desc&cursor=10106006507900928` | A collection of transactions that occur before this transaction. |
 
 ## Example
 
@@ -50,27 +50,27 @@ To learn more about the concept of transactions in the HcNet network, take a loo
 {
   "_links": {
     "self": {
-      "href": "https://aurora-testnet.hcnet.org/transactions/cb9a25394acb6fe0d1d9bdea5afc01cafe2c6fde59a96ddceb2564a65780a81f"
+      "href": "https://aurora-testnet.diamnet.org/transactions/cb9a25394acb6fe0d1d9bdea5afc01cafe2c6fde59a96ddceb2564a65780a81f"
     },
     "account": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GCDLRUXOD6KA53G5ILL435TZAISNLPS4EKIHSOVY3MVD3DVJ333NO4DT"
+      "href": "https://aurora-testnet.diamnet.org/accounts/GCDLRUXOD6KA53G5ILL435TZAISNLPS4EKIHSOVY3MVD3DVJ333NO4DT"
     },
     "ledger": {
-      "href": "https://aurora-testnet.hcnet.org/ledgers/2352988"
+      "href": "https://aurora-testnet.diamnet.org/ledgers/2352988"
     },
     "operations": {
-      "href": "https://aurora-testnet.hcnet.org/transactions/cb9a25394acb6fe0d1d9bdea5afc01cafe2c6fde59a96ddceb2564a65780a81f/operations{?cursor,limit,order}",
+      "href": "https://aurora-testnet.diamnet.org/transactions/cb9a25394acb6fe0d1d9bdea5afc01cafe2c6fde59a96ddceb2564a65780a81f/operations{?cursor,limit,order}",
       "templated": true
     },
     "effects": {
-      "href": "https://aurora-testnet.hcnet.org/transactions/cb9a25394acb6fe0d1d9bdea5afc01cafe2c6fde59a96ddceb2564a65780a81f/effects{?cursor,limit,order}",
+      "href": "https://aurora-testnet.diamnet.org/transactions/cb9a25394acb6fe0d1d9bdea5afc01cafe2c6fde59a96ddceb2564a65780a81f/effects{?cursor,limit,order}",
       "templated": true
     },
     "precedes": {
-      "href": "https://aurora-testnet.hcnet.org/transactions?order=asc&cursor=10106006507900928"
+      "href": "https://aurora-testnet.diamnet.org/transactions?order=asc&cursor=10106006507900928"
     },
     "succeeds": {
-      "href": "https://aurora-testnet.hcnet.org/transactions?order=desc&cursor=10106006507900928"
+      "href": "https://aurora-testnet.diamnet.org/transactions?order=desc&cursor=10106006507900928"
     }
   },
   "id": "cb9a25394acb6fe0d1d9bdea5afc01cafe2c6fde59a96ddceb2564a65780a81f",
@@ -108,4 +108,4 @@ To learn more about the concept of transactions in the HcNet network, take a loo
 
 
 ## Submitting transactions
-To submit a new transaction to HcNet network, it must first be built and signed locally. Then you can submit a hex representation of your transaction’s [XDR](../../learn/xdr.md) to the `/transactions` endpoint. Read more about submitting transactions in [Post Transaction](../transactions-create.md) doc.
+To submit a new transaction to DiamNet network, it must first be built and signed locally. Then you can submit a hex representation of your transaction’s [XDR](../../learn/xdr.md) to the `/transactions` endpoint. Read more about submitting transactions in [Post Transaction](../transactions-create.md) doc.

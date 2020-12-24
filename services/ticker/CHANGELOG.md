@@ -4,7 +4,7 @@
 
 ## [v1.1.0] - 2019-07-22
 
-- Added support for running the ticker on HcNet's Test Network, by using the `--testnet` CLI flag.
+- Added support for running the ticker on DiamNet's Test Network, by using the `--testnet` CLI flag.
 - The ticker now retries requests to Aurora if it gets rate-limited.
 - Minor bug fixes and performance improvements.
 

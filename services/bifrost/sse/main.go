@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/r3labs/sse"
-	"github.com/hcnet/go/support/log"
+	"github.com/diamnet/go/support/log"
 )
 
 // AddressEvent is an event sent to address SSE stream.
@@ -42,7 +42,7 @@ type Event struct {
 }
 
 // Storage contains history of sent events. Because each transaction and
-// HcNet account is always processed by a single Bifrost server, we need
+// DiamNet account is always processed by a single Bifrost server, we need
 // to broadcast events in case client streams events from the other Bifrost
 // server.
 //

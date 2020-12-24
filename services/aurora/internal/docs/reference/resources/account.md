@@ -2,9 +2,9 @@
 title: Account
 ---
 
-In the HcNet network, users interact using **accounts** which can be controlled by a corresponding keypair that can authorize transactions. One can create a new account with the [Create Account](./operation.md#create-account) operation.
+In the DiamNet network, users interact using **accounts** which can be controlled by a corresponding keypair that can authorize transactions. One can create a new account with the [Create Account](./operation.md#create-account) operation.
 
-To learn more about the concept of accounts in the HcNet network, take a look at the [HcNet account concept guide](https://www.hcnet.org/developers/learn/concepts/accounts.html).
+To learn more about the concept of accounts in the DiamNet network, take a look at the [DiamNet account concept guide](https://www.diamnet.org/developers/learn/concepts/accounts.html).
 
 When aurora returns information about an account it uses the following format:
 
@@ -14,12 +14,12 @@ When aurora returns information about an account it uses the following format:
 | id             | string           | The canonical id of this account, suitable for use as the :id parameter for url templates that require an account's ID.                      |
 | account_id     | string           | The account's public key encoded into a base32 string representation.                                                                        |
 | sequence       | number           | The current sequence number that can be used when submitting a transaction from this account.                                                |
-| subentry_count | number           | The number of [account subentries](https://www.hcnet.org/developers/guides/concepts/ledger.html#ledger-entries).                           |
+| subentry_count | number           | The number of [account subentries](https://www.diamnet.org/developers/guides/concepts/ledger.html#ledger-entries).                           |
 | balances       | array of objects | An array of the native asset or credits this account holds.                                                                                  |
 | thresholds     | object           | An object of account flags.                                                                                                                  |
 | flags          | array of objects | The flags denote the enabling/disabling of certain asset issuer privileges.                                                                  |
 | signers        | array of objects | An array of account signers with their weights.                                                                                              |
-| signers        | array of objects | An array of [account signers](https://www.hcnet.org/developers/guides/concepts/multi-sig.html#additional-signing-keys) with their weights. |
+| signers        | array of objects | An array of [account signers](https://www.diamnet.org/developers/guides/concepts/multi-sig.html#additional-signing-keys) with their weights. |
 | data           | object           | An array of account [data](./data.md) fields.                                                                                                |
 
 ### Signer Object
@@ -33,7 +33,7 @@ When aurora returns information about an account it uses the following format:
 ### Possible Signer Types
 | Type         | Description |
 |--------------|-------------|
-| ed25519_public_key | A normal HcNet public key. |
+| ed25519_public_key | A normal DiamNet public key. |
 | sha256_hash | The SHA256 hash of some arbitrary `x`. Adding a signature of this type allows anyone who knows `x` to sign a transaction from this account. *Note: Once this transaction is broadcast, `x` will be known publicly.* |
 | preauth_tx | The hash of a pre-authorized transaction. This signer is automatically removed from the account when a matching transaction is properly applied. |
 
@@ -46,7 +46,7 @@ When aurora returns information about an account it uses the following format:
 | limit      | optional, number           |  The maximum amount of an asset that this account is willing to accept (this is specified when an account opens a trustline).                                           |
 | asset_type    | string           | Either native, credit_alphanum4, or credit_alphanum12.                        |
 | asset_code     | optional, string           | The code for the asset.                       |
-| asset_issuer     | optional, string           | The hcnet address of the given asset's issuer.  |
+| asset_issuer     | optional, string           | The diamnet address of the given asset's issuer.  |
 
 ### Flag Object
 |    Attribute     |  Type  |                                                                                                                                |
@@ -62,19 +62,19 @@ When aurora returns information about an account it uses the following format:
 | med_threshold | number           | The weight required for a valid transaction including the [Create Account][create_acc], [Payment][payment], [Path Payment][path_payment], [Manage Buy Offer][manage_buy_offer], [Manage Sell Offer][manage_sell_offer], [Create Passive Sell Offer][passive_sell_offer], [Change Trust][change_trust], [Inflation][inflation], and [Manage Data][manage_data] operations. |
 | high_threshold | number           | The weight required for a valid transaction including the [Account Merge][account_merge] and [Set Options]() operations. |
 
-[account_merge]: https://www.hcnet.org/developers/guides/concepts/list-of-operations.html#account-merge
-[allow_trust]: https://www.hcnet.org/developers/guides/concepts/list-of-operations.html#allow-trust
-[bump_seq]: https://www.hcnet.org/developers/guides/concepts/list-of-operations.html#bump-sequence
-[change_trust]: https://www.hcnet.org/developers/guides/concepts/list-of-operations.html#change-trust
-[create_acc]: https://www.hcnet.org/developers/guides/concepts/list-of-operations.html#create-account
-[inflation]: https://www.hcnet.org/developers/guides/concepts/list-of-operations.html#inflation
-[manage_data]: https://www.hcnet.org/developers/guides/concepts/list-of-operations.html#manage-data
-[manage_buy_offer]: https://www.hcnet.org/developers/guides/concepts/list-of-operations.html#manage-buy-offer
-[manage_sell_offer]: https://www.hcnet.org/developers/guides/concepts/list-of-operations.html#manage-sell-offer
-[passive_sell_offer]: https://www.hcnet.org/developers/guides/concepts/list-of-operations.html#create-passive-sell-offer
-[path_payment]: https://www.hcnet.org/developers/guides/concepts/list-of-operations.html#path-payment
-[payment]: https://www.hcnet.org/developers/guides/concepts/list-of-operations.html#payment
-[set_options]: https://www.hcnet.org/developers/guides/concepts/list-of-operations.html#set-options
+[account_merge]: https://www.diamnet.org/developers/guides/concepts/list-of-operations.html#account-merge
+[allow_trust]: https://www.diamnet.org/developers/guides/concepts/list-of-operations.html#allow-trust
+[bump_seq]: https://www.diamnet.org/developers/guides/concepts/list-of-operations.html#bump-sequence
+[change_trust]: https://www.diamnet.org/developers/guides/concepts/list-of-operations.html#change-trust
+[create_acc]: https://www.diamnet.org/developers/guides/concepts/list-of-operations.html#create-account
+[inflation]: https://www.diamnet.org/developers/guides/concepts/list-of-operations.html#inflation
+[manage_data]: https://www.diamnet.org/developers/guides/concepts/list-of-operations.html#manage-data
+[manage_buy_offer]: https://www.diamnet.org/developers/guides/concepts/list-of-operations.html#manage-buy-offer
+[manage_sell_offer]: https://www.diamnet.org/developers/guides/concepts/list-of-operations.html#manage-sell-offer
+[passive_sell_offer]: https://www.diamnet.org/developers/guides/concepts/list-of-operations.html#create-passive-sell-offer
+[path_payment]: https://www.diamnet.org/developers/guides/concepts/list-of-operations.html#path-payment
+[payment]: https://www.diamnet.org/developers/guides/concepts/list-of-operations.html#payment
+[set_options]: https://www.diamnet.org/developers/guides/concepts/list-of-operations.html#set-options
 
 ## Links
 | rel          | Example                                                                                           | Description                                                | `templated` |
@@ -94,34 +94,34 @@ When aurora returns information about an account it uses the following format:
 {
   "_links": {
     "self": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GBWRID7MPYUDBTNQPEHUN4XOBVVDPJOHYXAVW3UTOD2RG7BDAY6O3PHW"
+      "href": "https://aurora-testnet.diamnet.org/accounts/GBWRID7MPYUDBTNQPEHUN4XOBVVDPJOHYXAVW3UTOD2RG7BDAY6O3PHW"
     },
     "transactions": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GBWRID7MPYUDBTNQPEHUN4XOBVVDPJOHYXAVW3UTOD2RG7BDAY6O3PHW/transactions{?cursor,limit,order}",
+      "href": "https://aurora-testnet.diamnet.org/accounts/GBWRID7MPYUDBTNQPEHUN4XOBVVDPJOHYXAVW3UTOD2RG7BDAY6O3PHW/transactions{?cursor,limit,order}",
       "templated": true
     },
     "operations": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GBWRID7MPYUDBTNQPEHUN4XOBVVDPJOHYXAVW3UTOD2RG7BDAY6O3PHW/operations{?cursor,limit,order}",
+      "href": "https://aurora-testnet.diamnet.org/accounts/GBWRID7MPYUDBTNQPEHUN4XOBVVDPJOHYXAVW3UTOD2RG7BDAY6O3PHW/operations{?cursor,limit,order}",
       "templated": true
     },
     "payments": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GBWRID7MPYUDBTNQPEHUN4XOBVVDPJOHYXAVW3UTOD2RG7BDAY6O3PHW/payments{?cursor,limit,order}",
+      "href": "https://aurora-testnet.diamnet.org/accounts/GBWRID7MPYUDBTNQPEHUN4XOBVVDPJOHYXAVW3UTOD2RG7BDAY6O3PHW/payments{?cursor,limit,order}",
       "templated": true
     },
     "effects": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GBWRID7MPYUDBTNQPEHUN4XOBVVDPJOHYXAVW3UTOD2RG7BDAY6O3PHW/effects{?cursor,limit,order}",
+      "href": "https://aurora-testnet.diamnet.org/accounts/GBWRID7MPYUDBTNQPEHUN4XOBVVDPJOHYXAVW3UTOD2RG7BDAY6O3PHW/effects{?cursor,limit,order}",
       "templated": true
     },
     "offers": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GBWRID7MPYUDBTNQPEHUN4XOBVVDPJOHYXAVW3UTOD2RG7BDAY6O3PHW/offers{?cursor,limit,order}",
+      "href": "https://aurora-testnet.diamnet.org/accounts/GBWRID7MPYUDBTNQPEHUN4XOBVVDPJOHYXAVW3UTOD2RG7BDAY6O3PHW/offers{?cursor,limit,order}",
       "templated": true
     },
     "trades": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GBWRID7MPYUDBTNQPEHUN4XOBVVDPJOHYXAVW3UTOD2RG7BDAY6O3PHW/trades{?cursor,limit,order}",
+      "href": "https://aurora-testnet.diamnet.org/accounts/GBWRID7MPYUDBTNQPEHUN4XOBVVDPJOHYXAVW3UTOD2RG7BDAY6O3PHW/trades{?cursor,limit,order}",
       "templated": true
     },
     "data": {
-      "href": "https://aurora-testnet.hcnet.org/accounts/GBWRID7MPYUDBTNQPEHUN4XOBVVDPJOHYXAVW3UTOD2RG7BDAY6O3PHW/data/{key}",
+      "href": "https://aurora-testnet.diamnet.org/accounts/GBWRID7MPYUDBTNQPEHUN4XOBVVDPJOHYXAVW3UTOD2RG7BDAY6O3PHW/data/{key}",
       "templated": true
     }
   },

@@ -23,7 +23,7 @@ A **path** resource contains information about a payment path.  A path can be us
 |--------------|------------------|------------------------------------------------------------------------------------------------------------------------
 | asset_code     | optional, string           | The code for the asset.                       |
 | asset_type     | string           | Either native, credit_alphanum4, or credit_alphanum12.                        |
-| asset_issuer     | optional, string           | The hcnet address of the given asset's issuer.  |
+| asset_issuer     | optional, string           | The diamnet address of the given asset's issuer.  |
 
 ## Example
 

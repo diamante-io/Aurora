@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/hcnet/go/support/errors"
+	"github.com/diamnet/go/support/errors"
 )
 
 type contentType int

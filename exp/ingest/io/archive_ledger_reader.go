@@ -1,6 +1,6 @@
 package io
 
-import "github.com/hcnet/go/xdr"
+import "github.com/diamnet/go/xdr"
 
 // ArchiveLedgerReader placeholder
 type ArchiveLedgerReader interface {

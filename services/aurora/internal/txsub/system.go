@@ -7,13 +7,13 @@ import (
 	"time"
 
 	"github.com/rcrowley/go-metrics"
-	"github.com/hcnet/go/services/aurora/internal/txsub/sequence"
-	"github.com/hcnet/go/support/log"
+	"github.com/diamnet/go/services/aurora/internal/txsub/sequence"
+	"github.com/diamnet/go/support/log"
 )
 
 // System represents a completely configured transaction submission system.
 // Its methods tie together the various pieces used to reliably submit transactions
-// to a hcnet-core instance.
+// to a diamnet-core instance.
 type System struct {
 	initializer sync.Once
 
@@ -31,7 +31,7 @@ type System struct {
 
 	Metrics struct {
 		// SubmissionTimer exposes timing metrics about the rate and latency of
-		// submissions to hcnet-core
+		// submissions to diamnet-core
 		SubmissionTimer metrics.Timer
 
 		// BufferedSubmissionGauge tracks the count of submissions buffered
@@ -165,7 +165,7 @@ func (sys *System) Submit(ctx context.Context, env string) (result <-chan Result
 // Submit submits the provided base64 encoded transaction envelope to the
 // network using this submission system.
 func (sys *System) submitOnce(ctx context.Context, env string) SubmissionResult {
-	// submit to hcnet-core
+	// submit to diamnet-core
 	sr := sys.Submitter.Submit(ctx, env)
 	sys.Metrics.SubmissionTimer.Update(sr.Duration)
 
@@ -276,7 +276,7 @@ func (sys *System) Init() {
 			// HTTP clients in SDKs usually timeout in 60 seconds. We want SubmissionTimeout
 			// to be lower than that to make sure that they read the response before the client
 			// timeout.
-			// 30 seconds is 6 ledgers (with avg. close time = 5 sec), enough for hcnet-core
+			// 30 seconds is 6 ledgers (with avg. close time = 5 sec), enough for diamnet-core
 			// to drop the transaction if not added to the ledger and ask client to try again
 			// by sending a Timeout response.
 			sys.SubmissionTimeout = 30 * time.Second

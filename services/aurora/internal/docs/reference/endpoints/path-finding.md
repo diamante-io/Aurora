@@ -1,10 +1,10 @@
 ---
 title: Find Payment Paths
 clientData:
-  laboratoryUrl: https://www.hcnet.org/laboratory/#explorer?resource=paths&endpoint=all
+  laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=paths&endpoint=all
 ---
 
-The HcNet Network allows payments to be made across assets through _path payments_.  A path
+The DiamNet Network allows payments to be made across assets through _path payments_.  A path
 payment specifies a series of assets to route a payment through, from source asset (the asset
 debited from the payer) to destination asset (the asset credited to the payee).
 
@@ -41,18 +41,18 @@ GET /paths?destination_account={da}&source_account={sa}&destination_asset_type={
 ### curl Example Request
 
 ```sh
-curl "https://aurora-testnet.hcnet.org/paths?destination_account=GAEDTJ4PPEFVW5XV2S7LUXBEHNQMX5Q2GM562RJGOQG7GVCE5H3HIB4V&source_account=GARSFJNXJIHO6ULUBK3DBYKVSIZE7SC72S5DYBCHU7DKL22UXKVD7MXP&destination_asset_type=native&destination_amount=20"
+curl "https://aurora-testnet.diamnet.org/paths?destination_account=GAEDTJ4PPEFVW5XV2S7LUXBEHNQMX5Q2GM562RJGOQG7GVCE5H3HIB4V&source_account=GARSFJNXJIHO6ULUBK3DBYKVSIZE7SC72S5DYBCHU7DKL22UXKVD7MXP&destination_asset_type=native&destination_amount=20"
 ```
 
 ### JavaScript Example Request
 
 ```javascript
-var HcNetSdk = require('hcnet-sdk');
-var server = new HcNetSdk.Server('https://aurora-testnet.hcnet.org');
+var DiamNetSdk = require('diamnet-sdk');
+var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
 
 var source_account = "GARSFJNXJIHO6ULUBK3DBYKVSIZE7SC72S5DYBCHU7DKL22UXKVD7MXP";
 var destination_account = "GAEDTJ4PPEFVW5XV2S7LUXBEHNQMX5Q2GM562RJGOQG7GVCE5H3HIB4V";
-var destination_asset = HcNetSdk.Asset.native();
+var destination_asset = DiamNetSdk.Asset.native();
 var destination_amount = "20";
 
 server.paths(source_account, destination_account, destination_asset, destination_amount)

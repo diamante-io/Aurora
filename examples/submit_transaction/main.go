@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/hcnet/go/clients/aurora"
+	"github.com/diamnet/go/clients/aurora"
 )
 
 func main() {

@@ -1,15 +1,15 @@
 package bridge
 
 import (
-	"github.com/hcnet/go/services/internal/bridge-compliance-shared/http/helpers"
-	"github.com/hcnet/go/services/internal/bridge-compliance-shared/protocols"
-	"github.com/hcnet/go/support/errors"
+	"github.com/diamnet/go/services/internal/bridge-compliance-shared/http/helpers"
+	"github.com/diamnet/go/services/internal/bridge-compliance-shared/protocols"
+	"github.com/diamnet/go/support/errors"
 )
 
 // AuthorizeRequest represents request made to /authorize endpoint of bridge server
 type AuthorizeRequest struct {
-	AccountID string `form:"account_id" valid:"required,hcnet_accountid"`
-	AssetCode string `form:"asset_code" valid:"required,hcnet_asset_code"`
+	AccountID string `form:"account_id" valid:"required,diamnet_accountid"`
+	AssetCode string `form:"asset_code" valid:"required,diamnet_asset_code"`
 }
 
 func (r AuthorizeRequest) Validate(params ...interface{}) error {

@@ -7,7 +7,7 @@ package reap
 import (
 	"time"
 
-	"github.com/hcnet/go/support/db"
+	"github.com/diamnet/go/support/db"
 )
 
 // System represents the history reaping subsystem of aurora.
@@ -18,7 +18,7 @@ type System struct {
 	nextRun time.Time
 }
 
-// New initializes the reaper, causing it to begin polling the hcnet-core
+// New initializes the reaper, causing it to begin polling the diamnet-core
 // database for now ledgers and ingesting data into the aurora database.
 func New(retention uint, aurora *db.Session) *System {
 	r := &System{

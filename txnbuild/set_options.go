@@ -1,8 +1,8 @@
 package txnbuild
 
 import (
-	"github.com/hcnet/go/support/errors"
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/xdr"
 )
 
 // AccountFlag represents the bitmask flags used to set and clear account authorization options.
@@ -47,8 +47,8 @@ func NewInflationDestination(ai string) *string {
 	return &ai
 }
 
-// SetOptions represents the HcNet set options operation. See
-// https://www.hcnet.org/developers/guides/concepts/list-of-operations.html
+// SetOptions represents the DiamNet set options operation. See
+// https://www.diamnet.org/developers/guides/concepts/list-of-operations.html
 type SetOptions struct {
 	InflationDestination *string
 	SetFlags             []AccountFlag
@@ -111,7 +111,7 @@ func (so *SetOptions) handleInflation() (err error) {
 }
 
 // handleSetFlags for SetOptions sets XDR account flags (represented as a bitmask).
-// See https://www.hcnet.org/developers/guides/concepts/accounts.html
+// See https://www.diamnet.org/developers/guides/concepts/accounts.html
 func (so *SetOptions) handleSetFlags() {
 	var flags xdr.Uint32
 	for _, flag := range so.SetFlags {
@@ -123,7 +123,7 @@ func (so *SetOptions) handleSetFlags() {
 }
 
 // handleClearFlags for SetOptions unsets XDR account flags (represented as a bitmask).
-// See https://www.hcnet.org/developers/guides/concepts/accounts.html
+// See https://www.diamnet.org/developers/guides/concepts/accounts.html
 func (so *SetOptions) handleClearFlags() {
 	var flags xdr.Uint32
 	for _, flag := range so.ClearFlags {
@@ -135,7 +135,7 @@ func (so *SetOptions) handleClearFlags() {
 }
 
 // handleMasterWeight for SetOptions sets the XDR weight of the master signing key.
-// See https://www.hcnet.org/developers/guides/concepts/multi-sig.html
+// See https://www.diamnet.org/developers/guides/concepts/multi-sig.html
 func (so *SetOptions) handleMasterWeight() {
 	if so.MasterWeight != nil {
 		xdrWeight := xdr.Uint32(*so.MasterWeight)
@@ -144,7 +144,7 @@ func (so *SetOptions) handleMasterWeight() {
 }
 
 // handleLowThreshold for SetOptions sets the XDR value of the account's "low" threshold.
-// See https://www.hcnet.org/developers/guides/concepts/multi-sig.html
+// See https://www.diamnet.org/developers/guides/concepts/multi-sig.html
 func (so *SetOptions) handleLowThreshold() {
 	if so.LowThreshold != nil {
 		xdrThreshold := xdr.Uint32(*so.LowThreshold)
@@ -153,7 +153,7 @@ func (so *SetOptions) handleLowThreshold() {
 }
 
 // handleMediumThreshold for SetOptions sets the XDR value of the account's "medium" threshold.
-// See https://www.hcnet.org/developers/guides/concepts/multi-sig.html
+// See https://www.diamnet.org/developers/guides/concepts/multi-sig.html
 func (so *SetOptions) handleMediumThreshold() {
 	if so.MediumThreshold != nil {
 		xdrThreshold := xdr.Uint32(*so.MediumThreshold)
@@ -162,7 +162,7 @@ func (so *SetOptions) handleMediumThreshold() {
 }
 
 // handleHighThreshold for SetOptions sets the XDR value of the account's "high" threshold.
-// See https://www.hcnet.org/developers/guides/concepts/multi-sig.html
+// See https://www.diamnet.org/developers/guides/concepts/multi-sig.html
 func (so *SetOptions) handleHighThreshold() {
 	if so.HighThreshold != nil {
 		xdrThreshold := xdr.Uint32(*so.HighThreshold)
@@ -171,7 +171,7 @@ func (so *SetOptions) handleHighThreshold() {
 }
 
 // handleHomeDomain for SetOptions sets the XDR value of the account's home domain.
-// https://www.hcnet.org/developers/guides/concepts/federation.html
+// https://www.diamnet.org/developers/guides/concepts/federation.html
 func (so *SetOptions) handleHomeDomain() error {
 	if so.HomeDomain != nil {
 		if len(*so.HomeDomain) > 32 {
@@ -185,7 +185,7 @@ func (so *SetOptions) handleHomeDomain() error {
 }
 
 // handleSigner for SetOptions sets the XDR value of a signer for the account.
-// See https://www.hcnet.org/developers/guides/concepts/multi-sig.html
+// See https://www.diamnet.org/developers/guides/concepts/multi-sig.html
 func (so *SetOptions) handleSigner() (err error) {
 	if so.Signer != nil {
 		var xdrSigner xdr.Signer

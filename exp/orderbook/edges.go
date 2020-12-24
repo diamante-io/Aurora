@@ -4,7 +4,7 @@ import (
 	"math/big"
 	"sort"
 
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/xdr"
 )
 
 // edgeSet maintains a maping of strings to sorted lists of offers.

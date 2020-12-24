@@ -1,10 +1,10 @@
 package bridge
 
 import (
-	b "github.com/hcnet/go/build"
-	shared "github.com/hcnet/go/services/internal/bridge-compliance-shared"
-	"github.com/hcnet/go/services/internal/bridge-compliance-shared/http/helpers"
-	"github.com/hcnet/go/txnbuild"
+	b "github.com/diamnet/go/build"
+	shared "github.com/diamnet/go/services/internal/bridge-compliance-shared"
+	"github.com/diamnet/go/services/internal/bridge-compliance-shared/http/helpers"
+	"github.com/diamnet/go/txnbuild"
 )
 
 // InflationOperationBody represents inflation operation
@@ -23,7 +23,7 @@ func (op InflationOperationBody) Build() txnbuild.Operation {
 	return &txnOp
 }
 
-// ToTransactionMutator returns go-hcnet-base TransactionMutator
+// ToTransactionMutator returns go-diamnet-base TransactionMutator
 func (op InflationOperationBody) ToTransactionMutator() b.TransactionMutator {
 	var mutators []interface{}
 

@@ -4,10 +4,10 @@ import (
 	"context"
 	"net/url"
 
-	"github.com/hcnet/go/protocols/aurora"
-	"github.com/hcnet/go/services/aurora/internal/httpx"
-	"github.com/hcnet/go/services/aurora/internal/ledger"
-	"github.com/hcnet/go/support/render/hal"
+	"github.com/diamnet/go/protocols/aurora"
+	"github.com/diamnet/go/services/aurora/internal/httpx"
+	"github.com/diamnet/go/services/aurora/internal/ledger"
+	"github.com/diamnet/go/support/render/hal"
 )
 
 // Populate fills in the details
@@ -26,7 +26,7 @@ func PopulateRoot(
 	dest.HistoryElderSequence = ledgerState.HistoryElder
 	dest.CoreSequence = ledgerState.CoreLatest
 	dest.AuroraVersion = hVersion
-	dest.HcNetCoreVersion = cVersion
+	dest.DiamNetCoreVersion = cVersion
 	dest.NetworkPassphrase = passphrase
 	dest.CurrentProtocolVersion = currentProtocolVersion
 	dest.CoreSupportedProtocolVersion = coreSupportedProtocolVersion

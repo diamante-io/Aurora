@@ -3,7 +3,7 @@ package codes
 import (
 	"testing"
 
-	"github.com/hcnet/go/xdr"
+	"github.com/diamnet/go/xdr"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -17,9 +17,9 @@ var verbose bool
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "demo",
-	Short: "Exercise the HcNet Go SDK (auroraclient + txnbuild)",
-	Long: `This CLI is a working demonstration of the HcNet Go SDK. The SDK is used to interact
-with the HcNet network. It can retrieve information about the state of the network, and can
+	Short: "Exercise the DiamNet Go SDK (auroraclient + txnbuild)",
+	Long: `This CLI is a working demonstration of the DiamNet Go SDK. The SDK is used to interact
+with the DiamNet network. It can retrieve information about the state of the network, and can
 submit _transactions_, made up of _operations_, to change the state of the network.
 
 Try out the different commands here to see the SDK in action, then browse the source code in

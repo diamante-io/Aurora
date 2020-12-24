@@ -13,7 +13,7 @@ GET /metrics
 ### curl Example Request
 
 ```sh
-curl "https://aurora-testnet.hcnet.org/metrics"
+curl "https://aurora-testnet.diamnet.org/metrics"
 ```
 
 
@@ -51,7 +51,7 @@ Aurora utilizes Go's built in concurrency primitives ([goroutines](https://gobye
 
 #### History
 
-Aurora maintains its own database (postgres), a verbose and user friendly account of activity on the HcNet network.
+Aurora maintains its own database (postgres), a verbose and user friendly account of activity on the DiamNet network.
 
 |    Metric     |  Description                                                                                                                               |
 | ---------------- |  ------------------------------------------------------------------------------------------------------------------------------ |
@@ -73,7 +73,7 @@ Aurora maintains its own database (postgres), a verbose and user friendly accoun
 ```
 
 #### Ingester
-Ingester represents metrics specific to Aurora's [ingestion](https://github.com/hcnet/go/blob/master/services/aurora/internal/docs/reference/admin.md#ingesting-hcnet-core-data) process, or the process by which Aurora consumes transaction results from a connected HcNet Core instance.
+Ingester represents metrics specific to Aurora's [ingestion](https://github.com/diamnet/go/blob/master/services/aurora/internal/docs/reference/admin.md#ingesting-diamnet-core-data) process, or the process by which Aurora consumes transaction results from a connected DiamNet Core instance.
 
 |    Metric     |  Description                                                                                                                               |
 | ---------------- |  ------------------------------------------------------------------------------------------------------------------------------ |
@@ -214,33 +214,33 @@ These metrics contain useful [sub metrics](#sub-metrics).
 },
 ```
 
-#### HcNet Core
-As noted above, Aurora relies on HcNet Core to stay in sync with the HcNet network. These metrics are specific to the underlying HcNet Core instance.
+#### DiamNet Core
+As noted above, Aurora relies on DiamNet Core to stay in sync with the DiamNet network. These metrics are specific to the underlying DiamNet Core instance.
 
 |    Metric     |  Description                                                                                                                               |
 | ---------------- |  ------------------------------------------------------------------------------------------------------------------------------ |
-| latest_ledger    | The sequence number of the latest (most recent) ledger recorded in HcNet Core's database.  |
-| open_connections | The number of open connections to the HcNet Core postgres database.  |
+| latest_ledger    | The sequence number of the latest (most recent) ledger recorded in DiamNet Core's database.  |
+| open_connections | The number of open connections to the DiamNet Core postgres database.  |
 
 ##### *Example Response:*
 ```shell
-"hcnet_core.latest_ledger": {
+"diamnet_core.latest_ledger": {
   "value": 19203710
 },
-"hcnet_core.open_connections": {
+"diamnet_core.open_connections": {
   "value": 4
 },
 ```
 
 #### Transaction Submission
 
-Aurora does not submit transactions directly to the HcNet network. Instead, it sequences transactions and sends the base64 encoded, XDR serialized blob to its connected HcNet Core instance. 
+Aurora does not submit transactions directly to the DiamNet network. Instead, it sequences transactions and sends the base64 encoded, XDR serialized blob to its connected DiamNet Core instance. 
 
 ##### Aurora Transaction Sequencing and Submission
 
-The following is a simplified version of the transaction submission process that glosses over the finer details. To dive deeper, check out the [source code](https://github.com/hcnet/go/tree/master/services/aurora/internal/txsub).
+The following is a simplified version of the transaction submission process that glosses over the finer details. To dive deeper, check out the [source code](https://github.com/diamnet/go/tree/master/services/aurora/internal/txsub).
 
-Aurora's sequencing mechanism consists of a [manager](https://github.com/hcnet/go/blob/master/services/aurora/internal/txsub/sequence/manager.go) that keeps track of [submission queues](https://github.com/hcnet/go/blob/master/services/aurora/internal/txsub/sequence/queue.go) for a set of addresses. A submission queue is a  priority queue, prioritized by minimum transaction sequence number, that holds a set of pending transactions for an account. A pending transaction is represented as an object with a sequence number and a channel. Periodically, this queue is updated, popping off finished transactions, sending down the transaction's channel a successful/failure response.
+Aurora's sequencing mechanism consists of a [manager](https://github.com/diamnet/go/blob/master/services/aurora/internal/txsub/sequence/manager.go) that keeps track of [submission queues](https://github.com/diamnet/go/blob/master/services/aurora/internal/txsub/sequence/queue.go) for a set of addresses. A submission queue is a  priority queue, prioritized by minimum transaction sequence number, that holds a set of pending transactions for an account. A pending transaction is represented as an object with a sequence number and a channel. Periodically, this queue is updated, popping off finished transactions, sending down the transaction's channel a successful/failure response.
 
 These metrics contain useful [sub metrics](#sub-metrics).
 

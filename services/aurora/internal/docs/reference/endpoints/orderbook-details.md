@@ -1,10 +1,10 @@
 ---
 title: Orderbook Details
 clientData:
-  laboratoryUrl: https://www.hcnet.org/laboratory/#explorer?resource=order_book&endpoint=details
+  laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=order_book&endpoint=details
 ---
 
-People on the HcNet network can make [offers](../resources/offer.md) to buy or sell assets.
+People on the DiamNet network can make [offers](../resources/offer.md) to buy or sell assets.
 These offers are summarized by the assets being bought and sold in
 [orderbooks](../resources/orderbook.md).
 
@@ -12,7 +12,7 @@ Aurora will return, for each orderbook, a summary of the orderbook and the bids 
 associated with that orderbook.
 
 This endpoint can also be used in [streaming](../streaming.md) mode so it is possible to use it to
-listen as offers are processed in the HcNet network.  If called in streaming mode Aurora will
+listen as offers are processed in the DiamNet network.  If called in streaming mode Aurora will
 start at the earliest known offer unless a `cursor` is set. In that case it will start from the
 `cursor`. You can also set `cursor` value to `now` to only stream offers created since your request
 time.
@@ -38,16 +38,16 @@ GET /order_book?selling_asset_type={selling_asset_type}&selling_asset_code={sell
 ### curl Example Request
 
 ```sh
-curl "https://aurora-testnet.hcnet.org/order_book?selling_asset_type=native&buying_asset_type=credit_alphanum4&buying_asset_code=FOO&buying_asset_issuer=GBAUUA74H4XOQYRSOW2RZUA4QL5PB37U3JS5NE3RTB2ELJVMIF5RLMAG&limit=20"
+curl "https://aurora-testnet.diamnet.org/order_book?selling_asset_type=native&buying_asset_type=credit_alphanum4&buying_asset_code=FOO&buying_asset_issuer=GBAUUA74H4XOQYRSOW2RZUA4QL5PB37U3JS5NE3RTB2ELJVMIF5RLMAG&limit=20"
 ```
 
 ### JavaScript Example Request
 
 ```javascript
-var HcNetSdk = require('hcnet-sdk');
-var server = new HcNetSdk.Server('https://aurora-testnet.hcnet.org');
+var DiamNetSdk = require('diamnet-sdk');
+var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
 
-server.orderbook(new HcNetSdk.Asset.native(), new HcNetSdk.Asset('FOO', 'GBAUUA74H4XOQYRSOW2RZUA4QL5PB37U3JS5NE3RTB2ELJVMIF5RLMAG'))
+server.orderbook(new DiamNetSdk.Asset.native(), new DiamNetSdk.Asset('FOO', 'GBAUUA74H4XOQYRSOW2RZUA4QL5PB37U3JS5NE3RTB2ELJVMIF5RLMAG'))
   .call()
   .then(function(resp) {
     console.log(resp);
@@ -60,14 +60,14 @@ server.orderbook(new HcNetSdk.Asset.native(), new HcNetSdk.Asset('FOO', 'GBAUUA7
 ### JavaScript Streaming Example
 
 ```javascript
-var HcNetSdk = require('hcnet-sdk')
-var server = new HcNetSdk.Server('https://aurora-testnet.hcnet.org');
+var DiamNetSdk = require('diamnet-sdk')
+var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
 
 var orderbookHandler = function (orderbookResponse) {
   console.log(orderbookResponse);
 };
 
-var es = server.orderbook(new HcNetSdk.Asset.native(), new HcNetSdk.Asset('FOO', 'GBAUUA74H4XOQYRSOW2RZUA4QL5PB37U3JS5NE3RTB2ELJVMIF5RLMAG'))
+var es = server.orderbook(new DiamNetSdk.Asset.native(), new DiamNetSdk.Asset('FOO', 'GBAUUA74H4XOQYRSOW2RZUA4QL5PB37U3JS5NE3RTB2ELJVMIF5RLMAG'))
   .cursor('now')
   .stream({
     onmessage: orderbookHandler
