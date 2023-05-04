@@ -17,9 +17,9 @@ import (
 func ContextWithLogBuffer() (context.Context, *bytes.Buffer) {
 	output := new(bytes.Buffer)
 	l := log.New()
-	l.Logger.Out = output
-	l.Logger.Formatter.(*logrus.TextFormatter).DisableColors = true
-	l.Logger.Level = logrus.DebugLevel
+	l.SetOutput(output)
+	l.DisableColors()
+	l.SetLevel(logrus.DebugLevel)
 
 	ctx := log.Set(context.Background(), l)
 	return ctx, output

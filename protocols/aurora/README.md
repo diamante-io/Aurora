@@ -30,14 +30,14 @@ For each new version we will only track changes from the previous version.
 
 * Assets stats are disabled by default. This can be changed using an environment variable (`ENABLE_ASSET_STATS=true`) or
 CLI parameter (`--enable-asset-stats=true`). Please note that it has a negative impact on a DB and ingestion time.
-* In ["Offers for Account"](https://www.diamnet.org/developers/aurora/reference/endpoints/offers-for-account.html),
+* In ["Offers for Account"](https://developers.diamnet.org/api/resources/accounts/offers/),
 `last_modified_time` field  endpoint can be `null` when ledger data is not available (has not been ingested yet).
-* ["Trades for Offer"](https://www.diamnet.org/developers/aurora/reference/endpoints/trades-for-offer.html) endpoint
+* ["Trades for Offer"](https://developers.diamnet.org/api/resources/offers/trades/) endpoint
 will query for trades that match the given offer on either side of trades, rather than just the "sell" offer.
-Offer IDs are now [synthetic](https://www.diamnet.org/developers/aurora/reference/resources/trade.html#synthetic-offer-ids).
+Offer IDs are now [synthetic](https://developers.diamnet.org/api/resources/trades/).
 * New `/operation_fee_stats` endpoint includes fee stats for the last 5 ledgers.
-* ["Trades"](https://www.diamnet.org/developers/aurora/reference/endpoints/trades.html) endpoint can now be streamed.
-* In ["Trade Aggregations"](https://www.diamnet.org/developers/aurora/reference/endpoints/trade_aggregations.html) endpoint,
+* ["Trades"](https://developers.diamnet.org/api/resources/trades/list/) endpoint can now be streamed.
+* In ["Trade Aggregations"](https://developers.diamnet.org/api/aggregations/trade-aggregations/list/) endpoint,
 `offset` parameter has been added.
 * Account flags now display `auth_immutable` value.
 * Rate limiting in streams has been changed to be more fair. Now 1 *credit* has to be *paid* every time there's a new ledger
@@ -101,7 +101,7 @@ instead of per request.
 
 #### Changes
 
-- `amount` field in `/assets` is now a String (to support DiamNet amounts larger than `int64`).
+- `amount` field in `/assets` is now a String (to support Diamnet amounts larger than `int64`).
 - Effect resource contains a new `created_at` field.
 
 | Resource                                 | Changes                                      | Go SDK <sup>1</sup> | JS SDK             | Java SDK |

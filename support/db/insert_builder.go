@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"database/sql"
 	"reflect"
 
@@ -9,13 +10,13 @@ import (
 
 // Exec executes the query represented by the builder, inserting each val
 // provided to the builder into the database.
-func (ib *InsertBuilder) Exec() (sql.Result, error) {
+func (ib *InsertBuilder) Exec(ctx context.Context) (sql.Result, error) {
 	if len(ib.rows) == 0 {
 		return nil, &NoRowsError{}
 	}
 
 	template := ib.rows[0]
-	cols := columnsForStruct(template)
+	cols := ColumnsForStruct(template)
 
 	if ib.ignoredCols != nil {
 		finalCols := make([]string, 0, len(cols))
@@ -49,7 +50,7 @@ func (ib *InsertBuilder) Exec() (sql.Result, error) {
 
 	// TODO: support return inserted id
 
-	r, err := ib.Table.Session.Exec(sql)
+	r, err := ib.Table.Session.Exec(ctx, sql)
 	if err != nil {
 		return nil, errors.Wrap(err, "insert failed")
 	}

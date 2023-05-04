@@ -2,6 +2,7 @@ package auroraclient
 
 import (
 	"fmt"
+	"net/http"
 	"net/url"
 
 	"github.com/diamnet/go/support/errors"
@@ -26,4 +27,14 @@ func (ar AssetRequest) BuildURL() (endpoint string, err error) {
 	}
 
 	return endpoint, err
+}
+
+// HTTPRequest returns the http request for the assets endpoint
+func (ar AssetRequest) HTTPRequest(auroraURL string) (*http.Request, error) {
+	endpoint, err := ar.BuildURL()
+	if err != nil {
+		return nil, err
+	}
+
+	return http.NewRequest("GET", auroraURL+endpoint, nil)
 }

@@ -26,9 +26,9 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	switch typ {
 	case "name":
-		h.lookupByName(w, q)
+		h.lookupByName(w, r, q)
 	case "id":
-		h.lookupByID(w, q)
+		h.lookupByID(w, r, q)
 	case "forward":
 		h.lookupByForward(w, r.URL.Query())
 	case "txid":
@@ -55,7 +55,7 @@ func (h *Handler) failNotImplemented(w http.ResponseWriter, msg string) {
 	}, http.StatusNotImplemented)
 }
 
-func (h *Handler) lookupByID(w http.ResponseWriter, q string) {
+func (h *Handler) lookupByID(w http.ResponseWriter, r *http.Request, q string) {
 	rd, ok := h.Driver.(ReverseDriver)
 
 	if !ok {
@@ -65,7 +65,7 @@ func (h *Handler) lookupByID(w http.ResponseWriter, q string) {
 
 	// TODO: validate that `q` is a strkey encoded address
 
-	rec, err := rd.LookupReverseRecord(q)
+	rec, err := rd.LookupReverseRecord(r.Context(), q)
 	if err != nil {
 		h.writeError(w, errors.Wrap(err, "lookup record"))
 		return
@@ -81,7 +81,7 @@ func (h *Handler) lookupByID(w http.ResponseWriter, q string) {
 	}, http.StatusOK)
 }
 
-func (h *Handler) lookupByName(w http.ResponseWriter, q string) {
+func (h *Handler) lookupByName(w http.ResponseWriter, r *http.Request, q string) {
 	name, domain, err := address.Split(q)
 	if err != nil {
 		h.writeJSON(w, ErrorResponse{
@@ -91,7 +91,7 @@ func (h *Handler) lookupByName(w http.ResponseWriter, q string) {
 		return
 	}
 
-	rec, err := h.Driver.LookupRecord(name, domain)
+	rec, err := h.Driver.LookupRecord(r.Context(), name, domain)
 	if err != nil {
 		h.writeError(w, errors.Wrap(err, "lookupByName"))
 		return

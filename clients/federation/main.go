@@ -16,20 +16,20 @@ const FederationResponseMaxSize = 100 * 1024
 var DefaultTestNetClient = &Client{
 	HTTP:        http.DefaultClient,
 	Aurora:     hc.DefaultTestNetClient,
-	DiamNetTOML: diamnettoml.DefaultClient,
+	DiamnetTOML: diamnettoml.DefaultClient,
 }
 
 // DefaultPublicNetClient is a default federation client for pubnet
 var DefaultPublicNetClient = &Client{
 	HTTP:        http.DefaultClient,
 	Aurora:     hc.DefaultPublicNetClient,
-	DiamNetTOML: diamnettoml.DefaultClient,
+	DiamnetTOML: diamnettoml.DefaultClient,
 }
 
 // Client represents a client that is capable of resolving a federation request
 // using the internet.
 type Client struct {
-	DiamNetTOML DiamNetTOML
+	DiamnetTOML DiamnetTOML
 	HTTP        HTTP
 	Aurora     Aurora
 	AllowHTTP   bool
@@ -53,14 +53,14 @@ type HTTP interface {
 	Get(url string) (*http.Response, error)
 }
 
-// DiamNetTOML represents a client that can resolve a given domain name to
+// DiamnetTOML represents a client that can resolve a given domain name to
 // diamnet.toml file.  The response is used to find the federation server that a
 // query should be made against.
-type DiamNetTOML interface {
-	GetDiamNetToml(domain string) (*diamnettoml.Response, error)
+type DiamnetTOML interface {
+	GetDiamnetToml(domain string) (*diamnettoml.Response, error)
 }
 
 // confirm interface conformity
-var _ DiamNetTOML = diamnettoml.DefaultClient
+var _ DiamnetTOML = diamnettoml.DefaultClient
 var _ HTTP = http.DefaultClient
 var _ ClientInterface = &Client{}

@@ -1,5 +1,6 @@
 ---
 title: Not Implemented
+replacement: https://developers.diamnet.org/api/errors/http-status-codes/standard/
 ---
 
 If your [request method](http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html) is not supported by

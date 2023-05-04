@@ -7,14 +7,14 @@ type MockClient struct {
 	mock.Mock
 }
 
-// GetDiamNetToml is a mocking a method
-func (m *MockClient) GetDiamNetToml(domain string) (*Response, error) {
+// GetDiamnetToml is a mocking a method
+func (m *MockClient) GetDiamnetToml(domain string) (*Response, error) {
 	a := m.Called(domain)
 	return a.Get(0).(*Response), a.Error(1)
 }
 
-// GetDiamNetTomlByAddress is a mocking a method
-func (m *MockClient) GetDiamNetTomlByAddress(address string) (*Response, error) {
+// GetDiamnetTomlByAddress is a mocking a method
+func (m *MockClient) GetDiamnetTomlByAddress(address string) (*Response, error) {
 	a := m.Called(address)
 	return a.Get(0).(*Response), a.Error(1)
 }

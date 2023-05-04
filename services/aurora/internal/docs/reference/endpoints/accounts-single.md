@@ -2,6 +2,7 @@
 title: Account Details
 clientData:
   laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=accounts&endpoint=single
+replacement: https://developers.diamnet.org/api/resources/accounts/single/
 ---
 
 Returns information and links relating to a single [account](../resources/account.md).
@@ -36,8 +37,8 @@ curl "https://aurora-testnet.diamnet.org/accounts/GD42RQNXTRIW6YR3E2HXV5T2AI27LB
 ### JavaScript Example Request
 
 ```javascript
-var DiamNetSdk = require('diamnet-sdk');
-var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
+var DiamnetSdk = require('diamnet-sdk');
+var server = new DiamnetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.accounts()
   .accountId("GD42RQNXTRIW6YR3E2HXV5T2AI27LBRHOERV2JIYNFMXOBA234SWLQQB")
@@ -113,6 +114,7 @@ This endpoint responds with the details of a single account for a given ID. See 
       "buying_liabilities": "0.0000000",
       "selling_liabilities": "0.0000000",
       "last_modified_ledger": 632070,
+      "is_authorized": true,
       "asset_type": "credit_alphanum4",
       "asset_code": "FOO",
       "asset_issuer": "GAGLYFZJMN5HEULSTH5CIGPOPAVUYPG5YSWIYDJMAPIECYEBPM2TA3QR"

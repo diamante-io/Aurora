@@ -3,14 +3,24 @@
 package history
 
 import (
+	"context"
+	"database/sql"
+	"database/sql/driver"
+	"encoding/json"
+	"fmt"
+	"strings"
 	"sync"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/guregu/null"
+	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 
 	"github.com/diamnet/go/services/aurora/internal/db2"
 	"github.com/diamnet/go/support/db"
+	"github.com/diamnet/go/support/errors"
+	strtime "github.com/diamnet/go/support/time"
 	"github.com/diamnet/go/xdr"
 )
 
@@ -69,24 +79,34 @@ const (
 	// EffectTrustlineUpdated occurs when an account changes a trustline's limit
 	EffectTrustlineUpdated EffectType = 22 // from change_trust, allow_trust
 
+	// Deprecated: use EffectTrustlineFlagsUpdated instead.
 	// EffectTrustlineAuthorized occurs when an anchor has AUTH_REQUIRED flag set
 	// to true and it authorizes another account's trustline
 	EffectTrustlineAuthorized EffectType = 23 // from allow_trust
 
+	// Deprecated: use EffectTrustlineFlagsUpdated instead.
 	// EffectTrustlineDeauthorized occurs when an anchor revokes access to a asset
 	// it issues.
 	EffectTrustlineDeauthorized EffectType = 24 // from allow_trust
 
+	// Deprecated: use EffectTrustlineFlagsUpdated instead.
+	// EffectTrustlineAuthorizedToMaintainLiabilities occurs when an anchor has AUTH_REQUIRED flag set
+	// to true and it authorizes another account's trustline to maintain liabilities
+	EffectTrustlineAuthorizedToMaintainLiabilities EffectType = 25 // from allow_trust
+
+	// EffectTrustlineFlagsUpdated effects occur when a TrustLine changes its
+	// flags, either clearing or setting.
+	EffectTrustlineFlagsUpdated EffectType = 26 // from set_trust_line flags
+
 	// trading effects
 
+	// unused
 	// EffectOfferCreated occurs when an account offers to trade an asset
-	EffectOfferCreated EffectType = 30 // from manage_offer, creat_passive_offer
-
+	// EffectOfferCreated EffectType = 30 // from manage_offer, creat_passive_offer
 	// EffectOfferRemoved occurs when an account removes an offer
-	EffectOfferRemoved EffectType = 31 // from manage_offer, creat_passive_offer, path_payment
-
+	// EffectOfferRemoved EffectType = 31 // from manage_offer, create_passive_offer, path_payment
 	// EffectOfferUpdated occurs when an offer is updated by the offering account.
-	EffectOfferUpdated EffectType = 32 // from manage_offer, creat_passive_offer, path_payment
+	// EffectOfferUpdated EffectType = 32 // from manage_offer, creat_passive_offer, path_payment
 
 	// EffectTrade occurs when a trade is initiated because of a path payment or
 	// offer operation.
@@ -106,34 +126,205 @@ const (
 	// EffectSequenceBumped occurs when an account bumps their sequence number
 	EffectSequenceBumped EffectType = 43 // from bump_sequence
 
-)
+	// claimable balance effects
 
-// ExperimentalIngestionTables is a list of tables populated by the experimental
-// ingestion system
-var ExperimentalIngestionTables = []string{
-	"accounts_signers",
-	"offers",
-}
+	// EffectClaimableBalanceCreated occurs when a claimable balance is created
+	EffectClaimableBalanceCreated EffectType = 50 // from create_claimable_balance
+
+	// EffectClaimableBalanceClaimantCreated occurs when a claimable balance claimant is created
+	EffectClaimableBalanceClaimantCreated EffectType = 51 // from create_claimable_balance
+
+	// EffectClaimableBalanceClaimed occurs when a claimable balance is claimed
+	EffectClaimableBalanceClaimed EffectType = 52 // from claim_claimable_balance
+
+	// sponsorship effects
+
+	// EffectAccountSponsorshipCreated occurs when an account ledger entry is sponsored
+	EffectAccountSponsorshipCreated EffectType = 60 // from create_account
+
+	// EffectAccountSponsorshipUpdated occurs when the sponsoring of an account ledger entry is updated
+	EffectAccountSponsorshipUpdated EffectType = 61 // from revoke_sponsorship
+
+	// EffectAccountSponsorshipRemoved occurs when the sponsorship of an account ledger entry is removed
+	EffectAccountSponsorshipRemoved EffectType = 62 // from revoke_sponsorship
+
+	// EffectTrustlineSponsorshipCreated occurs when a trustline ledger entry is sponsored
+	EffectTrustlineSponsorshipCreated EffectType = 63 // from change_trust
+
+	// EffectTrustlineSponsorshipUpdated occurs when the sponsoring of a trustline ledger entry is updated
+	EffectTrustlineSponsorshipUpdated EffectType = 64 // from revoke_sponsorship
+
+	// EffectTrustlineSponsorshipRemoved occurs when the sponsorship of a trustline ledger entry is removed
+	EffectTrustlineSponsorshipRemoved EffectType = 65 // from revoke_sponsorship
+
+	// EffectDataSponsorshipCreated occurs when a trustline ledger entry is sponsored
+	EffectDataSponsorshipCreated EffectType = 66 // from manage_data
+
+	// EffectDataSponsorshipUpdated occurs when the sponsoring of a trustline ledger entry is updated
+	EffectDataSponsorshipUpdated EffectType = 67 // from revoke_sponsorship
+
+	// EffectDataSponsorshipRemoved occurs when the sponsorship of a trustline ledger entry is removed
+	EffectDataSponsorshipRemoved EffectType = 68 // from revoke_sponsorship
+
+	// EffectClaimableBalanceSponsorshipCreated occurs when a claimable balance ledger entry is sponsored
+	EffectClaimableBalanceSponsorshipCreated EffectType = 69 // from create_claimable_balance
+
+	// EffectClaimableBalanceSponsorshipUpdated occurs when the sponsoring of a claimable balance ledger entry
+	// is updated
+	EffectClaimableBalanceSponsorshipUpdated EffectType = 70 // from revoke_sponsorship
+
+	// EffectClaimableBalanceSponsorshipRemoved occurs when the sponsorship of a claimable balance ledger entry
+	// is removed
+	EffectClaimableBalanceSponsorshipRemoved EffectType = 71 // from claim_claimable_balance
+
+	// EffectSignerSponsorshipCreated occurs when the sponsorship of a signer is created
+	EffectSignerSponsorshipCreated EffectType = 72 // from set_options
+
+	// EffectSignerSponsorshipUpdated occurs when the sponsorship of a signer is updated
+	EffectSignerSponsorshipUpdated EffectType = 73 // from revoke_sponsorship
+
+	// EffectSignerSponsorshipRemoved occurs when the sponsorship of a signer is removed
+	EffectSignerSponsorshipRemoved EffectType = 74 // from revoke_sponsorship
+
+	// EffectClaimableBalanceClawedBack occurs when a claimable balance is clawed back
+	EffectClaimableBalanceClawedBack EffectType = 80 // from clawback_claimable_balance
+
+	// EffectLiquidityPoolDeposited occurs when a liquidity pool incurs a deposit
+	EffectLiquidityPoolDeposited EffectType = 90 // from liquidity_pool_deposit
+
+	// EffectLiquidityPoolWithdrew occurs when a liquidity pool incurs a withdrawal
+	EffectLiquidityPoolWithdrew EffectType = 91 // from liquidity_pool_withdraw
+
+	// EffectLiquidityPoolTrade occurs when a trade happens in a liquidity pool
+	EffectLiquidityPoolTrade EffectType = 92
+
+	// EffectLiquidityPoolCreated occurs when a liquidity pool is created
+	EffectLiquidityPoolCreated EffectType = 93 // from change_trust
+
+	// EffectLiquidityPoolRemoved occurs when a liquidity pool is removed
+	EffectLiquidityPoolRemoved EffectType = 94 // from change_trust
+
+	// EffectLiquidityPoolRevoked occurs when a liquidity pool is revoked
+	EffectLiquidityPoolRevoked EffectType = 95 // from change_trust_line_flags and allow_trust
+)
 
 // Account is a row of data from the `history_accounts` table
 type Account struct {
-	ID      int64
+	ID      int64  `db:"id"`
 	Address string `db:"address"`
 }
 
-// AccountsQ is a helper struct to aid in configuring queries that loads
-// slices of account structs.
-type AccountsQ struct {
-	Err    error
-	parent *Q
-	sql    sq.SelectBuilder
+// AccountEntry is a row of data from the `account` table
+type AccountEntry struct {
+	AccountID            string      `db:"account_id"`
+	Balance              int64       `db:"balance"`
+	BuyingLiabilities    int64       `db:"buying_liabilities"`
+	SellingLiabilities   int64       `db:"selling_liabilities"`
+	SequenceNumber       int64       `db:"sequence_number"`
+	NumSubEntries        uint32      `db:"num_subentries"`
+	InflationDestination string      `db:"inflation_destination"`
+	HomeDomain           string      `db:"home_domain"`
+	Flags                uint32      `db:"flags"`
+	MasterWeight         byte        `db:"master_weight"`
+	ThresholdLow         byte        `db:"threshold_low"`
+	ThresholdMedium      byte        `db:"threshold_medium"`
+	ThresholdHigh        byte        `db:"threshold_high"`
+	LastModifiedLedger   uint32      `db:"last_modified_ledger"`
+	Sponsor              null.String `db:"sponsor"`
+	NumSponsored         uint32      `db:"num_sponsored"`
+	NumSponsoring        uint32      `db:"num_sponsoring"`
+}
+
+type IngestionQ interface {
+	QAccounts
+	QAssetStats
+	QClaimableBalances
+	QHistoryClaimableBalances
+	QData
+	QEffects
+	QLedgers
+	QLiquidityPools
+	QHistoryLiquidityPools
+	QOffers
+	QOperations
+	// QParticipants
+	// Copy the small interfaces with shared methods directly, otherwise error:
+	// duplicate method CreateAccounts
+	NewTransactionParticipantsBatchInsertBuilder(maxBatchSize int) TransactionParticipantsBatchInsertBuilder
+	NewOperationParticipantBatchInsertBuilder(maxBatchSize int) OperationParticipantBatchInsertBuilder
+	QSigners
+	//QTrades
+	NewTradeBatchInsertBuilder(maxBatchSize int) TradeBatchInsertBuilder
+	RebuildTradeAggregationTimes(ctx context.Context, from, to strtime.Millis) error
+	RebuildTradeAggregationBuckets(ctx context.Context, fromLedger, toLedger uint32) error
+	CreateAssets(ctx context.Context, assets []xdr.Asset, batchSize int) (map[string]Asset, error)
+	QTransactions
+	QTrustLines
+
+	Begin() error
+	BeginTx(*sql.TxOptions) error
+	Commit() error
+	CloneIngestionQ() IngestionQ
+	Rollback() error
+	GetTx() *sqlx.Tx
+	GetIngestVersion(context.Context) (int, error)
+	UpdateExpStateInvalid(context.Context, bool) error
+	UpdateIngestVersion(context.Context, int) error
+	GetExpStateInvalid(context.Context) (bool, error)
+	GetLatestHistoryLedger(context.Context) (uint32, error)
+	GetOfferCompactionSequence(context.Context) (uint32, error)
+	GetLiquidityPoolCompactionSequence(context.Context) (uint32, error)
+	TruncateIngestStateTables(context.Context) error
+	DeleteRangeAll(ctx context.Context, start, end int64) error
+}
+
+// QAccounts defines account related queries.
+type QAccounts interface {
+	GetAccountsByIDs(ctx context.Context, ids []string) ([]AccountEntry, error)
+	UpsertAccounts(ctx context.Context, accounts []AccountEntry) error
+	RemoveAccounts(ctx context.Context, accountIDs []string) (int64, error)
 }
 
 // AccountSigner is a row of data from the `accounts_signers` table
 type AccountSigner struct {
-	Account string `db:"account"`
-	Signer  string `db:"signer"`
-	Weight  int32  `db:"weight"`
+	Account string      `db:"account_id"`
+	Signer  string      `db:"signer"`
+	Weight  int32       `db:"weight"`
+	Sponsor null.String `db:"sponsor"`
+}
+
+type AccountSignersBatchInsertBuilder interface {
+	Add(ctx context.Context, signer AccountSigner) error
+	Exec(ctx context.Context) error
+}
+
+// accountSignersBatchInsertBuilder is a simple wrapper around db.BatchInsertBuilder
+type accountSignersBatchInsertBuilder struct {
+	builder db.BatchInsertBuilder
+}
+
+// Data is a row of data from the `account_data` table
+type Data struct {
+	AccountID          string           `db:"account_id"`
+	Name               string           `db:"name"`
+	Value              AccountDataValue `db:"value"`
+	LastModifiedLedger uint32           `db:"last_modified_ledger"`
+	Sponsor            null.String      `db:"sponsor"`
+}
+
+type AccountDataValue []byte
+
+type AccountDataKey struct {
+	AccountID string
+	DataName  string
+}
+
+// QData defines account data related queries.
+type QData interface {
+	CountAccountsData(ctx context.Context) (int, error)
+	GetAccountDataByKeys(ctx context.Context, keys []AccountDataKey) ([]Data, error)
+	UpsertAccountData(ctx context.Context, data []Data) error
+	RemoveAccountData(ctx context.Context, keys []AccountDataKey) (int64, error)
 }
 
 // Asset is a row of data from the `history_assets` table
@@ -144,23 +335,149 @@ type Asset struct {
 	Issuer string `db:"asset_issuer"`
 }
 
-// AssetStat is a row in the asset_stats table representing the stats per Asset
-type AssetStat struct {
-	ID          int64  `db:"id"`
-	Amount      string `db:"amount"`
-	NumAccounts int32  `db:"num_accounts"`
-	Flags       int8   `db:"flags"`
-	Toml        string `db:"toml"`
+// ExpAssetStat is a row in the exp_asset_stats table representing the stats per Asset
+type ExpAssetStat struct {
+	AssetType   xdr.AssetType        `db:"asset_type"`
+	AssetCode   string               `db:"asset_code"`
+	AssetIssuer string               `db:"asset_issuer"`
+	Accounts    ExpAssetStatAccounts `db:"accounts"`
+	Balances    ExpAssetStatBalances `db:"balances"`
+	Amount      string               `db:"amount"`
+	NumAccounts int32                `db:"num_accounts"`
+}
+
+// PagingToken returns a cursor for this asset stat
+func (e ExpAssetStat) PagingToken() string {
+	return fmt.Sprintf(
+		"%s_%s_%s",
+		e.AssetCode,
+		e.AssetIssuer,
+		xdr.AssetTypeToString[e.AssetType],
+	)
+}
+
+// ExpAssetStatAccounts represents the summarized acount numbers for a single Asset
+type ExpAssetStatAccounts struct {
+	Authorized                      int32 `json:"authorized"`
+	AuthorizedToMaintainLiabilities int32 `json:"authorized_to_maintain_liabilities"`
+	ClaimableBalances               int32 `json:"claimable_balances"`
+	LiquidityPools                  int32 `json:"liquidity_pools"`
+	Unauthorized                    int32 `json:"unauthorized"`
+}
+
+func (e ExpAssetStatAccounts) Value() (driver.Value, error) {
+	return json.Marshal(e)
+}
+
+func (e *ExpAssetStatAccounts) Scan(src interface{}) error {
+	source, ok := src.([]byte)
+	if !ok {
+		return errors.New("Type assertion .([]byte) failed.")
+	}
+
+	return json.Unmarshal(source, &e)
+}
+
+func (a ExpAssetStatAccounts) Add(b ExpAssetStatAccounts) ExpAssetStatAccounts {
+	return ExpAssetStatAccounts{
+		Authorized:                      a.Authorized + b.Authorized,
+		AuthorizedToMaintainLiabilities: a.AuthorizedToMaintainLiabilities + b.AuthorizedToMaintainLiabilities,
+		ClaimableBalances:               a.ClaimableBalances + b.ClaimableBalances,
+		LiquidityPools:                  a.LiquidityPools + b.LiquidityPools,
+		Unauthorized:                    a.Unauthorized + b.Unauthorized,
+	}
+}
+
+func (a ExpAssetStatAccounts) IsZero() bool {
+	return a == ExpAssetStatAccounts{}
+}
+
+// ExpAssetStatBalances represents the summarized balances for a single Asset
+// Note: the string representation is in stroops!
+type ExpAssetStatBalances struct {
+	Authorized                      string `json:"authorized"`
+	AuthorizedToMaintainLiabilities string `json:"authorized_to_maintain_liabilities"`
+	ClaimableBalances               string `json:"claimable_balances"`
+	LiquidityPools                  string `json:"liquidity_pools"`
+	Unauthorized                    string `json:"unauthorized"`
+}
+
+func (e ExpAssetStatBalances) Value() (driver.Value, error) {
+	return json.Marshal(e)
+}
+
+func (e *ExpAssetStatBalances) Scan(src interface{}) error {
+	source, ok := src.([]byte)
+	if !ok {
+		return errors.New("Type assertion .([]byte) failed.")
+	}
+
+	err := json.Unmarshal(source, &e)
+	if err != nil {
+		return err
+	}
+
+	// Sets zero values for empty balances
+	if e.Authorized == "" {
+		e.Authorized = "0"
+	}
+	if e.AuthorizedToMaintainLiabilities == "" {
+		e.AuthorizedToMaintainLiabilities = "0"
+	}
+	if e.ClaimableBalances == "" {
+		e.ClaimableBalances = "0"
+	}
+	if e.LiquidityPools == "" {
+		e.LiquidityPools = "0"
+	}
+	if e.Unauthorized == "" {
+		e.Unauthorized = "0"
+	}
+
+	return nil
+}
+
+// QAssetStats defines exp_asset_stats related queries.
+type QAssetStats interface {
+	InsertAssetStats(ctx context.Context, stats []ExpAssetStat, batchSize int) error
+	InsertAssetStat(ctx context.Context, stat ExpAssetStat) (int64, error)
+	UpdateAssetStat(ctx context.Context, stat ExpAssetStat) (int64, error)
+	GetAssetStat(ctx context.Context, assetType xdr.AssetType, assetCode, assetIssuer string) (ExpAssetStat, error)
+	RemoveAssetStat(ctx context.Context, assetType xdr.AssetType, assetCode, assetIssuer string) (int64, error)
+	GetAssetStats(ctx context.Context, assetCode, assetIssuer string, page db2.PageQuery) ([]ExpAssetStat, error)
+	CountTrustLines(ctx context.Context) (int, error)
+}
+
+type QCreateAccountsHistory interface {
+	CreateAccounts(ctx context.Context, addresses []string, maxBatchSize int) (map[string]int64, error)
 }
 
 // Effect is a row of data from the `history_effects` table
 type Effect struct {
 	HistoryAccountID   int64       `db:"history_account_id"`
 	Account            string      `db:"address"`
+	AccountMuxed       null.String `db:"address_muxed"`
 	HistoryOperationID int64       `db:"history_operation_id"`
 	Order              int32       `db:"order"`
 	Type               EffectType  `db:"type"`
 	DetailsString      null.String `db:"details"`
+}
+
+// TradeEffectDetails is a struct of data from `effects.DetailsString`
+// when the effect type is trade
+type TradeEffectDetails struct {
+	Seller            string `json:"seller"`
+	SellerMuxed       string `json:"seller_muxed,omitempty"`
+	SellerMuxedID     uint64 `json:"seller_muxed_id,omitempty"`
+	OfferID           int64  `json:"offer_id"`
+	SoldAmount        string `json:"sold_amount"`
+	SoldAssetType     string `json:"sold_asset_type"`
+	SoldAssetCode     string `json:"sold_asset_code,omitempty"`
+	SoldAssetIssuer   string `json:"sold_asset_issuer,omitempty"`
+	BoughtAmount      string `json:"bought_amount"`
+	BoughtAssetType   string `json:"bought_asset_type"`
+	BoughtAssetCode   string `json:"bought_asset_code,omitempty"`
+	BoughtAssetIssuer string `json:"bought_asset_issuer,omitempty"`
 }
 
 // SequenceBumped is a struct of data from `effects.DetailsString`
@@ -184,25 +501,34 @@ type EffectType int
 // FeeStats is a row of data from the min, mode, percentile aggregate functions over the
 // `history_transactions` table.
 type FeeStats struct {
-	Min  null.Int `db:"min"`
-	Mode null.Int `db:"mode"`
-	P10  null.Int `db:"p10"`
-	P20  null.Int `db:"p20"`
-	P30  null.Int `db:"p30"`
-	P40  null.Int `db:"p40"`
-	P50  null.Int `db:"p50"`
-	P60  null.Int `db:"p60"`
-	P70  null.Int `db:"p70"`
-	P80  null.Int `db:"p80"`
-	P90  null.Int `db:"p90"`
-	P95  null.Int `db:"p95"`
-	P99  null.Int `db:"p99"`
-}
-
-// KeyValueStoreRow represents a row in key value store.
-type KeyValueStoreRow struct {
-	Key   string `db:"key"`
-	Value string `db:"value"`
+	FeeChargedMax  null.Int `db:"fee_charged_max"`
+	FeeChargedMin  null.Int `db:"fee_charged_min"`
+	FeeChargedMode null.Int `db:"fee_charged_mode"`
+	FeeChargedP10  null.Int `db:"fee_charged_p10"`
+	FeeChargedP20  null.Int `db:"fee_charged_p20"`
+	FeeChargedP30  null.Int `db:"fee_charged_p30"`
+	FeeChargedP40  null.Int `db:"fee_charged_p40"`
+	FeeChargedP50  null.Int `db:"fee_charged_p50"`
+	FeeChargedP60  null.Int `db:"fee_charged_p60"`
+	FeeChargedP70  null.Int `db:"fee_charged_p70"`
+	FeeChargedP80  null.Int `db:"fee_charged_p80"`
+	FeeChargedP90  null.Int `db:"fee_charged_p90"`
+	FeeChargedP95  null.Int `db:"fee_charged_p95"`
+	FeeChargedP99  null.Int `db:"fee_charged_p99"`
+	MaxFeeMax      null.Int `db:"max_fee_max"`
+	MaxFeeMin      null.Int `db:"max_fee_min"`
+	MaxFeeMode     null.Int `db:"max_fee_mode"`
+	MaxFeeP10      null.Int `db:"max_fee_p10"`
+	MaxFeeP20      null.Int `db:"max_fee_p20"`
+	MaxFeeP30      null.Int `db:"max_fee_p30"`
+	MaxFeeP40      null.Int `db:"max_fee_p40"`
+	MaxFeeP50      null.Int `db:"max_fee_p50"`
+	MaxFeeP60      null.Int `db:"max_fee_p60"`
+	MaxFeeP70      null.Int `db:"max_fee_p70"`
+	MaxFeeP80      null.Int `db:"max_fee_p80"`
+	MaxFeeP90      null.Int `db:"max_fee_p90"`
+	MaxFeeP95      null.Int `db:"max_fee_p95"`
+	MaxFeeP99      null.Int `db:"max_fee_p99"`
 }
 
 // LatestLedger represents a response from the raw LatestLedgerBaseFeeAndSequence
@@ -223,6 +549,7 @@ type Ledger struct {
 	SuccessfulTransactionCount *int32      `db:"successful_transaction_count"`
 	FailedTransactionCount     *int32      `db:"failed_transaction_count"`
 	OperationCount             int32       `db:"operation_count"`
+	TxSetOperationCount        *int32      `db:"tx_set_operation_count"`
 	ClosedAt                   time.Time   `db:"closed_at"`
 	CreatedAt                  time.Time   `db:"created_at"`
 	UpdatedAt                  time.Time   `db:"updated_at"`
@@ -249,6 +576,11 @@ type LedgerCache struct {
 	queued map[int32]struct{}
 }
 
+type LedgerRange struct {
+	StartSequence uint32 `db:"start"`
+	EndSequence   uint32 `db:"end"`
+}
+
 // LedgersQ is a helper struct to aid in configuring queries that loads
 // slices of Ledger structs.
 type LedgersQ struct {
@@ -260,31 +592,47 @@ type LedgersQ struct {
 // Operation is a row of data from the `history_operations` table
 type Operation struct {
 	TotalOrderID
-	TransactionID    int64             `db:"transaction_id"`
-	TransactionHash  string            `db:"transaction_hash"`
-	TxResult         string            `db:"tx_result"`
-	ApplicationOrder int32             `db:"application_order"`
-	Type             xdr.OperationType `db:"type"`
-	DetailsString    null.String       `db:"details"`
-	SourceAccount    string            `db:"source_account"`
-	// Check db2/history.Transaction.Successful field comment for more information.
-	TransactionSuccessful *bool `db:"transaction_successful"`
+	TransactionID         int64             `db:"transaction_id"`
+	TransactionHash       string            `db:"transaction_hash"`
+	TxResult              string            `db:"tx_result"`
+	ApplicationOrder      int32             `db:"application_order"`
+	Type                  xdr.OperationType `db:"type"`
+	DetailsString         null.String       `db:"details"`
+	SourceAccount         string            `db:"source_account"`
+	SourceAccountMuxed    null.String       `db:"source_account_muxed"`
+	TransactionSuccessful bool              `db:"transaction_successful"`
 }
 
-// Offer is row of data from the `offers` table from diamnet-core
+// ManageOffer is a struct of data from `operations.DetailsString`
+// when the operation type is manage sell offer or manage buy offer
+type ManageOffer struct {
+	OfferID int64 `json:"offer_id"`
+}
+
+// upsertField is used in upsertRows function generating upsert query for
+// different tables.
+type upsertField struct {
+	name    string
+	dbType  string
+	objects []interface{}
+}
+
+// Offer is row of data from the `offers` table from aurora DB
 type Offer struct {
-	SellerID string    `db:"sellerid"`
-	OfferID  xdr.Int64 `db:"offerid"`
+	SellerID string `db:"seller_id"`
+	OfferID  int64  `db:"offer_id"`
 
-	SellingAsset xdr.Asset `db:"sellingasset"`
-	BuyingAsset  xdr.Asset `db:"buyingasset"`
+	SellingAsset xdr.Asset `db:"selling_asset"`
+	BuyingAsset  xdr.Asset `db:"buying_asset"`
 
-	Amount             xdr.Int64 `db:"amount"`
-	Pricen             int32     `db:"pricen"`
-	Priced             int32     `db:"priced"`
-	Price              float64   `db:"price"`
-	Flags              uint32    `db:"flags"`
-	LastModifiedLedger uint32    `db:"last_modified_ledger"`
+	Amount             int64       `db:"amount"`
+	Pricen             int32       `db:"pricen"`
+	Priced             int32       `db:"priced"`
+	Price              float64     `db:"price"`
+	Flags              int32       `db:"flags"`
+	Deleted            bool        `db:"deleted"`
+	LastModifiedLedger uint32      `db:"last_modified_ledger"`
+	Sponsor            null.String `db:"sponsor"`
 }
 
 // OperationsQ is a helper struct to aid in configuring queries that loads
@@ -301,24 +649,29 @@ type OperationsQ struct {
 // Q is a helper struct on which to hang common_trades queries against a history
 // portion of the aurora database.
 type Q struct {
-	*db.Session
+	db.SessionInterface
 }
 
 // QSigners defines signer related queries.
 type QSigners interface {
-	GetLastLedgerExpIngestNonBlocking() (uint32, error)
-	GetLastLedgerExpIngest() (uint32, error)
-	UpdateLastLedgerExpIngest(ledgerSequence uint32) error
-	AccountsForSigner(signer string, page db2.PageQuery) ([]AccountSigner, error)
-	CreateAccountSigner(account, signer string, weight int32) error
-	RemoveAccountSigner(account, signer string) error
+	GetLastLedgerIngestNonBlocking(ctx context.Context) (uint32, error)
+	GetLastLedgerIngest(ctx context.Context) (uint32, error)
+	UpdateLastLedgerIngest(ctx context.Context, ledgerSequence uint32) error
+	AccountsForSigner(ctx context.Context, signer string, page db2.PageQuery) ([]AccountSigner, error)
+	NewAccountSignersBatchInsertBuilder(maxBatchSize int) AccountSignersBatchInsertBuilder
+	CreateAccountSigner(ctx context.Context, account, signer string, weight int32, sponsor *string) (int64, error)
+	RemoveAccountSigner(ctx context.Context, account, signer string) (int64, error)
+	SignersForAccounts(ctx context.Context, accounts []string) ([]AccountSigner, error)
+	CountAccounts(ctx context.Context) (int, error)
 }
 
-// QOffers defines offer related queries.
-type QOffers interface {
-	GetAllOffers() ([]Offer, error)
-	UpsertOffer(offer xdr.OfferEntry, lastModifiedLedger xdr.Uint32) error
-	RemoveOffer(offerID xdr.Int64) error
+// OffersQuery is a helper struct to configure queries to offers
+type OffersQuery struct {
+	PageQuery db2.PageQuery
+	SellerID  string
+	Sponsor   string
+	Selling   *xdr.Asset
+	Buying    *xdr.Asset
 }
 
 // TotalOrderID represents the ID portion of rows that are identified by the
@@ -330,64 +683,33 @@ type TotalOrderID struct {
 // Trade represents a trade from the trades table, joined with asset information from the assets table and account
 // addresses from the accounts table
 type Trade struct {
-	HistoryOperationID int64     `db:"history_operation_id"`
-	Order              int32     `db:"order"`
-	LedgerCloseTime    time.Time `db:"ledger_closed_at"`
-	OfferID            int64     `db:"offer_id"`
-	BaseOfferID        *int64    `db:"base_offer_id"`
-	BaseAccount        string    `db:"base_account"`
-	BaseAssetType      string    `db:"base_asset_type"`
-	BaseAssetCode      string    `db:"base_asset_code"`
-	BaseAssetIssuer    string    `db:"base_asset_issuer"`
-	BaseAmount         xdr.Int64 `db:"base_amount"`
-	CounterOfferID     *int64    `db:"counter_offer_id"`
-	CounterAccount     string    `db:"counter_account"`
-	CounterAssetType   string    `db:"counter_asset_type"`
-	CounterAssetCode   string    `db:"counter_asset_code"`
-	CounterAssetIssuer string    `db:"counter_asset_issuer"`
-	CounterAmount      xdr.Int64 `db:"counter_amount"`
-	BaseIsSeller       bool      `db:"base_is_seller"`
-	PriceN             null.Int  `db:"price_n"`
-	PriceD             null.Int  `db:"price_d"`
-}
-
-// TradesQ is a helper struct to aid in configuring queries that loads
-// slices of trade structs.
-type TradesQ struct {
-	Err    error
-	parent *Q
-	sql    sq.SelectBuilder
+	HistoryOperationID     int64       `db:"history_operation_id"`
+	Order                  int32       `db:"order"`
+	LedgerCloseTime        time.Time   `db:"ledger_closed_at"`
+	BaseOfferID            null.Int    `db:"base_offer_id"`
+	BaseAccount            null.String `db:"base_account"`
+	BaseAssetType          string      `db:"base_asset_type"`
+	BaseAssetCode          string      `db:"base_asset_code"`
+	BaseAssetIssuer        string      `db:"base_asset_issuer"`
+	BaseAmount             int64       `db:"base_amount"`
+	BaseLiquidityPoolID    null.String `db:"base_liquidity_pool_id"`
+	CounterOfferID         null.Int    `db:"counter_offer_id"`
+	CounterAccount         null.String `db:"counter_account"`
+	CounterAssetType       string      `db:"counter_asset_type"`
+	CounterAssetCode       string      `db:"counter_asset_code"`
+	CounterAssetIssuer     string      `db:"counter_asset_issuer"`
+	CounterAmount          int64       `db:"counter_amount"`
+	CounterLiquidityPoolID null.String `db:"counter_liquidity_pool_id"`
+	LiquidityPoolFee       null.Int    `db:"liquidity_pool_fee"`
+	BaseIsSeller           bool        `db:"base_is_seller"`
+	PriceN                 null.Int    `db:"price_n"`
+	PriceD                 null.Int    `db:"price_d"`
 }
 
 // Transaction is a row of data from the `history_transactions` table
 type Transaction struct {
-	TotalOrderID
-	TransactionHash  string      `db:"transaction_hash"`
-	LedgerSequence   int32       `db:"ledger_sequence"`
-	LedgerCloseTime  time.Time   `db:"ledger_close_time"`
-	ApplicationOrder int32       `db:"application_order"`
-	Account          string      `db:"account"`
-	AccountSequence  string      `db:"account_sequence"`
-	MaxFee           int32       `db:"max_fee"`
-	FeeCharged       int32       `db:"fee_charged"`
-	OperationCount   int32       `db:"operation_count"`
-	TxEnvelope       string      `db:"tx_envelope"`
-	TxResult         string      `db:"tx_result"`
-	TxMeta           string      `db:"tx_meta"`
-	TxFeeMeta        string      `db:"tx_fee_meta"`
-	SignatureString  string      `db:"signatures"`
-	MemoType         string      `db:"memo_type"`
-	Memo             null.String `db:"memo"`
-	ValidAfter       null.Int    `db:"valid_after"`
-	ValidBefore      null.Int    `db:"valid_before"`
-	CreatedAt        time.Time   `db:"created_at"`
-	UpdatedAt        time.Time   `db:"updated_at"`
-	// NULL indicates successful transaction. We wanted a migration to be fast
-	// however Postgres performs a table rewrite if a new column has a default
-	// non-null value. We need `NULL` to indicate successful transaction because
-	// otherwise all existing transactions would be interpreted as failed until
-	// ledger is reingested.
-	Successful *bool `db:"successful"`
+	LedgerCloseTime time.Time `db:"ledger_close_time"`
+	TransactionWithoutLedger
 }
 
 // TransactionsQ is a helper struct to aid in configuring queries that loads
@@ -399,33 +721,172 @@ type TransactionsQ struct {
 	includeFailed bool
 }
 
+// TrustLine is row of data from the `trust_lines` table from aurora DB
+type TrustLine struct {
+	AccountID          string        `db:"account_id"`
+	AssetType          xdr.AssetType `db:"asset_type"`
+	AssetIssuer        string        `db:"asset_issuer"`
+	AssetCode          string        `db:"asset_code"`
+	Balance            int64         `db:"balance"`
+	LedgerKey          string        `db:"ledger_key"`
+	Limit              int64         `db:"trust_line_limit"`
+	LiquidityPoolID    string        `db:"liquidity_pool_id"`
+	BuyingLiabilities  int64         `db:"buying_liabilities"`
+	SellingLiabilities int64         `db:"selling_liabilities"`
+	Flags              uint32        `db:"flags"`
+	LastModifiedLedger uint32        `db:"last_modified_ledger"`
+	Sponsor            null.String   `db:"sponsor"`
+}
+
+// QTrustLines defines trust lines related queries.
+type QTrustLines interface {
+	GetTrustLinesByKeys(ctx context.Context, ledgerKeys []string) ([]TrustLine, error)
+	UpsertTrustLines(ctx context.Context, trustlines []TrustLine) error
+	RemoveTrustLines(ctx context.Context, ledgerKeys []string) (int64, error)
+}
+
+func (q *Q) NewAccountSignersBatchInsertBuilder(maxBatchSize int) AccountSignersBatchInsertBuilder {
+	return &accountSignersBatchInsertBuilder{
+		builder: db.BatchInsertBuilder{
+			Table:        q.GetTable("accounts_signers"),
+			MaxBatchSize: maxBatchSize,
+		},
+	}
+}
+
 // ElderLedger loads the oldest ledger known to the history database
-func (q *Q) ElderLedger(dest interface{}) error {
-	return q.GetRaw(dest, `SELECT COALESCE(MIN(sequence), 0) FROM history_ledgers`)
+func (q *Q) ElderLedger(ctx context.Context, dest interface{}) error {
+	return q.GetRaw(ctx, dest, `SELECT COALESCE(MIN(sequence), 0) FROM history_ledgers`)
+}
+
+// GetLatestHistoryLedger loads the latest known ledger. Returns 0 if no ledgers in
+// `history_ledgers` table.
+func (q *Q) GetLatestHistoryLedger(ctx context.Context) (uint32, error) {
+	var value uint32
+	err := q.LatestLedger(ctx, &value)
+	return value, err
 }
 
 // LatestLedger loads the latest known ledger
-func (q *Q) LatestLedger(dest interface{}) error {
-	return q.GetRaw(dest, `SELECT COALESCE(MAX(sequence), 0) FROM history_ledgers`)
+func (q *Q) LatestLedger(ctx context.Context, dest interface{}) error {
+	return q.GetRaw(ctx, dest, `SELECT COALESCE(MAX(sequence), 0) FROM history_ledgers`)
+}
+
+// LatestLedgerSequenceClosedAt loads the latest known ledger sequence and close time,
+// returns empty values if no ledgers in a DB.
+func (q *Q) LatestLedgerSequenceClosedAt(ctx context.Context) (int32, time.Time, error) {
+	ledger := struct {
+		Sequence int32     `db:"sequence"`
+		ClosedAt time.Time `db:"closed_at"`
+	}{}
+	err := q.GetRaw(ctx, &ledger, `SELECT sequence, closed_at FROM history_ledgers ORDER BY sequence DESC LIMIT 1`)
+	if err == sql.ErrNoRows {
+		// Will return empty values
+		return ledger.Sequence, ledger.ClosedAt, nil
+	}
+	return ledger.Sequence, ledger.ClosedAt, err
 }
 
 // LatestLedgerBaseFeeAndSequence loads the latest known ledger's base fee and
 // sequence number.
-func (q *Q) LatestLedgerBaseFeeAndSequence(dest interface{}) error {
-	return q.GetRaw(dest, `
+func (q *Q) LatestLedgerBaseFeeAndSequence(ctx context.Context, dest interface{}) error {
+	return q.GetRaw(ctx, dest, `
 		SELECT base_fee, sequence
 		FROM history_ledgers
 		WHERE sequence = (SELECT COALESCE(MAX(sequence), 0) FROM history_ledgers)
 	`)
 }
 
-// OldestOutdatedLedgers populates a slice of ints with the first million
-// outdated ledgers, based upon the provided `currentVersion` number
-func (q *Q) OldestOutdatedLedgers(dest interface{}, currentVersion int) error {
-	return q.SelectRaw(dest, `
-		SELECT sequence
-		FROM history_ledgers
-		WHERE importer_version < $1
-		ORDER BY sequence ASC
-		LIMIT 1000000`, currentVersion)
+// CloneIngestionQ clones underlying db.Session and returns IngestionQ
+func (q *Q) CloneIngestionQ() IngestionQ {
+	return &Q{q.Clone()}
+}
+
+// DeleteRangeAll deletes a range of rows from all history tables between
+// `start` and `end` (exclusive).
+func (q *Q) DeleteRangeAll(ctx context.Context, start, end int64) error {
+	for table, column := range map[string]string{
+		"history_effects":                        "history_operation_id",
+		"history_ledgers":                        "id",
+		"history_operation_claimable_balances":   "history_operation_id",
+		"history_operation_participants":         "history_operation_id",
+		"history_operation_liquidity_pools":      "history_operation_id",
+		"history_operations":                     "id",
+		"history_trades":                         "history_operation_id",
+		"history_trades_60000":                   "open_ledger_toid",
+		"history_transaction_claimable_balances": "history_transaction_id",
+		"history_transaction_participants":       "history_transaction_id",
+		"history_transaction_liquidity_pools":    "history_transaction_id",
+		"history_transactions":                   "id",
+	} {
+		err := q.DeleteRange(ctx, start, end, table, column)
+		if err != nil {
+			return errors.Wrapf(err, "Error clearing %s", table)
+		}
+	}
+	return nil
+}
+
+// upsertRows builds and executes an upsert query that allows very fast upserts
+// to a given table. The final query is of form:
+//
+// WITH r AS
+// 		(SELECT
+//			/* unnestPart */
+// 			unnest(?::type1[]), /* field1 */
+// 			unnest(?::type2[]), /* field2 */
+//			...
+// 		)
+// 	INSERT INTO table (
+//		/* insertFieldsPart */
+// 		field1,
+// 		field2,
+//		...
+// 	)
+// 	SELECT * from r
+// 	ON CONFLICT (conflictField) DO UPDATE SET
+//		/* onConflictPart */
+// 		field1 = excluded.field1,
+// 		field2 = excluded.field2,
+//		...
+func (q *Q) upsertRows(ctx context.Context, table string, conflictField string, fields []upsertField) error {
+	unnestPart := make([]string, 0, len(fields))
+	insertFieldsPart := make([]string, 0, len(fields))
+	onConflictPart := make([]string, 0, len(fields))
+	pqArrays := make([]interface{}, 0, len(fields))
+
+	for _, field := range fields {
+		unnestPart = append(
+			unnestPart,
+			fmt.Sprintf("unnest(?::%s[]) /* %s */", field.dbType, field.name),
+		)
+		insertFieldsPart = append(
+			insertFieldsPart,
+			field.name,
+		)
+		onConflictPart = append(
+			onConflictPart,
+			fmt.Sprintf("%s = excluded.%s", field.name, field.name),
+		)
+		pqArrays = append(
+			pqArrays,
+			pq.Array(field.objects),
+		)
+	}
+
+	sql := `
+	WITH r AS
+		(SELECT ` + strings.Join(unnestPart, ",") + `)
+	INSERT INTO ` + table + `
+		(` + strings.Join(insertFieldsPart, ",") + `)
+	SELECT * from r
+	ON CONFLICT (` + conflictField + `) DO UPDATE SET
+		` + strings.Join(onConflictPart, ",")
+
+	_, err := q.ExecRaw(
+		context.WithValue(ctx, &db.QueryTypeContextKey, db.UpsertQueryType),
+		sql,
+		pqArrays...,
+	)
+	return err
 }

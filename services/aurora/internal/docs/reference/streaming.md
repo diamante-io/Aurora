@@ -1,5 +1,6 @@
 ---
 title: Streaming
+replacement: https://developers.diamnet.org/api/introduction/streaming/
 ---
 
 ## Streaming

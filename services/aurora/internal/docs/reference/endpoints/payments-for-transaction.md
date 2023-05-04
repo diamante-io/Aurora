@@ -16,7 +16,7 @@ The operations that can be returned in by this endpoint are:
 ### Warning - failed transactions
 
 "Payments for Transaction" endpoint returns list of payments of successful or failed transactions
-(that are also included in DiamNet ledger). Always check the payment status in this endpoint using
+(that are also included in Diamnet ledger). Always check the payment status in this endpoint using
 `transaction_successful` field!
 
 ## Request
@@ -29,7 +29,7 @@ GET /transactions/{hash}/payments{?cursor,limit,order}
 
 | name | notes | description | example |
 | ---- | ----- | ----------- | ------- |
-| `hash` | required, string | A transaction hash, hex-encoded | `f65278b36875d170e865853838da400515f59ca23836f072e8d62cac18b803e5` |
+| `hash` | required, string | A transaction hash, hex-encoded, lowercase. | `f65278b36875d170e865853838da400515f59ca23836f072e8d62cac18b803e5` |
 | `?cursor` | optional, default _null_ | A paging token, specifying where to start returning records from. | `12884905984` |
 | `?order` | optional, string, default `asc` | The order in which to return rows, "asc" or "desc". | `asc` |
 | `?limit` | optional, number, default `10` | Maximum number of records to return. | `200` |
@@ -44,8 +44,8 @@ curl "https://aurora-testnet.diamnet.org/transactions/f65278b36875d170e865853838
 ### JavaScript Example Request
 
 ```javascript
-var DiamNetSdk = require('diamnet-sdk');
-var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
+var DiamnetSdk = require('diamnet-sdk');
+var server = new DiamnetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.payments()
   .forTransaction("f65278b36875d170e865853838da400515f59ca23836f072e8d62cac18b803e5")

@@ -1,5 +1,6 @@
 ---
 title: Errors
+replacement: https://developers.diamnet.org/api/errors/
 ---
 
 In the event that an error occurs while processing a request to aurora, an

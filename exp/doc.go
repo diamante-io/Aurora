@@ -1,2 +1,2 @@
-// Package exp houses experimental packages related to DiamNet developement
+// Package exp houses experimental packages related to Diamnet developement
 package exp

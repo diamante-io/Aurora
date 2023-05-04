@@ -8,8 +8,6 @@ const (
 	MimeHal = "application/hal+json"
 	//MimeJSON is the mime type for "application/json"
 	MimeJSON = "application/json"
-	//MimeProblem is the mime type for application/problem+json"
-	MimeProblem = "application/problem+json"
 	//MimeRaw is the mime type for "application/octet-stream"
 	MimeRaw = "application/octet-stream"
 )

@@ -1,14 +1,14 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
-	stdio "io"
+	"io"
 	"log"
 
-	"github.com/diamnet/go/exp/ingest/adapters"
-	"github.com/diamnet/go/exp/ingest/io"
-	"github.com/diamnet/go/support/historyarchive"
+	"github.com/diamnet/go/historyarchive"
+	"github.com/diamnet/go/ingest"
 )
 
 func main() {
@@ -25,9 +25,8 @@ func main() {
 	if e != nil {
 		panic(e)
 	}
-	haa := adapters.MakeHistoryArchiveAdapter(archive)
 
-	sr, e := haa.GetState(seqNum, &io.MemoryTempSet{})
+	sr, e := ingest.NewCheckpointChangeReader(context.Background(), archive, seqNum)
 	if e != nil {
 		panic(e)
 	}
@@ -40,12 +39,12 @@ func main() {
 		if e != nil {
 			panic(e)
 		}
-		if e == stdio.EOF {
+		if e == io.EOF {
 			log.Printf("total seen %d entries of which %d were accounts", i, count)
 			return
 		}
 
-		if ae, valid := le.State.Data.GetAccount(); valid {
+		if ae, valid := le.Post.Data.GetAccount(); valid {
 			addr := ae.AccountId.Address()
 			if _, exists := accounts[addr]; exists {
 				log.Fatalf("error, total seen %d entries of which %d were unique accounts; repeated account: %s", i, count, addr)

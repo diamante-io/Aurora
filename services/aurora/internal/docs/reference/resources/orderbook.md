@@ -1,5 +1,6 @@
 ---
 title: Orderbook
+replacement: https://developers.diamnet.org/api/aggregations/order-books/
 ---
 
 [Orderbooks](https://www.diamnet.org/developers/learn/concepts/exchange.html) are collections of offers for each issuer and currency pairs.  Let's say you wanted to exchange EUR issued by a particular bank for BTC issued by a particular exchange.  You would look at the orderbook and see who is buying `foo_bank/EUR` and selling `baz_exchange/BTC` and at what prices.
@@ -45,5 +46,5 @@ This resource has no links.
 
 | Resource                 | Type       | Resource URI Template                |
 |--------------------------|------------|--------------------------------------|
-| [Orderbook Details](../orderbook-details.md)       | Single | `/orderbook?{orderbook_params}`       |
-| [Trades](../trades.md)   | Collection | `/trades?{orderbook_params}`       |
+| [Orderbook Details](../endpoints/orderbook-details.md)       | Single | `/orderbook?{orderbook_params}`       |
+| [Trades](../endpoints/trades.md)   | Collection | `/trades?{orderbook_params}`       |

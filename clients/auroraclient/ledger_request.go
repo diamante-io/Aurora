@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"net/url"
 
 	hProtocol "github.com/diamnet/go/protocols/aurora"
@@ -38,6 +39,16 @@ func (lr LedgerRequest) BuildURL() (endpoint string, err error) {
 	}
 
 	return endpoint, err
+}
+
+// HTTPRequest returns the http request for the ledger endpoint
+func (lr LedgerRequest) HTTPRequest(auroraURL string) (*http.Request, error) {
+	endpoint, err := lr.BuildURL()
+	if err != nil {
+		return nil, err
+	}
+
+	return http.NewRequest("GET", auroraURL+endpoint, nil)
 }
 
 // LedgerHandler is a function that is called when a new ledger is received

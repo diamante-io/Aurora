@@ -10,9 +10,9 @@ import (
 
 var mapper = reflectx.NewMapper("db")
 
-// columnsForStruct returns a slice of column names for the provided value
+// ColumnsForStruct returns a slice of column names for the provided value
 // (which should be a struct, a slice of structs).
-func columnsForStruct(dest interface{}) []string {
+func ColumnsForStruct(dest interface{}) []string {
 	typ := reflect.TypeOf(dest)
 
 	if typ.Kind() == reflect.Ptr {

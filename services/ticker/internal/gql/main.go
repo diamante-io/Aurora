@@ -2,6 +2,7 @@ package gql
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/graph-gophers/graphql-go"
 	"github.com/graph-gophers/graphql-go/relay"
@@ -10,7 +11,7 @@ import (
 	hlog "github.com/diamnet/go/support/log"
 )
 
-// asset represents a DiamNet asset, with some type
+// asset represents a Diamnet asset, with some type
 // adaptations to match the GraphQL type system
 type asset struct {
 	Code                        string
@@ -91,13 +92,7 @@ func New(s *tickerdb.TickerSession, l *hlog.Entry) *resolver {
 
 // Serve creates a GraphQL interface on <address>/graphql and a GraphiQL explorer on /graphiql
 func (r *resolver) Serve(address string) {
-	opts := []graphql.SchemaOpt{graphql.UseFieldResolvers()}
-	r.logger.Infoln("Validating GraphQL schema")
-	s := graphql.MustParseSchema(static.Schema(), r, opts...)
-	r.logger.Infof("Schema Validated!")
-
-	relayHandler := relay.Handler{Schema: s}
-
+	relayHandler := r.NewRelayHandler()
 	mux := http.NewServeMux()
 	mux.Handle("/graphql", http.HandlerFunc(func(wr http.ResponseWriter, re *http.Request) {
 		r.logger.Infof("%s %s %s\n", re.RemoteAddr, re.Method, re.URL)
@@ -106,12 +101,23 @@ func (r *resolver) Serve(address string) {
 	mux.Handle("/graphiql", GraphiQL{})
 
 	server := &http.Server{
-		Addr:    address,
-		Handler: mux,
+		Addr:        address,
+		Handler:     mux,
+		ReadTimeout: 5 * time.Second,
 	}
 	r.logger.Infof("Starting to serve on address %s\n", address)
 
 	if err := server.ListenAndServe(); err != nil {
-		r.logger.Errorln("server.ListenAndServe:", err)
+		r.logger.Error("server.ListenAndServe:", err)
 	}
+}
+
+// NewRelayHandler sets up the response handler.
+func (r *resolver) NewRelayHandler() relay.Handler {
+	opts := []graphql.SchemaOpt{graphql.UseFieldResolvers()}
+	r.logger.Info("Validating GraphQL schema")
+	s := graphql.MustParseSchema(static.Schema(), r, opts...)
+	r.logger.Infof("Schema Validated!")
+	relayHandler := relay.Handler{Schema: s}
+	return relayHandler
 }

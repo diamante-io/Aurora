@@ -1,5 +1,6 @@
 ---
 title: Internal Server Error
+replacement: https://developers.diamnet.org/api/errors/http-status-codes/standard/
 ---
 
 If there's an internal error within Aurora, Aurora will return a
@@ -14,7 +15,7 @@ keys. If you are encountering this error on a server you control, please check t
 Aurora log files for more details. The logs should contain detailed
 information to help you discover the root issue.
 
-If you are encountering this error on the public DiamNet infrastructure, please
+If you are encountering this error on the public Diamnet infrastructure, please
 report an error on [Aurora's issue tracker](https://github.com/diamnet/go/issues)
 and include as much information about the request that triggered the response
 as you can (especially the time of the request).

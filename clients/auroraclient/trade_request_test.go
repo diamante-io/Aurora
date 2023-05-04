@@ -2,9 +2,7 @@ package auroraclient
 
 import (
 	"context"
-	"fmt"
 	"testing"
-	"time"
 
 	hProtocol "github.com/diamnet/go/protocols/aurora"
 	"github.com/diamnet/go/support/http/httptest"
@@ -34,12 +32,25 @@ func TestTradeRequestBuildUrl(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "offers/123/trades", endpoint)
 
+	tr = TradeRequest{ForLiquidityPool: "123"}
+	endpoint, err = tr.BuildURL()
+
+	// It should return valid liquidity pool trades endpoint and no errors
+	require.NoError(t, err)
+	assert.Equal(t, "liquidity_pools/123/trades", endpoint)
+
 	tr = TradeRequest{Cursor: "123"}
 	endpoint, err = tr.BuildURL()
 
 	// It should return valid trades endpoint and no errors
 	require.NoError(t, err)
 	assert.Equal(t, "trades?cursor=123", endpoint)
+
+	// It should return valid trades endpoint and no errors for trade_type
+	tr = TradeRequest{TradeType: "orderbook"}
+	endpoint, err = tr.BuildURL()
+	require.NoError(t, err)
+	assert.Equal(t, "trades?trade_type=orderbook", endpoint)
 
 	tr = TradeRequest{ForOfferID: "123", ForAccount: "GCLWGQPMKXQSPF776IU33AH4PZNOOWNAWGGKVTBQMIC5IMKUNP3E6NVU"}
 	_, err = tr.BuildURL()
@@ -57,86 +68,6 @@ func TestTradeRequestBuildUrl(t *testing.T) {
 
 }
 
-func ExampleClient_Trades() {
-
-	client := DefaultPublicNetClient
-	// Find all trades
-	tr := TradeRequest{Cursor: "123456", Limit: 30, Order: OrderAsc}
-	trades, err := client.Trades(tr)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Print(trades)
-}
-
-func ExampleClient_NextTradesPage() {
-	client := DefaultPublicNetClient
-	// all trades
-	tradeRequest := TradeRequest{Cursor: "123456", Limit: 30, Order: OrderAsc}
-	trades, err := client.Trades(tradeRequest)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Print(trades)
-
-	// get next pages.
-	recordsFound := false
-	if len(trades.Embedded.Records) > 0 {
-		recordsFound = true
-	}
-	page := trades
-	// get the next page of records if recordsFound is true
-	for recordsFound {
-		// next page
-		nextPage, err := client.NextTradesPage(page)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		page = nextPage
-		if len(nextPage.Embedded.Records) == 0 {
-			recordsFound = false
-		}
-		fmt.Println(nextPage)
-	}
-}
-
-func ExampleClient_PrevTradesPage() {
-	client := DefaultPublicNetClient
-	// all trades
-	tradeRequest := TradeRequest{Cursor: "123456", Limit: 30, Order: OrderAsc}
-	trades, err := client.Trades(tradeRequest)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Print(trades)
-
-	// get prev pages.
-	recordsFound := false
-	if len(trades.Embedded.Records) > 0 {
-		recordsFound = true
-	}
-	page := trades
-	// get the prev page of records if recordsFound is true
-	for recordsFound {
-		// prev page
-		prevPage, err := client.PrevTradesPage(page)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		page = prevPage
-		if len(prevPage.Embedded.Records) == 0 {
-			recordsFound = false
-		}
-		fmt.Println(prevPage)
-	}
-}
 func TestTradesRequest(t *testing.T) {
 	hmock := httptest.NewClient()
 	client := &Client{
@@ -193,28 +124,6 @@ func TestTradesRequest(t *testing.T) {
 	// error case
 	if assert.Error(t, err) {
 		assert.Contains(t, err.Error(), "too many parameters")
-	}
-}
-
-func ExampleClient_StreamTrades() {
-	client := DefaultTestNetClient
-	// all trades
-	tradeRequest := TradeRequest{Cursor: "760209215489"}
-
-	ctx, cancel := context.WithCancel(context.Background())
-	go func() {
-		// Stop streaming after 60 seconds.
-		time.Sleep(60 * time.Second)
-		cancel()
-	}()
-
-	printHandler := func(tr hProtocol.Trade) {
-		fmt.Println(tr)
-	}
-	err := client.StreamTrades(ctx, tradeRequest, printHandler)
-
-	if err != nil {
-		fmt.Println(err)
 	}
 }
 

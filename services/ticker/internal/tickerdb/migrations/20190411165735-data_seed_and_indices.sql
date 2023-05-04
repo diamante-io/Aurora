@@ -14,7 +14,7 @@ INSERT INTO public.issuers (
     org_twitter
 ) VALUES (
     'native',
-    'DiamNet Development Foundation',
+    'Diamnet Development Foundation',
     'http://diamnet.org',
     '',
     '',
@@ -69,7 +69,7 @@ INSERT INTO public.assets (
     now(),
     now(),
     7,
-    'DiamNet Lumens',
+    'Diamnet Lumens',
     '',
     '',
     FALSE,

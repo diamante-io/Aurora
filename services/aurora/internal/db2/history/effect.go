@@ -1,15 +1,17 @@
 package history
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"math"
 
 	sq "github.com/Masterminds/squirrel"
+
+	"github.com/diamnet/go/protocols/aurora/effects"
 	"github.com/diamnet/go/services/aurora/internal/db2"
 	"github.com/diamnet/go/services/aurora/internal/toid"
 	"github.com/diamnet/go/support/errors"
-	"github.com/diamnet/go/xdr"
 )
 
 // UnmarshalDetails unmarshals the details of this effect into `dest`
@@ -18,7 +20,37 @@ func (r *Effect) UnmarshalDetails(dest interface{}) error {
 		return nil
 	}
 
-	return errors.Wrap(json.Unmarshal([]byte(r.DetailsString.String), &dest), "unmarshal effect details failed")
+	err := errors.Wrap(json.Unmarshal([]byte(r.DetailsString.String), &dest), "unmarshal effect details failed")
+	if err == nil {
+		// In 2.9.0 a new `asset_type` was introduced to include liquidity
+		// pools. Instead of reingesting entire history, let's fill the
+		// `asset_type` here if it's empty.
+		// (I hate to convert to `protocol` types here but there's no other way
+		// without larger refactor.)
+		switch dest := dest.(type) {
+		case *effects.TrustlineSponsorshipCreated:
+			if dest.Type == "" {
+				dest.Type = getAssetTypeForCanonicalAsset(dest.Asset)
+			}
+		case *effects.TrustlineSponsorshipUpdated:
+			if dest.Type == "" {
+				dest.Type = getAssetTypeForCanonicalAsset(dest.Asset)
+			}
+		case *effects.TrustlineSponsorshipRemoved:
+			if dest.Type == "" {
+				dest.Type = getAssetTypeForCanonicalAsset(dest.Asset)
+			}
+		}
+	}
+	return err
+}
+
+func getAssetTypeForCanonicalAsset(canonicalAsset string) string {
+	if len(canonicalAsset) <= 61 {
+		return "credit_alphanum4"
+	} else {
+		return "credit_alphanum12"
+	}
 }
 
 // ID returns a lexically ordered id for this effect record
@@ -48,9 +80,9 @@ func (q *Q) Effects() *EffectsQ {
 }
 
 // ForAccount filters the operations collection to a specific account
-func (q *EffectsQ) ForAccount(aid string) *EffectsQ {
+func (q *EffectsQ) ForAccount(ctx context.Context, aid string) *EffectsQ {
 	var account Account
-	q.Err = q.parent.AccountByAddress(&account, aid)
+	q.Err = q.parent.AccountByAddress(ctx, &account, aid)
 	if q.Err != nil {
 		return q
 	}
@@ -62,9 +94,9 @@ func (q *EffectsQ) ForAccount(aid string) *EffectsQ {
 
 // ForLedger filters the query to only effects in a specific ledger,
 // specified by its sequence.
-func (q *EffectsQ) ForLedger(seq int32) *EffectsQ {
+func (q *EffectsQ) ForLedger(ctx context.Context, seq int32) *EffectsQ {
 	var ledger Ledger
-	q.Err = q.parent.LedgerBySequence(&ledger, seq)
+	q.Err = q.parent.LedgerBySequence(ctx, &ledger, seq)
 	if q.Err != nil {
 		return q
 	}
@@ -95,26 +127,51 @@ func (q *EffectsQ) ForOperation(id int64) *EffectsQ {
 	return q
 }
 
-// ForOrderBook filters the query to only effects whose details indicate that
-// the effect is for a specific asset pair.
-func (q *EffectsQ) ForOrderBook(selling, buying xdr.Asset) *EffectsQ {
-	q.orderBookFilter(selling, "sold_")
-	if q.Err != nil {
-		return q
-	}
-	q.orderBookFilter(buying, "bought_")
+// ForLiquidityPool filters the query to only effects in a specific liquidity pool,
+// specified by its id.
+func (q *EffectsQ) ForLiquidityPool(ctx context.Context, page db2.PageQuery, id string) *EffectsQ {
 	if q.Err != nil {
 		return q
 	}
 
+	op, _, err := page.CursorInt64Pair(db2.DefaultPairSep)
+	if err != nil {
+		q.Err = err
+		return q
+	}
+
+	query := `SELECT holp.history_operation_id
+	FROM history_operation_liquidity_pools holp
+	WHERE holp.history_liquidity_pool_id = (SELECT id FROM history_liquidity_pools WHERE liquidity_pool_id =  ?)
+	`
+	switch page.Order {
+	case "asc":
+		query += "AND holp.history_operation_id >= ? ORDER BY holp.history_operation_id asc LIMIT ?"
+	case "desc":
+		query += "AND holp.history_operation_id <= ? ORDER BY holp.history_operation_id desc LIMIT ?"
+	default:
+		q.Err = errors.Errorf("invalid paging order: %s", page.Order)
+		return q
+	}
+
+	var liquidityPoolOperationIDs []int64
+	err = q.parent.SelectRaw(ctx, &liquidityPoolOperationIDs, query, id, op, page.Limit)
+	if err != nil {
+		q.Err = err
+		return q
+	}
+
+	q.sql = q.sql.Where(map[string]interface{}{
+		"heff.history_operation_id": liquidityPoolOperationIDs,
+	})
 	return q
 }
 
 // ForTransaction filters the query to only effects in a specific
 // transaction, specified by the transactions's hex-encoded hash.
-func (q *EffectsQ) ForTransaction(hash string) *EffectsQ {
+func (q *EffectsQ) ForTransaction(ctx context.Context, hash string) *EffectsQ {
 	var tx Transaction
-	q.Err = q.parent.TransactionByHash(&tx, hash)
+	q.Err = q.parent.TransactionByHash(ctx, &tx, hash)
 	if q.Err != nil {
 		return q
 	}
@@ -128,12 +185,6 @@ func (q *EffectsQ) ForTransaction(hash string) *EffectsQ {
 		end.ToInt64(),
 	)
 
-	return q
-}
-
-// OfType filters the query to only effects of the given type.
-func (q *EffectsQ) OfType(typ EffectType) *EffectsQ {
-	q.sql = q.sql.Where("heff.type = ?", typ)
 	return q
 }
 
@@ -183,40 +234,21 @@ func (q *EffectsQ) Page(page db2.PageQuery) *EffectsQ {
 }
 
 // Select loads the results of the query specified by `q` into `dest`.
-func (q *EffectsQ) Select(dest interface{}) error {
+func (q *EffectsQ) Select(ctx context.Context, dest interface{}) error {
 	if q.Err != nil {
 		return q.Err
 	}
 
-	q.Err = q.parent.Select(dest, q.sql)
+	q.Err = q.parent.Select(ctx, dest, q.sql)
 	return q.Err
 }
 
-// OfType filters the query to only effects of the given type.
-func (q *EffectsQ) orderBookFilter(a xdr.Asset, prefix string) {
-	var typ, code, iss string
-	q.Err = a.Extract(&typ, &code, &iss)
-	if q.Err != nil {
-		return
-	}
-
-	if a.Type == xdr.AssetTypeAssetTypeNative {
-		clause := fmt.Sprintf(`
-				(heff.details->>'%sasset_type' = ?
-		AND heff.details ?? '%sasset_code' = false
-		AND heff.details ?? '%sasset_issuer' = false)`, prefix, prefix, prefix)
-		q.sql = q.sql.Where(clause, typ)
-		return
-	}
-
-	clause := fmt.Sprintf(`
-		(heff.details->>'%sasset_type' = ?
-	AND heff.details->>'%sasset_code' = ?
-	AND heff.details->>'%sasset_issuer' = ?)`, prefix, prefix, prefix)
-	q.sql = q.sql.Where(clause, typ, code, iss)
+// QEffects defines history_effects related queries.
+type QEffects interface {
+	QCreateAccountsHistory
+	NewEffectBatchInsertBuilder(maxBatchSize int) EffectBatchInsertBuilder
 }
 
-var selectEffect = sq.
-	Select("heff.*, hacc.address").
+var selectEffect = sq.Select("heff.*, hacc.address").
 	From("history_effects heff").
 	LeftJoin("history_accounts hacc ON hacc.id = heff.history_account_id")

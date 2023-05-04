@@ -2,9 +2,7 @@ package auroraclient
 
 import (
 	"context"
-	"fmt"
 	"testing"
-	"time"
 
 	hProtocol "github.com/diamnet/go/protocols/aurora"
 	"github.com/diamnet/go/support/http/httptest"
@@ -34,26 +32,6 @@ func TestOrderBookRequestBuildUrl(t *testing.T) {
 	// It should return valid assets endpoint and no errors
 	require.NoError(t, err)
 	assert.Equal(t, "order_book?buying_asset_code=ABC&buying_asset_issuer=GCLWGQPMKXQSPF776IU33AH4PZNOOWNAWGGKVTBQMIC5IMKUNP3E6NVU&buying_asset_type=credit_alphanum4&selling_asset_type=native", endpoint)
-}
-
-func ExampleClient_StreamOrderBooks() {
-	client := DefaultTestNetClient
-	orderbookRequest := OrderBookRequest{SellingAssetType: AssetTypeNative, BuyingAssetType: AssetType4, BuyingAssetCode: "ABC", BuyingAssetIssuer: "GCLWGQPMKXQSPF776IU33AH4PZNOOWNAWGGKVTBQMIC5IMKUNP3E6NVU"}
-
-	ctx, cancel := context.WithCancel(context.Background())
-	go func() {
-		// Stop streaming after 60 seconds.
-		time.Sleep(60 * time.Second)
-		cancel()
-	}()
-
-	printHandler := func(orderbook hProtocol.OrderBookSummary) {
-		fmt.Println(orderbook)
-	}
-	err := client.StreamOrderBooks(ctx, orderbookRequest, printHandler)
-	if err != nil {
-		fmt.Println(err)
-	}
 }
 
 func TestOrderBookRequestStreamOrderBooks(t *testing.T) {

@@ -3,6 +3,9 @@ package txnbuild
 import (
 	"testing"
 
+	"github.com/diamnet/go/keypair"
+	"github.com/diamnet/go/xdr"
+
 	"github.com/diamnet/go/network"
 	"github.com/stretchr/testify/assert"
 )
@@ -12,28 +15,31 @@ func TestAccountMergeMultSigners(t *testing.T) {
 	txSourceAccount := NewSimpleAccount(kp0.Address(), int64(9605939170639898))
 
 	kp1 := newKeypair1()
-	opSourceAccount := NewSimpleAccount(kp1.Address(), int64(9606132444168199))
 
 	accountMerge := AccountMerge{
 		Destination:   "GAS4V4O2B7DW5T7IQRPEEVCRXMDZESKISR7DVIGKZQYYV3OSQ5SH5LVP",
-		SourceAccount: &opSourceAccount,
+		SourceAccount: kp1.Address(),
 	}
 
-	tx := Transaction{
-		SourceAccount: &txSourceAccount,
-		Operations:    []Operation{&accountMerge},
-		Timebounds:    NewInfiniteTimeout(),
-		Network:       network.TestNetworkPassphrase,
-	}
+	received, err := newSignedTransaction(
+		TransactionParams{
+			SourceAccount:        &txSourceAccount,
+			IncrementSequenceNum: true,
+			Operations:           []Operation{&accountMerge},
+			BaseFee:              MinBaseFee,
+			Timebounds:           NewInfiniteTimeout(),
+		},
+		network.TestNetworkPassphrase,
+		kp0, kp1,
+	)
+	assert.NoError(t, err)
 
-	received := buildSignEncode(t, tx, kp0, kp1)
-	expected := "AAAAAODcbeFyXKxmUWK1L6znNbKKIkPkHRJNbLktcKPqLnLFAAAAZAAiII0AAAAbAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAAAJcrx2g/Hbs/ohF5CVFG7B5JJSJR+OqDKzDGK7dKHZH4AAAAIAAAAACXK8doPx27P6IReQlRRuweSSUiUfjqgyswxiu3Sh2R+AAAAAAAAAALqLnLFAAAAQAES8MwTufP7l2Rlbg4+1klxAeGgSyTb+vdGI7Or/Lp5xHGZwQ/KvWo0W1ot4hy+WkdJBCD1VF53skB4ZYTPFAnSh2R+AAAAQGPvZk8T2GDp2BpYGeS85VAV2UGKzyjGowt+YOfJwKbW5fjo+GLe47obXEEYxCQDZIsmwG4u5tJ9FUbjuvqi/g0="
+	expected := "AAAAAgAAAADg3G3hclysZlFitS+s5zWyiiJD5B0STWy5LXCj6i5yxQAAAGQAIiCNAAAAGwAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAABAAAAACXK8doPx27P6IReQlRRuweSSUiUfjqgyswxiu3Sh2R+AAAACAAAAAAlyvHaD8duz+iEXkJUUbsHkklIlH46oMrMMYrt0odkfgAAAAAAAAAC6i5yxQAAAEABEvDME7nz+5dkZW4OPtZJcQHhoEsk2/r3RiOzq/y6ecRxmcEPyr1qNFtaLeIcvlpHSQQg9VRed7JAeGWEzxQJ0odkfgAAAEBj72ZPE9hg6dgaWBnkvOVQFdlBis8oxqMLfmDnycCm1uX46Phi3uO6G1xBGMQkA2SLJsBuLubSfRVG47r6ov4N"
 	assert.Equal(t, expected, received, "Base 64 XDR should match")
 }
 
 func TestAllowTrustMultSigners(t *testing.T) {
 	kp0 := newKeypair0()
-	opSourceAccount := NewSimpleAccount(kp0.Address(), int64(9605939170639898))
 
 	kp1 := newKeypair1()
 	txSourceAccount := NewSimpleAccount(kp1.Address(), int64(9606132444168199))
@@ -43,18 +49,23 @@ func TestAllowTrustMultSigners(t *testing.T) {
 		Trustor:       kp1.Address(),
 		Type:          issuedAsset,
 		Authorize:     true,
-		SourceAccount: &opSourceAccount,
+		SourceAccount: kp0.Address(),
 	}
 
-	tx := Transaction{
-		SourceAccount: &txSourceAccount,
-		Operations:    []Operation{&allowTrust},
-		Timebounds:    NewInfiniteTimeout(),
-		Network:       network.TestNetworkPassphrase,
-	}
+	received, err := newSignedTransaction(
+		TransactionParams{
+			SourceAccount:        &txSourceAccount,
+			IncrementSequenceNum: true,
+			Operations:           []Operation{&allowTrust},
+			BaseFee:              MinBaseFee,
+			Timebounds:           NewInfiniteTimeout(),
+		},
+		network.TestNetworkPassphrase,
+		kp0, kp1,
+	)
+	assert.NoError(t, err)
 
-	received := buildSignEncode(t, tx, kp0, kp1)
-	expected := "AAAAACXK8doPx27P6IReQlRRuweSSUiUfjqgyswxiu3Sh2R+AAAAZAAiILoAAAAIAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAAA4Nxt4XJcrGZRYrUvrOc1sooiQ+QdEk1suS1wo+oucsUAAAAHAAAAACXK8doPx27P6IReQlRRuweSSUiUfjqgyswxiu3Sh2R+AAAAAUFCQ0QAAAABAAAAAAAAAALqLnLFAAAAQHm+8kcSuOMVfthbNRu5ItzonA0ACvL58h4lC6K0JG6OCSR5gRbLUOMqVu1xpQZu+6t9pHwKN9QoEPoXviT3rgDSh2R+AAAAQCr0qzbX9xroeFOzliJgb7+dZJEjyZMpmF3b90NwlEWtm4KPu+U2Lvr91ImeOYtt1/UGksDlGC+3aFq3FsbKBg8="
+	expected := "AAAAAgAAAAAlyvHaD8duz+iEXkJUUbsHkklIlH46oMrMMYrt0odkfgAAAGQAIiC6AAAACAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAABAAAAAODcbeFyXKxmUWK1L6znNbKKIkPkHRJNbLktcKPqLnLFAAAABwAAAAAlyvHaD8duz+iEXkJUUbsHkklIlH46oMrMMYrt0odkfgAAAAFBQkNEAAAAAQAAAAAAAAAC6i5yxQAAAEB5vvJHErjjFX7YWzUbuSLc6JwNAAry+fIeJQuitCRujgkkeYEWy1DjKlbtcaUGbvurfaR8CjfUKBD6F74k964A0odkfgAAAEAq9Ks21/ca6HhTs5YiYG+/nWSRI8mTKZhd2/dDcJRFrZuCj7vlNi76/dSJnjmLbdf1BpLA5Rgvt2hatxbGygYP"
 	assert.Equal(t, expected, received, "Base 64 XDR should match")
 }
 
@@ -63,22 +74,26 @@ func TestBumpSequenceMultSigners(t *testing.T) {
 	txSourceAccount := NewSimpleAccount(kp0.Address(), int64(9605939170639898))
 
 	kp1 := newKeypair1()
-	opSourceAccount := NewSimpleAccount(kp1.Address(), int64(9606132444168199))
 
 	bumpSequence := BumpSequence{
 		BumpTo:        9606132444168300,
-		SourceAccount: &opSourceAccount,
+		SourceAccount: kp1.Address(),
 	}
 
-	tx := Transaction{
-		SourceAccount: &txSourceAccount,
-		Operations:    []Operation{&bumpSequence},
-		Timebounds:    NewInfiniteTimeout(),
-		Network:       network.TestNetworkPassphrase,
-	}
+	received, err := newSignedTransaction(
+		TransactionParams{
+			SourceAccount:        &txSourceAccount,
+			IncrementSequenceNum: true,
+			Operations:           []Operation{&bumpSequence},
+			BaseFee:              MinBaseFee,
+			Timebounds:           NewInfiniteTimeout(),
+		},
+		network.TestNetworkPassphrase,
+		kp0, kp1,
+	)
+	assert.NoError(t, err)
 
-	received := buildSignEncode(t, tx, kp0, kp1)
-	expected := "AAAAAODcbeFyXKxmUWK1L6znNbKKIkPkHRJNbLktcKPqLnLFAAAAZAAiII0AAAAbAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAAAJcrx2g/Hbs/ohF5CVFG7B5JJSJR+OqDKzDGK7dKHZH4AAAALACIgugAAAGwAAAAAAAAAAuoucsUAAABA5wbLXDFQdTkJ0Oo3mkW6VrcFeylOag0urj6lKXaQV3mGdFQA4J9OezChx5DynW+FxQtuyXbSBYTcgXUADapSCdKHZH4AAABAuuYmmuuwkMBGC3oX4RA6ZkM5PfYrdUuuAhEvOnuanfyynrOgD/RPs0ROOpd7PAOuZiSkWlJZPUCaJTCo8QZdDg=="
+	expected := "AAAAAgAAAADg3G3hclysZlFitS+s5zWyiiJD5B0STWy5LXCj6i5yxQAAAGQAIiCNAAAAGwAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAABAAAAACXK8doPx27P6IReQlRRuweSSUiUfjqgyswxiu3Sh2R+AAAACwAiILoAAABsAAAAAAAAAALqLnLFAAAAQOcGy1wxUHU5CdDqN5pFula3BXspTmoNLq4+pSl2kFd5hnRUAOCfTnswoceQ8p1vhcULbsl20gWE3IF1AA2qUgnSh2R+AAAAQLrmJprrsJDARgt6F+EQOmZDOT32K3VLrgIRLzp7mp38sp6zoA/0T7NETjqXezwDrmYkpFpSWT1AmiUwqPEGXQ4="
 	assert.Equal(t, expected, received, "Base 64 XDR should match")
 }
 
@@ -87,22 +102,27 @@ func TestChangeTrustMultSigners(t *testing.T) {
 	txSourceAccount := NewSimpleAccount(kp0.Address(), int64(9605939170639898))
 
 	kp1 := newKeypair1()
-	opSourceAccount := NewSimpleAccount(kp1.Address(), int64(9606132444168199))
 
 	changeTrust := ChangeTrust{
-		Line:          CreditAsset{"ABCD", kp0.Address()},
+		Line:          CreditAsset{"ABCD", kp0.Address()}.MustToChangeTrustAsset(),
 		Limit:         "10",
-		SourceAccount: &opSourceAccount,
+		SourceAccount: kp1.Address(),
 	}
 
-	tx := Transaction{
-		SourceAccount: &txSourceAccount,
-		Operations:    []Operation{&changeTrust},
-		Timebounds:    NewInfiniteTimeout(),
-		Network:       network.TestNetworkPassphrase,
-	}
-	received := buildSignEncode(t, tx, kp0, kp1)
-	expected := "AAAAAODcbeFyXKxmUWK1L6znNbKKIkPkHRJNbLktcKPqLnLFAAAAZAAiII0AAAAbAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAAAJcrx2g/Hbs/ohF5CVFG7B5JJSJR+OqDKzDGK7dKHZH4AAAAGAAAAAUFCQ0QAAAAA4Nxt4XJcrGZRYrUvrOc1sooiQ+QdEk1suS1wo+oucsUAAAAABfXhAAAAAAAAAAAC6i5yxQAAAEDedJzbQLi0WzudRmn8/iRPOmY8QdhoBM23MZxTiY7A6vGsI8mvVOlWcBKL/x3czQCFFctrZzm0j2zv2Fzj/D4E0odkfgAAAEC08u+7w48yJpcR8MJmK/LKdHlD+wV8xbCo4EgSrjAlJvOXbgPPi6pV2OXHKooA6R2x58og1+uRxoRNmsNhFTwF"
+	received, err := newSignedTransaction(
+		TransactionParams{
+			SourceAccount:        &txSourceAccount,
+			IncrementSequenceNum: true,
+			Operations:           []Operation{&changeTrust},
+			BaseFee:              MinBaseFee,
+			Timebounds:           NewInfiniteTimeout(),
+		},
+		network.TestNetworkPassphrase,
+		kp0, kp1,
+	)
+	assert.NoError(t, err)
+
+	expected := "AAAAAgAAAADg3G3hclysZlFitS+s5zWyiiJD5B0STWy5LXCj6i5yxQAAAGQAIiCNAAAAGwAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAABAAAAACXK8doPx27P6IReQlRRuweSSUiUfjqgyswxiu3Sh2R+AAAABgAAAAFBQkNEAAAAAODcbeFyXKxmUWK1L6znNbKKIkPkHRJNbLktcKPqLnLFAAAAAAX14QAAAAAAAAAAAuoucsUAAABA3nSc20C4tFs7nUZp/P4kTzpmPEHYaATNtzGcU4mOwOrxrCPJr1TpVnASi/8d3M0AhRXLa2c5tI9s79hc4/w+BNKHZH4AAABAtPLvu8OPMiaXEfDCZivyynR5Q/sFfMWwqOBIEq4wJSbzl24Dz4uqVdjlxyqKAOkdsefKINfrkcaETZrDYRU8BQ=="
 	assert.Equal(t, expected, received, "Base 64 XDR should match")
 }
 
@@ -111,23 +131,27 @@ func TestCreateAccountMultSigners(t *testing.T) {
 	txSourceAccount := NewSimpleAccount(kp0.Address(), int64(9605939170639898))
 
 	kp1 := newKeypair1()
-	opSourceAccount := NewSimpleAccount(kp1.Address(), int64(9606132444168199))
 
 	createAccount := CreateAccount{
 		Destination:   "GCCOBXW2XQNUSL467IEILE6MMCNRR66SSVL4YQADUNYYNUVREF3FIV2Z",
 		Amount:        "10",
-		SourceAccount: &opSourceAccount,
+		SourceAccount: kp1.Address(),
 	}
 
-	tx := Transaction{
-		SourceAccount: &txSourceAccount,
-		Operations:    []Operation{&createAccount},
-		Timebounds:    NewInfiniteTimeout(),
-		Network:       network.TestNetworkPassphrase,
-	}
+	received, err := newSignedTransaction(
+		TransactionParams{
+			SourceAccount:        &txSourceAccount,
+			IncrementSequenceNum: true,
+			Operations:           []Operation{&createAccount},
+			BaseFee:              MinBaseFee,
+			Timebounds:           NewInfiniteTimeout(),
+		},
+		network.TestNetworkPassphrase,
+		kp0, kp1,
+	)
+	assert.NoError(t, err)
 
-	received := buildSignEncode(t, tx, kp0, kp1)
-	expected := "AAAAAODcbeFyXKxmUWK1L6znNbKKIkPkHRJNbLktcKPqLnLFAAAAZAAiII0AAAAbAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAAAJcrx2g/Hbs/ohF5CVFG7B5JJSJR+OqDKzDGK7dKHZH4AAAAAAAAAAITg3tq8G0kvnvoIhZPMYJsY+9KVV8xAA6NxhtKxIXZUAAAAAAX14QAAAAAAAAAAAuoucsUAAABANXxsuIht++BXo21iiKkj0lrhVCYNdbD/uBPbL7AXKoleT1cynaR7luA74npsMfzE9AVFr+VclOY+dzQBqIWZDNKHZH4AAABA0EQ/a/U49VgXN6kAHnxMIfy/7rATGCk+stqym2Pa6fcbIKIFyoTRVi+uPTkIcS0u1wL1FvkWuU4YbfbtUPJ5Aw=="
+	expected := "AAAAAgAAAADg3G3hclysZlFitS+s5zWyiiJD5B0STWy5LXCj6i5yxQAAAGQAIiCNAAAAGwAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAABAAAAACXK8doPx27P6IReQlRRuweSSUiUfjqgyswxiu3Sh2R+AAAAAAAAAACE4N7avBtJL576CIWTzGCbGPvSlVfMQAOjcYbSsSF2VAAAAAAF9eEAAAAAAAAAAALqLnLFAAAAQDV8bLiIbfvgV6NtYoipI9Ja4VQmDXWw/7gT2y+wFyqJXk9XMp2ke5bgO+J6bDH8xPQFRa/lXJTmPnc0AaiFmQzSh2R+AAAAQNBEP2v1OPVYFzepAB58TCH8v+6wExgpPrLasptj2un3GyCiBcqE0VYvrj05CHEtLtcC9Rb5FrlOGG327VDyeQM="
 	assert.Equal(t, expected, received, "Base 64 XDR should match")
 }
 
@@ -136,25 +160,29 @@ func TestCreatePassiveSellOfferMultSigners(t *testing.T) {
 	txSourceAccount := NewSimpleAccount(kp0.Address(), int64(9605939170639898))
 
 	kp1 := newKeypair1()
-	opSourceAccount := NewSimpleAccount(kp1.Address(), int64(9606132444168199))
 
 	createPassiveOffer := CreatePassiveSellOffer{
 		Selling:       NativeAsset{},
 		Buying:        CreditAsset{"ABCD", kp0.Address()},
 		Amount:        "10",
 		Price:         "1.0",
-		SourceAccount: &opSourceAccount,
+		SourceAccount: kp1.Address(),
 	}
 
-	tx := Transaction{
-		SourceAccount: &txSourceAccount,
-		Operations:    []Operation{&createPassiveOffer},
-		Timebounds:    NewInfiniteTimeout(),
-		Network:       network.TestNetworkPassphrase,
-	}
+	received, err := newSignedTransaction(
+		TransactionParams{
+			SourceAccount:        &txSourceAccount,
+			IncrementSequenceNum: true,
+			Operations:           []Operation{&createPassiveOffer},
+			BaseFee:              MinBaseFee,
+			Timebounds:           NewInfiniteTimeout(),
+		},
+		network.TestNetworkPassphrase,
+		kp0, kp1,
+	)
+	assert.NoError(t, err)
 
-	received := buildSignEncode(t, tx, kp0, kp1)
-	expected := "AAAAAODcbeFyXKxmUWK1L6znNbKKIkPkHRJNbLktcKPqLnLFAAAAZAAiII0AAAAbAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAAAJcrx2g/Hbs/ohF5CVFG7B5JJSJR+OqDKzDGK7dKHZH4AAAAEAAAAAAAAAAFBQkNEAAAAAODcbeFyXKxmUWK1L6znNbKKIkPkHRJNbLktcKPqLnLFAAAAAAX14QAAAAABAAAAAQAAAAAAAAAC6i5yxQAAAEDQA9vz3Yvc1g/xjJdkyiegE5gw4y1RmGmM6d9Kd+i7FD+i0WdGyzkxf9GjrDprUQj1/iDFGE2HpYOb5Zd5UUcP0odkfgAAAECq+9bggD7neBxaDYO4kxR/ltLjqBucqqAbYcIY7bwnGy32Ca/jvsglwnU2UgX3qhCEHSshN21bsGI/h5f+xcUH"
+	expected := "AAAAAgAAAADg3G3hclysZlFitS+s5zWyiiJD5B0STWy5LXCj6i5yxQAAAGQAIiCNAAAAGwAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAABAAAAACXK8doPx27P6IReQlRRuweSSUiUfjqgyswxiu3Sh2R+AAAABAAAAAAAAAABQUJDRAAAAADg3G3hclysZlFitS+s5zWyiiJD5B0STWy5LXCj6i5yxQAAAAAF9eEAAAAAAQAAAAEAAAAAAAAAAuoucsUAAABA0APb892L3NYP8YyXZMonoBOYMOMtUZhpjOnfSnfouxQ/otFnRss5MX/Ro6w6a1EI9f4gxRhNh6WDm+WXeVFHD9KHZH4AAABAqvvW4IA+53gcWg2DuJMUf5bS46gbnKqgG2HCGO28Jxst9gmv477IJcJ1NlIF96oQhB0rITdtW7BiP4eX/sXFBw=="
 	assert.Equal(t, expected, received, "Base 64 XDR should match")
 }
 
@@ -163,21 +191,25 @@ func TestInflationMultSigners(t *testing.T) {
 	txSourceAccount := NewSimpleAccount(kp0.Address(), int64(9605939170639898))
 
 	kp1 := newKeypair1()
-	opSourceAccount := NewSimpleAccount(kp1.Address(), int64(9606132444168199))
 
 	inflation := Inflation{
-		SourceAccount: &opSourceAccount,
+		SourceAccount: kp1.Address(),
 	}
 
-	tx := Transaction{
-		SourceAccount: &txSourceAccount,
-		Operations:    []Operation{&inflation},
-		Timebounds:    NewInfiniteTimeout(),
-		Network:       network.TestNetworkPassphrase,
-	}
+	received, err := newSignedTransaction(
+		TransactionParams{
+			SourceAccount:        &txSourceAccount,
+			IncrementSequenceNum: true,
+			Operations:           []Operation{&inflation},
+			BaseFee:              MinBaseFee,
+			Timebounds:           NewInfiniteTimeout(),
+		},
+		network.TestNetworkPassphrase,
+		kp0, kp1,
+	)
+	assert.NoError(t, err)
 
-	received := buildSignEncode(t, tx, kp0, kp1)
-	expected := "AAAAAODcbeFyXKxmUWK1L6znNbKKIkPkHRJNbLktcKPqLnLFAAAAZAAiII0AAAAbAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAAAJcrx2g/Hbs/ohF5CVFG7B5JJSJR+OqDKzDGK7dKHZH4AAAAJAAAAAAAAAALqLnLFAAAAQA10jZSBnnrqNR6RH6tbivfJropBxXa2KcH2yN9J3mBGoIxgBSyBCYEc9qKWnkrmZUGvmbTO+LNOd+PdQ4Y8CAPSh2R+AAAAQJ/b1BbMNzsXMGqGELrXH8bcEM5nXa+jq06xrMnIbgMRNRsj+NhSyKifzWP0PQQvHQ4C2yw6y+HBfWvwzAFPhQE="
+	expected := "AAAAAgAAAADg3G3hclysZlFitS+s5zWyiiJD5B0STWy5LXCj6i5yxQAAAGQAIiCNAAAAGwAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAABAAAAACXK8doPx27P6IReQlRRuweSSUiUfjqgyswxiu3Sh2R+AAAACQAAAAAAAAAC6i5yxQAAAEANdI2UgZ566jUekR+rW4r3ya6KQcV2tinB9sjfSd5gRqCMYAUsgQmBHPailp5K5mVBr5m0zvizTnfj3UOGPAgD0odkfgAAAECf29QWzDc7FzBqhhC61x/G3BDOZ12vo6tOsazJyG4DETUbI/jYUsion81j9D0ELx0OAtssOsvhwX1r8MwBT4UB"
 	assert.Equal(t, expected, received, "Base 64 XDR should match")
 }
 
@@ -186,23 +218,27 @@ func TestManageDataMultSigners(t *testing.T) {
 	txSourceAccount := NewSimpleAccount(kp0.Address(), int64(9605939170639898))
 
 	kp1 := newKeypair1()
-	opSourceAccount := NewSimpleAccount(kp1.Address(), int64(9606132444168199))
 
 	manageData := ManageData{
 		Name:          "Fruit preference",
 		Value:         []byte("Apple"),
-		SourceAccount: &opSourceAccount,
+		SourceAccount: kp1.Address(),
 	}
 
-	tx := Transaction{
-		SourceAccount: &txSourceAccount,
-		Operations:    []Operation{&manageData},
-		Timebounds:    NewInfiniteTimeout(),
-		Network:       network.TestNetworkPassphrase,
-	}
+	received, err := newSignedTransaction(
+		TransactionParams{
+			SourceAccount:        &txSourceAccount,
+			IncrementSequenceNum: true,
+			Operations:           []Operation{&manageData},
+			BaseFee:              MinBaseFee,
+			Timebounds:           NewInfiniteTimeout(),
+		},
+		network.TestNetworkPassphrase,
+		kp0, kp1,
+	)
+	assert.NoError(t, err)
 
-	received := buildSignEncode(t, tx, kp0, kp1)
-	expected := "AAAAAODcbeFyXKxmUWK1L6znNbKKIkPkHRJNbLktcKPqLnLFAAAAZAAiII0AAAAbAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAAAJcrx2g/Hbs/ohF5CVFG7B5JJSJR+OqDKzDGK7dKHZH4AAAAKAAAAEEZydWl0IHByZWZlcmVuY2UAAAABAAAABUFwcGxlAAAAAAAAAAAAAALqLnLFAAAAQLCtVrhLtpfRGrFhiiGJq891ewFu6ju63po2fgjnYHgA2MgSFJ5rRo3H09uIyWpcmEeeBwXihnx6Ahh9R/pDng7Sh2R+AAAAQOSrmSI0GjSDSgp0+RFwrZYBgqjVtEE5aeCebZ3KR0JCEYXwzIG/q9t1WGz5/zyd8BmmqI1+rP0R6QSp1kDyhwo="
+	expected := "AAAAAgAAAADg3G3hclysZlFitS+s5zWyiiJD5B0STWy5LXCj6i5yxQAAAGQAIiCNAAAAGwAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAABAAAAACXK8doPx27P6IReQlRRuweSSUiUfjqgyswxiu3Sh2R+AAAACgAAABBGcnVpdCBwcmVmZXJlbmNlAAAAAQAAAAVBcHBsZQAAAAAAAAAAAAAC6i5yxQAAAECwrVa4S7aX0RqxYYohiavPdXsBbuo7ut6aNn4I52B4ANjIEhSea0aNx9PbiMlqXJhHngcF4oZ8egIYfUf6Q54O0odkfgAAAEDkq5kiNBo0g0oKdPkRcK2WAYKo1bRBOWngnm2dykdCQhGF8MyBv6vbdVhs+f88nfAZpqiNfqz9EekEqdZA8ocK"
 	assert.Equal(t, expected, received, "Base 64 XDR should match")
 }
 
@@ -211,24 +247,28 @@ func TestManageOfferCreateMultSigners(t *testing.T) {
 	txSourceAccount := NewSimpleAccount(kp0.Address(), int64(9605939170639898))
 
 	kp1 := newKeypair1()
-	opSourceAccount := NewSimpleAccount(kp1.Address(), int64(9606132444168199))
 
 	selling := NativeAsset{}
 	buying := CreditAsset{"ABCD", kp0.Address()}
 	sellAmount := "100"
 	price := "0.01"
-	createOffer, err := CreateOfferOp(selling, buying, sellAmount, price, &opSourceAccount)
+	createOffer, err := CreateOfferOp(selling, buying, sellAmount, price, kp1.Address())
 	check(err)
 
-	tx := Transaction{
-		SourceAccount: &txSourceAccount,
-		Operations:    []Operation{&createOffer},
-		Timebounds:    NewInfiniteTimeout(),
-		Network:       network.TestNetworkPassphrase,
-	}
+	received, err := newSignedTransaction(
+		TransactionParams{
+			SourceAccount:        &txSourceAccount,
+			IncrementSequenceNum: true,
+			Operations:           []Operation{&createOffer},
+			BaseFee:              MinBaseFee,
+			Timebounds:           NewInfiniteTimeout(),
+		},
+		network.TestNetworkPassphrase,
+		kp0, kp1,
+	)
+	assert.NoError(t, err)
 
-	received := buildSignEncode(t, tx, kp0, kp1)
-	expected := "AAAAAODcbeFyXKxmUWK1L6znNbKKIkPkHRJNbLktcKPqLnLFAAAAZAAiII0AAAAbAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAAAJcrx2g/Hbs/ohF5CVFG7B5JJSJR+OqDKzDGK7dKHZH4AAAADAAAAAAAAAAFBQkNEAAAAAODcbeFyXKxmUWK1L6znNbKKIkPkHRJNbLktcKPqLnLFAAAAADuaygAAAAABAAAAZAAAAAAAAAAAAAAAAAAAAALqLnLFAAAAQBo6hZfPKEWgmpWi/TCZonjsQz/w3TCCg2Qcn218b/vCq6OjTezTukCJzJZuhEI7k/STp1/dEptolP9ysGsqegjSh2R+AAAAQLAcnq3rskk4p7shyvfRLuNnK1XgOnVtvho24UW6pqflv+wRaVWJg7Vp848Gi5bBFB8mPJRYMa3lbL78n4wYJA0="
+	expected := "AAAAAgAAAADg3G3hclysZlFitS+s5zWyiiJD5B0STWy5LXCj6i5yxQAAAGQAIiCNAAAAGwAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAABAAAAACXK8doPx27P6IReQlRRuweSSUiUfjqgyswxiu3Sh2R+AAAAAwAAAAAAAAABQUJDRAAAAADg3G3hclysZlFitS+s5zWyiiJD5B0STWy5LXCj6i5yxQAAAAA7msoAAAAAAQAAAGQAAAAAAAAAAAAAAAAAAAAC6i5yxQAAAEAaOoWXzyhFoJqVov0wmaJ47EM/8N0wgoNkHJ9tfG/7wqujo03s07pAicyWboRCO5P0k6df3RKbaJT/crBrKnoI0odkfgAAAECwHJ6t67JJOKe7Icr30S7jZytV4Dp1bb4aNuFFuqan5b/sEWlViYO1afOPBouWwRQfJjyUWDGt5Wy+/J+MGCQN"
 	assert.Equal(t, expected, received, "Base 64 XDR should match")
 }
 
@@ -237,21 +277,25 @@ func TestManageOfferDeleteMultSigners(t *testing.T) {
 	txSourceAccount := NewSimpleAccount(kp0.Address(), int64(9605939170639898))
 
 	kp1 := newKeypair1()
-	opSourceAccount := NewSimpleAccount(kp1.Address(), int64(9606132444168199))
 
 	offerID := int64(2921622)
-	deleteOffer, err := DeleteOfferOp(offerID, &opSourceAccount)
+	deleteOffer, err := DeleteOfferOp(offerID, kp1.Address())
 	check(err)
 
-	tx := Transaction{
-		SourceAccount: &txSourceAccount,
-		Operations:    []Operation{&deleteOffer},
-		Timebounds:    NewInfiniteTimeout(),
-		Network:       network.TestNetworkPassphrase,
-	}
+	received, err := newSignedTransaction(
+		TransactionParams{
+			SourceAccount:        &txSourceAccount,
+			IncrementSequenceNum: true,
+			Operations:           []Operation{&deleteOffer},
+			BaseFee:              MinBaseFee,
+			Timebounds:           NewInfiniteTimeout(),
+		},
+		network.TestNetworkPassphrase,
+		kp0, kp1,
+	)
+	assert.NoError(t, err)
 
-	received := buildSignEncode(t, tx, kp0, kp1)
-	expected := "AAAAAODcbeFyXKxmUWK1L6znNbKKIkPkHRJNbLktcKPqLnLFAAAAZAAiII0AAAAbAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAAAJcrx2g/Hbs/ohF5CVFG7B5JJSJR+OqDKzDGK7dKHZH4AAAADAAAAAAAAAAFGQUtFAAAAAEEHgGTElYZi82AkGiJdSja2OBaU2aEcwwp3AY3tFJ2xAAAAAAAAAAAAAAABAAAAAQAAAAAALJSWAAAAAAAAAALqLnLFAAAAQFp2K2fnu4AY2GsFb5BL8b8uDwCoHvcdHi+e7oedEp524sJCws4nPwEWLFu5DJcMqLCvFkr5UgwtQwFrNJmMqwbSh2R+AAAAQLtQ2CiOJOG5OsmWydFWFUads6QJj51RcJbJb0mCyDewWBpZRLmh45IMyMRlMJoxk8wKJK4UR2Sfolz7aMmjrw4="
+	expected := "AAAAAgAAAADg3G3hclysZlFitS+s5zWyiiJD5B0STWy5LXCj6i5yxQAAAGQAIiCNAAAAGwAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAABAAAAACXK8doPx27P6IReQlRRuweSSUiUfjqgyswxiu3Sh2R+AAAAAwAAAAAAAAABRkFLRQAAAABBB4BkxJWGYvNgJBoiXUo2tjgWlNmhHMMKdwGN7RSdsQAAAAAAAAAAAAAAAQAAAAEAAAAAACyUlgAAAAAAAAAC6i5yxQAAAEBaditn57uAGNhrBW+QS/G/Lg8AqB73HR4vnu6HnRKeduLCQsLOJz8BFixbuQyXDKiwrxZK+VIMLUMBazSZjKsG0odkfgAAAEC7UNgojiThuTrJlsnRVhVGnbOkCY+dUXCWyW9Jgsg3sFgaWUS5oeOSDMjEZTCaMZPMCiSuFEdkn6Jc+2jJo68O"
 	assert.Equal(t, expected, received, "Base 64 XDR should match")
 }
 
@@ -260,25 +304,29 @@ func TestManageOfferUpdateMultSigners(t *testing.T) {
 	txSourceAccount := NewSimpleAccount(kp0.Address(), int64(9605939170639898))
 
 	kp1 := newKeypair1()
-	opSourceAccount := NewSimpleAccount(kp1.Address(), int64(9606132444168199))
 
 	selling := NativeAsset{}
 	buying := CreditAsset{"ABCD", kp0.Address()}
 	sellAmount := "50"
 	price := "0.02"
 	offerID := int64(2497628)
-	updateOffer, err := UpdateOfferOp(selling, buying, sellAmount, price, offerID, &opSourceAccount)
+	updateOffer, err := UpdateOfferOp(selling, buying, sellAmount, price, offerID, kp1.Address())
 	check(err)
 
-	tx := Transaction{
-		SourceAccount: &txSourceAccount,
-		Operations:    []Operation{&updateOffer},
-		Timebounds:    NewInfiniteTimeout(),
-		Network:       network.TestNetworkPassphrase,
-	}
+	received, err := newSignedTransaction(
+		TransactionParams{
+			SourceAccount:        &txSourceAccount,
+			IncrementSequenceNum: true,
+			Operations:           []Operation{&updateOffer},
+			BaseFee:              MinBaseFee,
+			Timebounds:           NewInfiniteTimeout(),
+		},
+		network.TestNetworkPassphrase,
+		kp0, kp1,
+	)
+	assert.NoError(t, err)
 
-	received := buildSignEncode(t, tx, kp0, kp1)
-	expected := "AAAAAODcbeFyXKxmUWK1L6znNbKKIkPkHRJNbLktcKPqLnLFAAAAZAAiII0AAAAbAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAAAJcrx2g/Hbs/ohF5CVFG7B5JJSJR+OqDKzDGK7dKHZH4AAAADAAAAAAAAAAFBQkNEAAAAAODcbeFyXKxmUWK1L6znNbKKIkPkHRJNbLktcKPqLnLFAAAAAB3NZQAAAAABAAAAMgAAAAAAJhxcAAAAAAAAAALqLnLFAAAAQOEvekP35V6i3XzbXLdxC5BHFg1pQkhC35KXHJKDYdXwGb5YjHh5amYL78JLtrmswu7NbpWz3MY/rbxFn+8I3gHSh2R+AAAAQLU+5Xee25nSTbRJnWx5zCtkIQ7KzDnb/V/r9nizHsizneito26JQqeEKBH/qz88d3kQxWWC4Lf053tPD6d+SA0="
+	expected := "AAAAAgAAAADg3G3hclysZlFitS+s5zWyiiJD5B0STWy5LXCj6i5yxQAAAGQAIiCNAAAAGwAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAABAAAAACXK8doPx27P6IReQlRRuweSSUiUfjqgyswxiu3Sh2R+AAAAAwAAAAAAAAABQUJDRAAAAADg3G3hclysZlFitS+s5zWyiiJD5B0STWy5LXCj6i5yxQAAAAAdzWUAAAAAAQAAADIAAAAAACYcXAAAAAAAAAAC6i5yxQAAAEDhL3pD9+Veot1821y3cQuQRxYNaUJIQt+SlxySg2HV8Bm+WIx4eWpmC+/CS7a5rMLuzW6Vs9zGP628RZ/vCN4B0odkfgAAAEC1PuV3ntuZ0k20SZ1secwrZCEOysw52/1f6/Z4sx7Is53oraNuiUKnhCgR/6s/PHd5EMVlguC39Od7Tw+nfkgN"
 	assert.Equal(t, expected, received, "Base 64 XDR should match")
 }
 
@@ -287,7 +335,6 @@ func TestPathPaymentMultSigners(t *testing.T) {
 	txSourceAccount := NewSimpleAccount(kp0.Address(), int64(9605939170639898))
 
 	kp1 := newKeypair1()
-	opSourceAccount := NewSimpleAccount(kp1.Address(), int64(9606132444168199))
 
 	abcdAsset := CreditAsset{"ABCD", kp0.Address()}
 	pathPayment := PathPayment{
@@ -297,18 +344,23 @@ func TestPathPaymentMultSigners(t *testing.T) {
 		DestAsset:     NativeAsset{},
 		DestAmount:    "1",
 		Path:          []Asset{abcdAsset},
-		SourceAccount: &opSourceAccount,
+		SourceAccount: kp1.Address(),
 	}
 
-	tx := Transaction{
-		SourceAccount: &txSourceAccount,
-		Operations:    []Operation{&pathPayment},
-		Timebounds:    NewInfiniteTimeout(),
-		Network:       network.TestNetworkPassphrase,
-	}
+	received, err := newSignedTransaction(
+		TransactionParams{
+			SourceAccount:        &txSourceAccount,
+			IncrementSequenceNum: true,
+			Operations:           []Operation{&pathPayment},
+			BaseFee:              MinBaseFee,
+			Timebounds:           NewInfiniteTimeout(),
+		},
+		network.TestNetworkPassphrase,
+		kp0, kp1,
+	)
+	assert.NoError(t, err)
 
-	received := buildSignEncode(t, tx, kp0, kp1)
-	expected := "AAAAAODcbeFyXKxmUWK1L6znNbKKIkPkHRJNbLktcKPqLnLFAAAAZAAiII0AAAAbAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAAAJcrx2g/Hbs/ohF5CVFG7B5JJSJR+OqDKzDGK7dKHZH4AAAACAAAAAAAAAAAF9eEAAAAAAODcbeFyXKxmUWK1L6znNbKKIkPkHRJNbLktcKPqLnLFAAAAAAAAAAAAmJaAAAAAAQAAAAFBQkNEAAAAAODcbeFyXKxmUWK1L6znNbKKIkPkHRJNbLktcKPqLnLFAAAAAAAAAALqLnLFAAAAQKYqPzdMAYo7NrrOOE2HnXRzCIBixIT9jWteNysju07WVcGpJhoLJW597UrMlsRVWLB/QJk6e6jw6SzLRDXw5wLSh2R+AAAAQMz9ZqejVTk9KiWZCv0e/hoW+F4ua2mM6tHV/kuzCB9HqVGglbK9xN0aOGnrQwvwlp824cVOYnUkV8+HfwsnQgM="
+	expected := "AAAAAgAAAADg3G3hclysZlFitS+s5zWyiiJD5B0STWy5LXCj6i5yxQAAAGQAIiCNAAAAGwAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAABAAAAACXK8doPx27P6IReQlRRuweSSUiUfjqgyswxiu3Sh2R+AAAAAgAAAAAAAAAABfXhAAAAAADg3G3hclysZlFitS+s5zWyiiJD5B0STWy5LXCj6i5yxQAAAAAAAAAAAJiWgAAAAAEAAAABQUJDRAAAAADg3G3hclysZlFitS+s5zWyiiJD5B0STWy5LXCj6i5yxQAAAAAAAAAC6i5yxQAAAECmKj83TAGKOza6zjhNh510cwiAYsSE/Y1rXjcrI7tO1lXBqSYaCyVufe1KzJbEVViwf0CZOnuo8Oksy0Q18OcC0odkfgAAAEDM/Wano1U5PSolmQr9Hv4aFvheLmtpjOrR1f5LswgfR6lRoJWyvcTdGjhp60ML8JafNuHFTmJ1JFfPh38LJ0ID"
 
 	assert.Equal(t, expected, received, "Base 64 XDR should match")
 }
@@ -318,24 +370,28 @@ func TestPaymentMultSigners(t *testing.T) {
 	txSourceAccount := NewSimpleAccount(kp0.Address(), int64(9605939170639898))
 
 	kp1 := newKeypair1()
-	opSourceAccount := NewSimpleAccount(kp1.Address(), int64(9606132444168199))
 
 	payment := Payment{
 		Destination:   "GB7BDSZU2Y27LYNLALKKALB52WS2IZWYBDGY6EQBLEED3TJOCVMZRH7H",
 		Amount:        "10",
 		Asset:         NativeAsset{},
-		SourceAccount: &opSourceAccount,
+		SourceAccount: kp1.Address(),
 	}
 
-	tx := Transaction{
-		SourceAccount: &txSourceAccount,
-		Operations:    []Operation{&payment},
-		Timebounds:    NewInfiniteTimeout(),
-		Network:       network.TestNetworkPassphrase,
-	}
+	received, err := newSignedTransaction(
+		TransactionParams{
+			SourceAccount:        &txSourceAccount,
+			IncrementSequenceNum: true,
+			Operations:           []Operation{&payment},
+			BaseFee:              MinBaseFee,
+			Timebounds:           NewInfiniteTimeout(),
+		},
+		network.TestNetworkPassphrase,
+		kp0, kp1,
+	)
+	assert.NoError(t, err)
 
-	received := buildSignEncode(t, tx, kp0, kp1)
-	expected := "AAAAAODcbeFyXKxmUWK1L6znNbKKIkPkHRJNbLktcKPqLnLFAAAAZAAiII0AAAAbAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAAAJcrx2g/Hbs/ohF5CVFG7B5JJSJR+OqDKzDGK7dKHZH4AAAABAAAAAH4RyzTWNfXhqwLUoCw91aWkZtgIzY8SAVkIPc0uFVmYAAAAAAAAAAAF9eEAAAAAAAAAAALqLnLFAAAAQHzYkZeogiHztanqRvrXXxiNShH/Zf5EUjgabrb6wwgX1eOUBRjp5J92qq8s/o1B1sxrMNiPpViAq40tD/yGfwjSh2R+AAAAQNVC6YLIbAnFs3G/rdf7IxrWYFOxjOKUSZsN0q1Bm/MXk+7ydhcCbYBgq+VGa6eZf8BckgIdAtDI8VNWPoTyhAM="
+	expected := "AAAAAgAAAADg3G3hclysZlFitS+s5zWyiiJD5B0STWy5LXCj6i5yxQAAAGQAIiCNAAAAGwAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAABAAAAACXK8doPx27P6IReQlRRuweSSUiUfjqgyswxiu3Sh2R+AAAAAQAAAAB+Ecs01jX14asC1KAsPdWlpGbYCM2PEgFZCD3NLhVZmAAAAAAAAAAABfXhAAAAAAAAAAAC6i5yxQAAAEB82JGXqIIh87Wp6kb6118YjUoR/2X+RFI4Gm62+sMIF9XjlAUY6eSfdqqvLP6NQdbMazDYj6VYgKuNLQ/8hn8I0odkfgAAAEDVQumCyGwJxbNxv63X+yMa1mBTsYzilEmbDdKtQZvzF5Pu8nYXAm2AYKvlRmunmX/AXJICHQLQyPFTVj6E8oQD"
 	assert.Equal(t, expected, received, "Base 64 XDR should match")
 }
 
@@ -344,21 +400,161 @@ func TestSetOptionsMultSigners(t *testing.T) {
 	txSourceAccount := NewSimpleAccount(kp0.Address(), int64(9605939170639898))
 
 	kp1 := newKeypair1()
-	opSourceAccount := NewSimpleAccount(kp1.Address(), int64(9606132444168199))
 
 	setOptions := SetOptions{
 		SetFlags:      []AccountFlag{AuthRequired, AuthRevocable},
-		SourceAccount: &opSourceAccount,
+		SourceAccount: kp1.Address(),
 	}
 
-	tx := Transaction{
-		SourceAccount: &txSourceAccount,
-		Operations:    []Operation{&setOptions},
-		Timebounds:    NewInfiniteTimeout(),
-		Network:       network.TestNetworkPassphrase,
-	}
+	received, err := newSignedTransaction(
+		TransactionParams{
+			SourceAccount:        &txSourceAccount,
+			IncrementSequenceNum: true,
+			Operations:           []Operation{&setOptions},
+			BaseFee:              MinBaseFee,
+			Timebounds:           NewInfiniteTimeout(),
+		},
+		network.TestNetworkPassphrase,
+		kp0, kp1,
+	)
+	assert.NoError(t, err)
 
-	received := buildSignEncode(t, tx, kp0, kp1)
-	expected := "AAAAAODcbeFyXKxmUWK1L6znNbKKIkPkHRJNbLktcKPqLnLFAAAAZAAiII0AAAAbAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAAAJcrx2g/Hbs/ohF5CVFG7B5JJSJR+OqDKzDGK7dKHZH4AAAAFAAAAAAAAAAAAAAABAAAAAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC6i5yxQAAAEA7Wgrkr6q1o1Cf9rzfopqkIUQWD9Se3TagU2GhMn9OjGT75flGAaOdQ+kHLDGQjThDKMMdB8jCJGe8IGc/dIQP0odkfgAAAEDni8seENXmyh0QgHkLjM4EmhHmBr5NvU6VpJaVBfv631yaaHP7lONfg9x8DyHjz8uh03S7ipShHIrQDFN+L+cM"
+	expected := "AAAAAgAAAADg3G3hclysZlFitS+s5zWyiiJD5B0STWy5LXCj6i5yxQAAAGQAIiCNAAAAGwAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAABAAAAACXK8doPx27P6IReQlRRuweSSUiUfjqgyswxiu3Sh2R+AAAABQAAAAAAAAAAAAAAAQAAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAuoucsUAAABAO1oK5K+qtaNQn/a836KapCFEFg/Unt02oFNhoTJ/Toxk++X5RgGjnUPpBywxkI04QyjDHQfIwiRnvCBnP3SED9KHZH4AAABA54vLHhDV5sodEIB5C4zOBJoR5ga+Tb1OlaSWlQX7+t9cmmhz+5TjX4PcfA8h48/LodN0u4qUoRyK0AxTfi/nDA=="
 	assert.Equal(t, expected, received, "Base 64 XDR should match")
+}
+
+type transactionCommon interface {
+	Signatures() []xdr.DecoratedSignature
+	Hash(networkStr string) ([32]byte, error)
+	Base64() (string, error)
+	ToXDR() xdr.TransactionEnvelope
+}
+
+func verifySignatures(t *testing.T, tx transactionCommon, signers ...*keypair.Full) {
+	assert.Len(t, tx.Signatures(), len(signers))
+
+	hash, err := tx.Hash(network.TestNetworkPassphrase)
+	assert.NoError(t, err)
+	signatures := tx.Signatures()
+	for i, kp := range signers {
+		assert.NoError(t, kp.Verify(hash[:], signatures[i].Signature))
+	}
+}
+
+func assertBase64(t *testing.T, tx transactionCommon) string {
+	base64, err := tx.Base64()
+	assert.NoError(t, err)
+
+	envRef := tx.ToXDR()
+	envRefBase64, err := xdr.MarshalBase64(envRef)
+	assert.NoError(t, err)
+
+	assert.Equal(t, base64, envRefBase64)
+
+	return base64
+}
+
+func TestSigningImmutability(t *testing.T) {
+	kp0, kp1, kp2 := newKeypair0(), newKeypair1(), newKeypair2()
+
+	sourceAccount := NewSimpleAccount(kp0.Address(), 1)
+	params := TransactionParams{
+		SourceAccount: &sourceAccount,
+		Operations:    []Operation{&Inflation{}},
+		BaseFee:       MinBaseFee,
+		Timebounds:    NewInfiniteTimeout(),
+	}
+	root, err := NewTransaction(params)
+	assert.NoError(t, err)
+	root, err = root.Sign(network.TestNetworkPassphrase, kp0)
+	assert.NoError(t, err)
+	rootB64 := assertBase64(t, root)
+	rootXDR := root.ToXDR()
+
+	left, err := root.Sign(network.TestNetworkPassphrase, kp1)
+	assert.NoError(t, err)
+	leftB64 := assertBase64(t, left)
+
+	right, err := root.Sign(network.TestNetworkPassphrase, kp2)
+	assert.NoError(t, err)
+	rightB64 := assertBase64(t, right)
+
+	expectedRootB64, err := newSignedTransaction(
+		params, network.TestNetworkPassphrase, kp0,
+	)
+	assert.NoError(t, err)
+	expectedLeftB64, err := newSignedTransaction(
+		params, network.TestNetworkPassphrase, kp0, kp1,
+	)
+	assert.NoError(t, err)
+	expectedRightB64, err := newSignedTransaction(
+		params, network.TestNetworkPassphrase, kp0, kp2,
+	)
+	assert.NoError(t, err)
+
+	assert.Equal(t, expectedRootB64, rootB64)
+	verifySignatures(t, root, kp0)
+	assert.Equal(t, expectedLeftB64, leftB64)
+	verifySignatures(t, left, kp0, kp1)
+	assert.Equal(t, expectedRightB64, rightB64)
+	verifySignatures(t, right, kp0, kp2)
+
+	rootXDRB64, err := xdr.MarshalBase64(rootXDR)
+	if assert.NoError(t, err) {
+		assert.Equal(t, expectedRootB64, rootXDRB64)
+	}
+}
+
+func TestFeeBumpSigningImmutability(t *testing.T) {
+	kp0, kp1, kp2 := newKeypair0(), newKeypair1(), newKeypair2()
+
+	sourceAccount := NewSimpleAccount(kp0.Address(), 1)
+	innerParams := TransactionParams{
+		SourceAccount: &sourceAccount,
+		Operations:    []Operation{&Inflation{}},
+		BaseFee:       MinBaseFee,
+		Timebounds:    NewInfiniteTimeout(),
+	}
+	inner, err := NewTransaction(innerParams)
+	assert.NoError(t, err)
+
+	params := FeeBumpTransactionParams{
+		Inner:      inner,
+		FeeAccount: kp1.Address(),
+		BaseFee:    MinBaseFee,
+	}
+	root, err := NewFeeBumpTransaction(params)
+	assert.NoError(t, err)
+	root, err = root.Sign(network.TestNetworkPassphrase, kp1)
+	assert.NoError(t, err)
+	rootB64 := assertBase64(t, root)
+
+	left, err := root.Sign(network.TestNetworkPassphrase, kp0)
+	assert.NoError(t, err)
+	leftB64 := assertBase64(t, left)
+
+	right, err := root.Sign(network.TestNetworkPassphrase, kp2)
+	assert.NoError(t, err)
+	rightB64 := assertBase64(t, right)
+
+	expectedRootB64, err := newSignedFeeBumpTransaction(
+		params, network.TestNetworkPassphrase, kp1,
+	)
+	assert.NoError(t, err)
+
+	expectedLeftB64, err := newSignedFeeBumpTransaction(
+		params, network.TestNetworkPassphrase, kp1, kp0,
+	)
+	assert.NoError(t, err)
+	expectedRightB64, err := newSignedFeeBumpTransaction(
+		params, network.TestNetworkPassphrase, kp1, kp2,
+	)
+	assert.NoError(t, err)
+
+	assert.Equal(t, expectedRootB64, rootB64)
+	verifySignatures(t, root, kp1)
+	assert.Equal(t, expectedLeftB64, leftB64)
+	verifySignatures(t, left, kp1, kp0)
+	assert.Equal(t, expectedRightB64, rightB64)
+	verifySignatures(t, right, kp1, kp2)
 }

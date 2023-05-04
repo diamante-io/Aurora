@@ -6,18 +6,17 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"runtime"
+	"os/signal"
 	"sync"
+	"syscall"
 	"time"
 
-	"github.com/gomodule/redigo/redis"
-	metrics "github.com/rcrowley/go-metrics"
+	"github.com/prometheus/client_golang/prometheus"
+
 	"github.com/diamnet/go/clients/diamnetcore"
-	"github.com/diamnet/go/exp/orderbook"
-	auroraContext "github.com/diamnet/go/services/aurora/internal/context"
-	"github.com/diamnet/go/services/aurora/internal/db2/core"
+	"github.com/diamnet/go/services/aurora/internal/corestate"
 	"github.com/diamnet/go/services/aurora/internal/db2/history"
-	"github.com/diamnet/go/services/aurora/internal/expingest"
+	"github.com/diamnet/go/services/aurora/internal/httpx"
 	"github.com/diamnet/go/services/aurora/internal/ingest"
 	"github.com/diamnet/go/services/aurora/internal/ledger"
 	"github.com/diamnet/go/services/aurora/internal/logmetrics"
@@ -29,106 +28,155 @@ import (
 	"github.com/diamnet/go/support/db"
 	"github.com/diamnet/go/support/errors"
 	"github.com/diamnet/go/support/log"
-	"github.com/throttled/throttled"
-	"golang.org/x/net/http2"
-	graceful "gopkg.in/tylerb/graceful.v1"
 )
 
 // App represents the root of the state of a aurora instance.
 type App struct {
-	config                       Config
-	web                          *web
-	historyQ                     *history.Q
-	coreQ                        *core.Q
-	ctx                          context.Context
-	cancel                       func()
-	redis                        *redis.Pool
-	coreVersion                  string
-	auroraVersion               string
-	currentProtocolVersion       int32
-	coreSupportedProtocolVersion int32
-	submitter                    *txsub.System
-	paths                        paths.Finder
-	ingester                     *ingest.System
-	expingester                  *expingest.System
-	reaper                       *reap.System
-	ticks                        *time.Ticker
+	done            chan struct{}
+	doneOnce        sync.Once
+	config          Config
+	webServer       *httpx.Server
+	historyQ        *history.Q
+	primaryHistoryQ *history.Q
+	ctx             context.Context
+	cancel          func()
+	auroraVersion  string
+	coreState       corestate.Store
+	orderBookStream *ingest.OrderBookStream
+	submitter       *txsub.System
+	paths           paths.Finder
+	ingester        ingest.System
+	reaper          *reap.System
+	ticks           *time.Ticker
+	ledgerState     *ledger.State
 
 	// metrics
-	metrics                  metrics.Registry
-	historyLatestLedgerGauge metrics.Gauge
-	historyElderLedgerGauge  metrics.Gauge
-	auroraConnGauge         metrics.Gauge
-	coreLatestLedgerGauge    metrics.Gauge
-	coreConnGauge            metrics.Gauge
-	goroutineGauge           metrics.Gauge
+	prometheusRegistry *prometheus.Registry
+	buildInfoGauge     *prometheus.GaugeVec
+	ingestingGauge     prometheus.Gauge
 }
 
+func (a *App) GetCoreState() corestate.State {
+	return a.coreState.Get()
+}
+
+const tickerMaxFrequency = 1 * time.Second
+const tickerMaxDuration = 5 * time.Second
+
 // NewApp constructs an new App instance from the provided config.
-func NewApp(config Config) *App {
+func NewApp(config Config) (*App, error) {
 	a := &App{
 		config:         config,
+		ledgerState:    &ledger.State{},
 		auroraVersion: app.Version(),
-		ticks:          time.NewTicker(1 * time.Second),
+		ticks:          time.NewTicker(tickerMaxFrequency),
+		done:           make(chan struct{}),
 	}
 
-	a.init()
-	return a
+	if err := a.init(); err != nil {
+		return nil, err
+	}
+	return a, nil
 }
 
 // Serve starts the aurora web server, binding it to a socket, setting up
 // the shutdown signals.
-func (a *App) Serve() {
-	http.Handle("/", a.web.router)
+func (a *App) Serve() error {
 
-	addr := fmt.Sprintf(":%d", a.config.Port)
+	log.Infof("Starting aurora on :%d (ingest: %v)", a.config.Port, a.config.Ingest)
 
-	srv := &graceful.Server{
-		Timeout: 10 * time.Second,
-
-		Server: &http.Server{
-			Addr:              addr,
-			Handler:           http.DefaultServeMux,
-			ReadHeaderTimeout: 5 * time.Second,
-		},
-
-		ShutdownInitiated: func() {
-			log.Info("received signal, gracefully stopping")
-			a.Close()
-		},
+	if a.config.AdminPort != 0 {
+		log.Infof("Starting internal server on :%d", a.config.AdminPort)
 	}
-
-	http2.ConfigureServer(srv.Server, nil)
-
-	log.Infof("Starting aurora on %s (ingest: %v)", addr, a.config.Ingest)
 
 	go a.run()
+	go a.orderBookStream.Run(a.ctx)
 
-	if a.expingester != nil {
-		go a.expingester.Run()
+	// WaitGroup for all go routines. Makes sure that DB is closed when
+	// all services gracefully shutdown.
+	var wg sync.WaitGroup
+
+	if a.ingester != nil {
+		wg.Add(1)
+		go func() {
+			a.ingester.Run()
+			wg.Done()
+		}()
 	}
 
-	var err error
-	if a.config.TLSCert != "" {
-		err = srv.ListenAndServeTLS(a.config.TLSCert, a.config.TLSKey)
-	} else {
-		err = srv.ListenAndServe()
+	if a.reaper != nil {
+		wg.Add(1)
+		go func() {
+			a.reaper.Run()
+			wg.Done()
+		}()
 	}
 
-	if err != nil {
-		log.Panic(err)
+	// configure shutdown signal handler
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+	if a.config.UsingDefaultPubnetConfig {
+		const warnMsg = "Aurora started using the default pubnet configuration. " +
+			"This is not safe! Please provide a custom --captive-core-config-path."
+		log.Warn(warnMsg)
+		go func() {
+			for {
+				select {
+				case <-time.After(time.Hour):
+					log.Warn(warnMsg)
+				case <-a.done:
+					return
+				}
+			}
+		}()
 	}
 
+	go func() {
+		select {
+		case <-signalChan:
+			a.Close()
+		case <-a.done:
+			return
+		}
+	}()
+
+	wg.Add(1)
+	go func() {
+		a.waitForDone()
+		wg.Done()
+	}()
+
+	err := a.webServer.Serve()
+	if err != nil && err != http.ErrServerClosed {
+		return err
+	}
+
+	wg.Wait()
 	a.CloseDB()
 
 	log.Info("stopped")
+	return nil
 }
 
 // Close cancels the app. It does not close DB connections - use App.CloseDB().
 func (a *App) Close() {
+	a.doneOnce.Do(func() {
+		close(a.done)
+	})
+}
+
+func (a *App) waitForDone() {
+	<-a.done
+	webShutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	a.webServer.Shutdown(webShutdownCtx)
 	a.cancel()
-	if a.expingester != nil {
-		a.expingester.Shutdown()
+	if a.ingester != nil {
+		a.ingester.Shutdown()
+	}
+	if a.reaper != nil {
+		a.reaper.Shutdown()
 	}
 	a.ticks.Stop()
 }
@@ -137,8 +185,7 @@ func (a *App) Close() {
 // sure all requests are first properly finished to avoid "sql: database is
 // closed" errors.
 func (a *App) CloseDB() {
-	a.historyQ.Session.DB.Close()
-	a.coreQ.Session.DB.Close()
+	a.historyQ.SessionInterface.Close()
 }
 
 // HistoryQ returns a helper object for performing sql queries against the
@@ -147,73 +194,80 @@ func (a *App) HistoryQ() *history.Q {
 	return a.historyQ
 }
 
+// Ingestion returns the ingestion system associated with this Aurora instance
+func (a *App) Ingestion() ingest.System {
+	return a.ingester
+}
+
 // AuroraSession returns a new session that loads data from the aurora
-// database. The returned session is bound to `ctx`.
-func (a *App) AuroraSession(ctx context.Context) *db.Session {
-	return &db.Session{DB: a.historyQ.Session.DB, Ctx: ctx}
+// database.
+func (a *App) AuroraSession() db.SessionInterface {
+	return a.historyQ.SessionInterface.Clone()
 }
 
-// CoreSession returns a new session that loads data from the diamnet core
-// database. The returned session is bound to `ctx`.
-func (a *App) CoreSession(ctx context.Context) *db.Session {
-	return &db.Session{DB: a.coreQ.Session.DB, Ctx: ctx}
+func (a *App) Config() Config {
+	return a.config
 }
 
-// CoreQ returns a helper object for performing sql queries aginst the
-// diamnet core database.
-func (a *App) CoreQ() *core.Q {
-	return a.coreQ
-}
-
-// IsHistoryStale returns true if the latest history ledger is more than
-// `StaleThreshold` ledgers behind the latest core ledger
-func (a *App) IsHistoryStale() bool {
-	if a.config.StaleThreshold == 0 {
-		return false
-	}
-
-	ls := ledger.CurrentState()
-	return (ls.CoreLatest - ls.HistoryLatest) > int32(a.config.StaleThreshold)
-}
-
-// UpdateLedgerState triggers a refresh of several metrics gauges, such as open
-// db connections and ledger state
-func (a *App) UpdateLedgerState() {
-	var next ledger.State
+// UpdateCoreLedgerState triggers a refresh of Diamnet-Core ledger state.
+// This is done separately from Aurora ledger state update to prevent issues
+// in case Diamnet-Core query timeout.
+func (a *App) UpdateCoreLedgerState(ctx context.Context) {
+	var next ledger.CoreStatus
 
 	logErr := func(err error, msg string) {
 		log.WithStack(err).WithField("err", err.Error()).Error(msg)
 	}
 
-	err := a.CoreQ().LatestLedger(&next.CoreLatest)
-	if err != nil {
-		logErr(err, "failed to load the latest known ledger state from core DB")
-		return
+	coreClient := &diamnetcore.Client{
+		HTTP: http.DefaultClient,
+		URL:  a.config.DiamnetCoreURL,
 	}
 
-	err = a.HistoryQ().LatestLedger(&next.HistoryLatest)
+	coreInfo, err := coreClient.Info(a.ctx)
+	if err != nil {
+		logErr(err, "failed to load the diamnet-core info")
+		return
+	}
+	next.CoreLatest = int32(coreInfo.Info.Ledger.Num)
+	a.ledgerState.SetCoreStatus(next)
+}
+
+// UpdateAuroraLedgerState triggers a refresh of Aurora ledger state.
+// This is done separately from Core ledger state update to prevent issues
+// in case Diamnet-Core query timeout.
+func (a *App) UpdateAuroraLedgerState(ctx context.Context) {
+	var next ledger.AuroraStatus
+
+	logErr := func(err error, msg string) {
+		log.WithStack(err).WithField("err", err.Error()).Error(msg)
+	}
+
+	var err error
+	next.HistoryLatest, next.HistoryLatestClosedAt, err =
+		a.HistoryQ().LatestLedgerSequenceClosedAt(ctx)
 	if err != nil {
 		logErr(err, "failed to load the latest known ledger state from history DB")
 		return
 	}
 
-	err = a.HistoryQ().ElderLedger(&next.HistoryElder)
+	err = a.HistoryQ().ElderLedger(ctx, &next.HistoryElder)
 	if err != nil {
 		logErr(err, "failed to load the oldest known ledger state from history DB")
 		return
 	}
 
-	next.ExpHistoryLatest, err = a.HistoryQ().GetLastLedgerExpIngestNonBlocking()
+	next.ExpHistoryLatest, err = a.HistoryQ().GetLastLedgerIngestNonBlocking(ctx)
 	if err != nil {
 		logErr(err, "failed to load the oldest known exp ledger state from history DB")
 		return
 	}
 
-	ledger.SetState(next)
+	a.ledgerState.SetAuroraStatus(next)
 }
 
-// UpdateOperationFeeStatsState triggers a refresh of several operation fee metrics.
-func (a *App) UpdateOperationFeeStatsState() {
+// UpdateFeeStatsState triggers a refresh of several operation fee metrics.
+func (a *App) UpdateFeeStatsState(ctx context.Context) {
 	var (
 		next          operationfeestats.State
 		latest        history.LatestLedger
@@ -230,29 +284,29 @@ func (a *App) UpdateOperationFeeStatsState() {
 		log.WithStack(err).WithField("err", err.Error()).Error(msg)
 	}
 
-	cur := operationfeestats.CurrentState()
+	cur, ok := operationfeestats.CurrentState()
 
-	err := a.HistoryQ().LatestLedgerBaseFeeAndSequence(&latest)
+	err := a.HistoryQ().LatestLedgerBaseFeeAndSequence(ctx, &latest)
 	if err != nil {
 		logErr(err, "failed to load the latest known ledger's base fee and sequence number")
 		return
 	}
 
 	// finish early if no new ledgers
-	if cur.LastLedger == int64(latest.Sequence) {
+	if ok && cur.LastLedger == uint32(latest.Sequence) {
 		return
 	}
 
 	next.LastBaseFee = int64(latest.BaseFee)
-	next.LastLedger = int64(latest.Sequence)
+	next.LastLedger = uint32(latest.Sequence)
 
-	err = a.HistoryQ().OperationFeeStats(latest.Sequence, &feeStats)
+	err = a.HistoryQ().FeeStats(ctx, latest.Sequence, &feeStats)
 	if err != nil {
 		logErr(err, "failed to load operation fee stats")
 		return
 	}
 
-	err = a.HistoryQ().LedgerCapacityUsageStats(latest.Sequence, &capacityStats)
+	err = a.HistoryQ().LedgerCapacityUsageStats(ctx, latest.Sequence, &capacityStats)
 	if err != nil {
 		logErr(err, "failed to load ledger capacity usage stats")
 		return
@@ -262,127 +316,152 @@ func (a *App) UpdateOperationFeeStatsState() {
 
 	// if no transactions in last 5 ledgers, return
 	// latest ledger's base fee for all
-	if !feeStats.Mode.Valid && !feeStats.Min.Valid {
-		next.FeeMin = next.LastBaseFee
-		next.FeeMode = next.LastBaseFee
-		next.FeeP10 = next.LastBaseFee
-		next.FeeP20 = next.LastBaseFee
-		next.FeeP30 = next.LastBaseFee
-		next.FeeP40 = next.LastBaseFee
-		next.FeeP50 = next.LastBaseFee
-		next.FeeP60 = next.LastBaseFee
-		next.FeeP70 = next.LastBaseFee
-		next.FeeP80 = next.LastBaseFee
-		next.FeeP90 = next.LastBaseFee
-		next.FeeP95 = next.LastBaseFee
-		next.FeeP99 = next.LastBaseFee
+	if !feeStats.MaxFeeMode.Valid && !feeStats.MaxFeeMin.Valid {
+		// MaxFee
+		next.MaxFeeMax = next.LastBaseFee
+		next.MaxFeeMin = next.LastBaseFee
+		next.MaxFeeMode = next.LastBaseFee
+		next.MaxFeeP10 = next.LastBaseFee
+		next.MaxFeeP20 = next.LastBaseFee
+		next.MaxFeeP30 = next.LastBaseFee
+		next.MaxFeeP40 = next.LastBaseFee
+		next.MaxFeeP50 = next.LastBaseFee
+		next.MaxFeeP60 = next.LastBaseFee
+		next.MaxFeeP70 = next.LastBaseFee
+		next.MaxFeeP80 = next.LastBaseFee
+		next.MaxFeeP90 = next.LastBaseFee
+		next.MaxFeeP95 = next.LastBaseFee
+		next.MaxFeeP99 = next.LastBaseFee
+
+		// FeeCharged
+		next.FeeChargedMax = next.LastBaseFee
+		next.FeeChargedMin = next.LastBaseFee
+		next.FeeChargedMode = next.LastBaseFee
+		next.FeeChargedP10 = next.LastBaseFee
+		next.FeeChargedP20 = next.LastBaseFee
+		next.FeeChargedP30 = next.LastBaseFee
+		next.FeeChargedP40 = next.LastBaseFee
+		next.FeeChargedP50 = next.LastBaseFee
+		next.FeeChargedP60 = next.LastBaseFee
+		next.FeeChargedP70 = next.LastBaseFee
+		next.FeeChargedP80 = next.LastBaseFee
+		next.FeeChargedP90 = next.LastBaseFee
+		next.FeeChargedP95 = next.LastBaseFee
+		next.FeeChargedP99 = next.LastBaseFee
+
 	} else {
-		next.FeeMin = feeStats.Min.Int64
-		next.FeeMode = feeStats.Mode.Int64
-		next.FeeP10 = feeStats.P10.Int64
-		next.FeeP20 = feeStats.P20.Int64
-		next.FeeP30 = feeStats.P30.Int64
-		next.FeeP40 = feeStats.P40.Int64
-		next.FeeP50 = feeStats.P50.Int64
-		next.FeeP60 = feeStats.P60.Int64
-		next.FeeP70 = feeStats.P70.Int64
-		next.FeeP80 = feeStats.P80.Int64
-		next.FeeP90 = feeStats.P90.Int64
-		next.FeeP95 = feeStats.P95.Int64
-		next.FeeP99 = feeStats.P99.Int64
+		// MaxFee
+		next.MaxFeeMax = feeStats.MaxFeeMax.Int64
+		next.MaxFeeMin = feeStats.MaxFeeMin.Int64
+		next.MaxFeeMode = feeStats.MaxFeeMode.Int64
+		next.MaxFeeP10 = feeStats.MaxFeeP10.Int64
+		next.MaxFeeP20 = feeStats.MaxFeeP20.Int64
+		next.MaxFeeP30 = feeStats.MaxFeeP30.Int64
+		next.MaxFeeP40 = feeStats.MaxFeeP40.Int64
+		next.MaxFeeP50 = feeStats.MaxFeeP50.Int64
+		next.MaxFeeP60 = feeStats.MaxFeeP60.Int64
+		next.MaxFeeP70 = feeStats.MaxFeeP70.Int64
+		next.MaxFeeP80 = feeStats.MaxFeeP80.Int64
+		next.MaxFeeP90 = feeStats.MaxFeeP90.Int64
+		next.MaxFeeP95 = feeStats.MaxFeeP95.Int64
+		next.MaxFeeP99 = feeStats.MaxFeeP99.Int64
+
+		// FeeCharged
+		next.FeeChargedMax = feeStats.FeeChargedMax.Int64
+		next.FeeChargedMin = feeStats.FeeChargedMin.Int64
+		next.FeeChargedMode = feeStats.FeeChargedMode.Int64
+		next.FeeChargedP10 = feeStats.FeeChargedP10.Int64
+		next.FeeChargedP20 = feeStats.FeeChargedP20.Int64
+		next.FeeChargedP30 = feeStats.FeeChargedP30.Int64
+		next.FeeChargedP40 = feeStats.FeeChargedP40.Int64
+		next.FeeChargedP50 = feeStats.FeeChargedP50.Int64
+		next.FeeChargedP60 = feeStats.FeeChargedP60.Int64
+		next.FeeChargedP70 = feeStats.FeeChargedP70.Int64
+		next.FeeChargedP80 = feeStats.FeeChargedP80.Int64
+		next.FeeChargedP90 = feeStats.FeeChargedP90.Int64
+		next.FeeChargedP95 = feeStats.FeeChargedP95.Int64
+		next.FeeChargedP99 = feeStats.FeeChargedP99.Int64
 	}
 
 	operationfeestats.SetState(next)
 }
 
-// UpdateDiamNetCoreInfo updates the value of coreVersion,
-// currentProtocolVersion, and coreSupportedProtocolVersion from the DiamNet
+// UpdateDiamnetCoreInfo updates the value of CoreVersion,
+// CurrentProtocolVersion, and CoreSupportedProtocolVersion from the Diamnet
 // core API.
-func (a *App) UpdateDiamNetCoreInfo() {
-	if a.config.DiamNetCoreURL == "" {
-		return
+//
+// Warning: This method should only return an error if it is fatal. See usage
+// in `App.Tick`
+func (a *App) UpdateDiamnetCoreInfo(ctx context.Context) error {
+	if a.config.DiamnetCoreURL == "" {
+		return nil
 	}
 
 	core := &diamnetcore.Client{
-		URL: a.config.DiamNetCoreURL,
+		URL: a.config.DiamnetCoreURL,
 	}
 
-	resp, err := core.Info(context.Background())
+	resp, err := core.Info(ctx)
 	if err != nil {
 		log.Warnf("could not load diamnet-core info: %s", err)
-		return
+		return nil
 	}
 
 	// Check if NetworkPassphrase is different, if so exit Aurora as it can break the
 	// state of the application.
 	if resp.Info.Network != a.config.NetworkPassphrase {
-		log.Errorf(
+		return fmt.Errorf(
 			"Network passphrase of diamnet-core (%s) does not match Aurora configuration (%s). Exiting...",
 			resp.Info.Network,
 			a.config.NetworkPassphrase,
 		)
-		os.Exit(1)
 	}
 
-	a.coreVersion = resp.Info.Build
-	a.currentProtocolVersion = int32(resp.Info.Ledger.Version)
-	a.coreSupportedProtocolVersion = int32(resp.Info.ProtocolVersion)
-}
-
-// UpdateMetrics triggers a refresh of several metrics gauges, such as open
-// db connections and ledger state
-func (a *App) UpdateMetrics() {
-	a.goroutineGauge.Update(int64(runtime.NumGoroutine()))
-	ls := ledger.CurrentState()
-	a.historyLatestLedgerGauge.Update(int64(ls.HistoryLatest))
-	a.historyElderLedgerGauge.Update(int64(ls.HistoryElder))
-	a.coreLatestLedgerGauge.Update(int64(ls.CoreLatest))
-
-	a.auroraConnGauge.Update(int64(a.historyQ.Session.DB.Stats().OpenConnections))
-	a.coreConnGauge.Update(int64(a.coreQ.Session.DB.Stats().OpenConnections))
+	a.coreState.Set(resp)
+	return nil
 }
 
 // DeleteUnretainedHistory forwards to the app's reaper.  See
 // `reap.DeleteUnretainedHistory` for details
-func (a *App) DeleteUnretainedHistory() error {
-	return a.reaper.DeleteUnretainedHistory()
+func (a *App) DeleteUnretainedHistory(ctx context.Context) error {
+	return a.reaper.DeleteUnretainedHistory(ctx)
 }
 
 // Tick triggers aurora to update all of it's background processes such as
 // transaction submission, metrics, ingestion and reaping.
-func (a *App) Tick() {
+func (a *App) Tick(ctx context.Context) error {
 	var wg sync.WaitGroup
 	log.Debug("ticking app")
-	// update ledger state, operation fee state, and diamnet-core info in parallel
-	wg.Add(3)
-	go func() { a.UpdateLedgerState(); wg.Done() }()
-	go func() { a.UpdateOperationFeeStatsState(); wg.Done() }()
-	go func() { a.UpdateDiamNetCoreInfo(); wg.Done() }()
-	wg.Wait()
 
-	if a.ingester != nil {
-		go a.ingester.Tick()
+	// update ledger state, operation fee state, and diamnet-core info in parallel
+	wg.Add(4)
+	var err error
+	go func() { a.UpdateCoreLedgerState(ctx); wg.Done() }()
+	go func() { a.UpdateAuroraLedgerState(ctx); wg.Done() }()
+	go func() { a.UpdateFeeStatsState(ctx); wg.Done() }()
+	go func() { err = a.UpdateDiamnetCoreInfo(ctx); wg.Done() }()
+	wg.Wait()
+	if err != nil {
+		return err
 	}
 
-	wg.Add(2)
-	go func() { a.reaper.Tick(); wg.Done() }()
-	go func() { a.submitter.Tick(a.ctx); wg.Done() }()
+	wg.Add(1)
+	go func() { a.submitter.Tick(ctx); wg.Done() }()
 	wg.Wait()
 
-	// finally, update metrics
-	a.UpdateMetrics()
 	log.Debug("finished ticking app")
+	return ctx.Err()
 }
 
 // Init initializes app, using the config to populate db connections and
 // whatnot.
-func (a *App) init() {
+func (a *App) init() error {
 	// app-context
 	a.ctx, a.cancel = context.WithCancel(context.Background())
 
 	// log
-	log.DefaultLogger.Logger.Level = a.config.LogLevel
-	log.DefaultLogger.Logger.Hooks.Add(logmetrics.DefaultMetrics)
+	log.DefaultLogger.SetLevel(a.config.LogLevel)
+	log.DefaultLogger.AddHook(logmetrics.DefaultMetrics)
 
 	// sentry
 	initSentry(a)
@@ -390,69 +469,97 @@ func (a *App) init() {
 	// loggly
 	initLogglyLog(a)
 
+	// metrics and log.metrics
+	a.prometheusRegistry = prometheus.NewRegistry()
+	for _, meter := range *logmetrics.DefaultMetrics {
+		a.prometheusRegistry.MustRegister(meter)
+	}
+
 	// diamnetCoreInfo
-	a.UpdateDiamNetCoreInfo()
+	a.UpdateDiamnetCoreInfo(a.ctx)
 
 	// aurora-db and core-db
 	mustInitAuroraDB(a)
-	mustInitCoreDB(a)
 
-	// ingester
-	initIngester(a)
-
-	var orderBookGraph *orderbook.OrderBookGraph
-	if a.config.EnableExperimentalIngestion {
-		orderBookGraph = orderbook.NewOrderBookGraph()
-		// expingester
-		initExpIngester(a, orderBookGraph)
+	if a.config.Ingest {
+		// ingester
+		initIngester(a)
 	}
+	initPathFinder(a)
 
 	// txsub
 	initSubmissionSystem(a)
 
-	// path-finder
-	initPathFinder(a, orderBookGraph)
-
 	// reaper
-	a.reaper = reap.New(a.config.HistoryRetentionCount, a.AuroraSession(context.Background()))
+	a.reaper = reap.New(a.config.HistoryRetentionCount, a.AuroraSession(), a.ledgerState)
 
-	// web.init
-	a.web = mustInitWeb(a.ctx, a.historyQ, a.coreQ, a.config.SSEUpdateFrequency, a.config.StaleThreshold, a.config.IngestFailedTransactions)
+	// go metrics
+	initGoMetrics(a)
 
-	// web.rate-limiter
-	a.web.rateLimiter = maybeInitWebRateLimiter(a.config.RateQuota)
-
-	// web.middleware
-	// Note that we passed in `a` here for putting the whole App in the context.
-	// This parameter will be removed soon.
-	a.web.mustInstallMiddlewares(a, a.config.ConnectionTimeout)
-
-	// web.actions
-	a.web.mustInstallActions(
-		a.config.EnableAssetStats,
-		a.config.FriendbotURL,
-	)
-
-	// metrics and log.metrics
-	a.metrics = metrics.NewRegistry()
-	for level, meter := range *logmetrics.DefaultMetrics {
-		a.metrics.Register(fmt.Sprintf("logging.%s", level), meter)
-	}
+	// process metrics
+	initProcessMetrics(a)
 
 	// db-metrics
 	initDbMetrics(a)
 
-	// web.metrics
-	initWebMetrics(a)
+	// ingest.metrics
+	initIngestMetrics(a)
 
 	// txsub.metrics
 	initTxSubMetrics(a)
 
-	// ingester.metrics
-	initIngesterMetrics(a)
+	routerConfig := httpx.RouterConfig{
+		DBSession:               a.historyQ.SessionInterface,
+		TxSubmitter:             a.submitter,
+		RateQuota:               a.config.RateQuota,
+		BehindCloudflare:        a.config.BehindCloudflare,
+		BehindAWSLoadBalancer:   a.config.BehindAWSLoadBalancer,
+		SSEUpdateFrequency:      a.config.SSEUpdateFrequency,
+		StaleThreshold:          a.config.StaleThreshold,
+		ConnectionTimeout:       a.config.ConnectionTimeout,
+		NetworkPassphrase:       a.config.NetworkPassphrase,
+		MaxPathLength:           a.config.MaxPathLength,
+		MaxAssetsPerPathRequest: a.config.MaxAssetsPerPathRequest,
+		PathFinder:              a.paths,
+		PrometheusRegistry:      a.prometheusRegistry,
+		CoreGetter:              a,
+		AuroraVersion:          a.auroraVersion,
+		FriendbotURL:            a.config.FriendbotURL,
+		HealthCheck: healthCheck{
+			session: a.historyQ.SessionInterface,
+			ctx:     a.ctx,
+			core: &diamnetcore.Client{
+				HTTP: &http.Client{Timeout: infoRequestTimeout},
+				URL:  a.config.DiamnetCoreURL,
+			},
+			cache: newHealthCache(healthCacheTTL),
+		},
+	}
 
-	// redis
-	initRedis(a)
+	if a.primaryHistoryQ != nil {
+		routerConfig.PrimaryDBSession = a.primaryHistoryQ.SessionInterface
+	}
+
+	var err error
+	config := httpx.ServerConfig{
+		Port:      uint16(a.config.Port),
+		AdminPort: uint16(a.config.AdminPort),
+	}
+	if a.config.TLSCert != "" && a.config.TLSKey != "" {
+		config.TLSConfig = &httpx.TLSConfig{
+			CertPath: a.config.TLSCert,
+			KeyPath:  a.config.TLSKey,
+		}
+	}
+	a.webServer, err = httpx.NewServer(config, routerConfig, a.ledgerState)
+	if err != nil {
+		return err
+	}
+
+	// web.metrics
+	initWebMetrics(a)
+
+	return nil
 }
 
 // run is the function that runs in the background that triggers Tick each
@@ -461,31 +568,15 @@ func (a *App) run() {
 	for {
 		select {
 		case <-a.ticks.C:
-			a.Tick()
+			ctx, cancel := context.WithTimeout(a.ctx, tickerMaxDuration)
+			err := a.Tick(ctx)
+			if err != nil {
+				log.Warnf("error ticking app: %s", err)
+			}
+			cancel() // Release timer
 		case <-a.ctx.Done():
 			log.Info("finished background ticker")
 			return
 		}
 	}
-}
-
-// withAppContext create a context on from the App type.
-func withAppContext(ctx context.Context, a *App) context.Context {
-	return context.WithValue(ctx, &auroraContext.AppContextKey, a)
-}
-
-// GetRateLimiter returns the HTTPRateLimiter of the App.
-func (a *App) GetRateLimiter() *throttled.HTTPRateLimiter {
-	return a.web.rateLimiter
-}
-
-// AppFromContext returns the set app, if one has been set, from the
-// provided context returns nil if no app has been set.
-func AppFromContext(ctx context.Context) *App {
-	if ctx == nil {
-		return nil
-	}
-
-	val, _ := ctx.Value(&auroraContext.AppContextKey).(*App)
-	return val
 }

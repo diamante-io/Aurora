@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/diamnet/go/clients/aurora"
+	"github.com/diamnet/go/protocols/aurora"
 	"github.com/diamnet/go/strkey"
 	"github.com/diamnet/go/support/render/hal"
 	"github.com/diamnet/go/support/render/problem"
@@ -31,35 +31,19 @@ func (handler *FriendbotHandler) Handle(w http.ResponseWriter, r *http.Request) 
 }
 
 // doHandle is just a convenience method that returns the object to be rendered
-func (handler *FriendbotHandler) doHandle(r *http.Request) (*aurora.TransactionSuccess, error) {
-	err := handler.checkEnabled()
+func (handler *FriendbotHandler) doHandle(r *http.Request) (*aurora.Transaction, error) {
+	err := r.ParseForm()
 	if err != nil {
-		return nil, err
-	}
-
-	err = r.ParseForm()
-	if err != nil {
-		return nil, err
+		p := problem.BadRequest
+		p.Detail = "Request parameters are not escaped or incorrectly formatted."
+		return nil, &p
 	}
 
 	address, err := handler.loadAddress(r)
 	if err != nil {
 		return nil, problem.MakeInvalidFieldProblem("addr", err)
 	}
-	return handler.loadResult(address)
-}
-
-func (handler *FriendbotHandler) checkEnabled() error {
-	if handler.Friendbot != nil {
-		return nil
-	}
-
-	return &problem.P{
-		Type:   "friendbot_disabled",
-		Title:  "Friendbot is disabled",
-		Status: http.StatusForbidden,
-		Detail: "Friendbot is disabled on this network. Contact the server administrator if you believe this to be in error.",
-	}
+	return handler.Friendbot.Pay(address)
 }
 
 func (handler *FriendbotHandler) loadAddress(r *http.Request) (string, error) {
@@ -71,15 +55,4 @@ func (handler *FriendbotHandler) loadAddress(r *http.Request) (string, error) {
 
 	_, err = strkey.Decode(strkey.VersionByteAccountID, unescaped)
 	return unescaped, err
-}
-
-func (handler *FriendbotHandler) loadResult(address string) (*aurora.TransactionSuccess, error) {
-	result, err := handler.Friendbot.Pay(address)
-	switch e := err.(type) {
-	case aurora.Error:
-		return result, e.Problem.ToProblem()
-	case *aurora.Error:
-		return result, e.Problem.ToProblem()
-	}
-	return result, err
 }

@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"context"
+
 	"github.com/lib/pq"
 	"github.com/spf13/cobra"
 	ticker "github.com/diamnet/go/services/ticker/internal"
@@ -74,7 +76,7 @@ var cmdGenerateAssetData = &cobra.Command{
 		}
 
 		Logger.Infof("Starting asset data generation, outputting to: %s\n", AssetsOutFile)
-		err = ticker.GenerateAssetsFile(&session, Logger, AssetsOutFile)
+		err = ticker.GenerateAssetsFile(context.Background(), &session, Logger, AssetsOutFile)
 		if err != nil {
 			Logger.Fatal("could not generate asset data:", err)
 		}

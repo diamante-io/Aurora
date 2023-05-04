@@ -1,11 +1,11 @@
 package strkey
 
 import (
-	"bytes"
 	"encoding/base32"
 	"encoding/binary"
+	"fmt"
 
-	"github.com/diamnet/go/crc16"
+	"github.com/diamnet/go/strkey/internal/crc16"
 	"github.com/diamnet/go/support/errors"
 )
 
@@ -24,6 +24,9 @@ const (
 	//VersionByteSeed is the version byte used for encoded diamnet seed
 	VersionByteSeed = 18 << 3 // Base32-encodes to 'S...'
 
+	//VersionByteMuxedAccounts is the version byte used for encoded diamnet multiplexed addresses
+	VersionByteMuxedAccount = 12 << 3 // Base32-encodes to 'M...'
+
 	//VersionByteHashTx is the version byte used for encoded diamnet hashTx
 	//signer keys.
 	VersionByteHashTx = 19 << 3 // Base32-encodes to 'T...'
@@ -32,6 +35,18 @@ const (
 	//signer keys.
 	VersionByteHashX = 23 << 3 // Base32-encodes to 'X...'
 )
+
+// maxPayloadSize is the maximum length of the payload for all versions.
+const maxPayloadSize = 40
+
+// maxRawSize is the maximum length of a strkey in its raw form not encoded.
+const maxRawSize = 1 + maxPayloadSize + 2
+
+// maxEncodedSize is the maximum length of a strkey when base32 encoded.
+const maxEncodedSize = (maxRawSize*8 + 4) / 5 // (8n+4)/5 is the EncodedLen for no padding
+
+// encoding to use when encoding and decoding a strkey to and from strings.
+var encoding = base32.StdEncoding.WithPadding(base32.NoPadding)
 
 // DecodeAny decodes the provided StrKey into a raw value, checking the checksum
 // and if the version byte is one of allowed values.
@@ -53,7 +68,7 @@ func DecodeAny(src string) (VersionByte, []byte, error) {
 	}
 
 	// ensure checksum is valid
-	if err := crc16.Validate(vp, checksum); err != nil {
+	if err := crc16.Validate(vp, binary.LittleEndian.Uint16(checksum)); err != nil {
 		return 0, nil, err
 	}
 
@@ -74,6 +89,11 @@ func Decode(expected VersionByte, src string) ([]byte, error) {
 		return nil, err
 	}
 
+	// check length
+	if len(raw) < 3 {
+		return nil, errors.New("decoded string is too short")
+	}
+
 	// decode into components
 	version := VersionByte(raw[0])
 	vp := raw[0 : len(raw)-2]
@@ -86,7 +106,7 @@ func Decode(expected VersionByte, src string) ([]byte, error) {
 	}
 
 	// ensure checksum is valid
-	if err := crc16.Validate(vp, checksum); err != nil {
+	if err := crc16.Validate(vp, binary.LittleEndian.Uint16(checksum)); err != nil {
 		return nil, err
 	}
 
@@ -110,26 +130,32 @@ func Encode(version VersionByte, src []byte) (string, error) {
 		return "", err
 	}
 
-	var raw bytes.Buffer
+	payloadSize := len(src)
 
-	// write version byte
-	if err := binary.Write(&raw, binary.LittleEndian, version); err != nil {
-		return "", err
+	// check src does not exceed maximum payload size
+	if payloadSize > maxPayloadSize {
+		return "", fmt.Errorf("data exceeds maximum payload size for strkey")
 	}
 
-	// write payload
-	if _, err := raw.Write(src); err != nil {
-		return "", err
-	}
+	// pack
+	//  1 byte version
+	//  src bytes
+	//  2 byte crc16
+	rawArr := [maxRawSize]byte{}
+	rawSize := 1 + payloadSize + 2
+	raw := rawArr[:rawSize]
+	raw[0] = byte(version)
+	copy(raw[1:], src)
+	crc := crc16.Checksum(raw[:1+payloadSize])
+	binary.LittleEndian.PutUint16(raw[1+payloadSize:], crc)
 
-	// calculate and write checksum
-	checksum := crc16.Checksum(raw.Bytes())
-	if _, err := raw.Write(checksum); err != nil {
-		return "", err
-	}
+	// base32 encode
+	encArr := [maxEncodedSize]byte{}
+	encSize := encoding.EncodedLen(rawSize)
+	enc := encArr[:encSize]
+	encoding.Encode(enc, raw)
 
-	result := base32.StdEncoding.EncodeToString(raw.Bytes())
-	return result, nil
+	return string(enc), nil
 }
 
 // MustEncode is like Encode, but panics on error
@@ -155,37 +181,98 @@ func Version(src string) (VersionByte, error) {
 // checkValidVersionByte returns an error if the provided value
 // is not one of the defined valid version byte constants.
 func checkValidVersionByte(version VersionByte) error {
-	if version == VersionByteAccountID {
+	switch version {
+	case VersionByteAccountID, VersionByteMuxedAccount, VersionByteSeed, VersionByteHashTx, VersionByteHashX:
 		return nil
+	default:
+		return ErrInvalidVersionByte
 	}
+}
 
-	if version == VersionByteSeed {
-		return nil
+var decodingTable = initDecodingTable()
+
+func initDecodingTable() [256]byte {
+	var localDecodingTable [256]byte
+	for i := range localDecodingTable {
+		localDecodingTable[i] = 0xff
 	}
-
-	if version == VersionByteHashTx {
-		return nil
+	for i, ch := range []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZ234567") {
+		localDecodingTable[ch] = byte(i)
 	}
-
-	if version == VersionByteHashX {
-		return nil
-	}
-
-	return ErrInvalidVersionByte
+	return localDecodingTable
 }
 
 // decodeString decodes a base32 string into the raw bytes, and ensures it could
 // potentially be strkey encoded (i.e. it has both a version byte and a
 // checksum, neither of which are explicitly checked by this func)
 func decodeString(src string) ([]byte, error) {
-	raw, err := base32.StdEncoding.DecodeString(src)
+	// operations on strings are expensive since it involves unicode parsing
+	// so, we use bytes from the beginning
+	srcBytes := []byte(src)
+	// The minimal binary decoded length is 3 bytes (version byte and 2-byte CRC) which,
+	// in unpadded base32 (since each character provides 5 bits) corresponds to ceiling(8*3/5) = 5
+	if len(srcBytes) < 5 {
+		return nil, errors.Errorf("strkey is %d bytes long; minimum valid length is 5", len(srcBytes))
+	}
+	// SEP23 enforces strkeys to be in canonical base32 representation.
+	// Go's decoder doesn't help us there, so we need to do it ourselves.
+	// 1. Make sure there is no full unused leftover byte at the end
+	//   (i.e. there shouldn't be 5 or more leftover bits)
+	leftoverBits := (len(srcBytes) * 5) % 8
+	if leftoverBits >= 5 {
+		return nil, errors.New("non-canonical strkey; unused leftover character")
+	}
+	// 2. In the last byte of the strkey there may be leftover bits (4 at most, otherwise it would be a full byte,
+	//    which we have for checked above). If there are any leftover bits, they should be set to 0
+	if leftoverBits > 0 {
+		lastChar := srcBytes[len(srcBytes)-1]
+		decodedLastChar := decodingTable[lastChar]
+		if decodedLastChar == 0xff {
+			// The last character from the input wasn't in the expected input alphabet.
+			// Let's output an error matching the errors from the base32 decoder invocation below
+			return nil, errors.Wrap(base32.CorruptInputError(len(srcBytes)), "base32 decode failed")
+		}
+		leftoverBitsMask := byte(0x0f) >> (4 - leftoverBits)
+		if decodedLastChar&leftoverBitsMask != 0 {
+			return nil, errors.New("non-canonical strkey; unused bits should be set to 0")
+		}
+	}
+	n, err := base32.StdEncoding.WithPadding(base32.NoPadding).Decode(srcBytes, srcBytes)
 	if err != nil {
 		return nil, errors.Wrap(err, "base32 decode failed")
 	}
 
-	if len(raw) < 3 {
-		return nil, errors.Errorf("encoded value is %d bytes; minimum valid length is 3", len(raw))
+	return srcBytes[:n], nil
+}
+
+// IsValidEd25519PublicKey validates a diamnet public key
+func IsValidEd25519PublicKey(i interface{}) bool {
+	enc, ok := i.(string)
+
+	if !ok {
+		return false
 	}
 
-	return raw, nil
+	_, err := Decode(VersionByteAccountID, enc)
+
+	return err == nil
+}
+
+// IsValidMuxedAccountEd25519PublicKey validates a Diamnet SEP-23 muxed address.
+func IsValidMuxedAccountEd25519PublicKey(s string) bool {
+	_, err := Decode(VersionByteMuxedAccount, s)
+	return err == nil
+}
+
+// IsValidEd25519SecretSeed validates a diamnet secret key
+func IsValidEd25519SecretSeed(i interface{}) bool {
+	enc, ok := i.(string)
+
+	if !ok {
+		return false
+	}
+
+	_, err := Decode(VersionByteSeed, enc)
+
+	return err == nil
 }

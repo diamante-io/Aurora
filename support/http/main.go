@@ -1,4 +1,4 @@
-// Package http provides easy access to DiamNet's best practices for building
+// Package http provides easy access to Diamnet's best practices for building
 // http servers.  The primary method to use is `Serve`, which sets up
 // an server that can support http/2 and can gracefully quit after receiving a
 // SIGINT signal.
@@ -14,16 +14,15 @@ import (
 	"github.com/diamnet/go/support/config"
 	"github.com/diamnet/go/support/errors"
 	"github.com/diamnet/go/support/log"
-	"golang.org/x/net/http2"
 	"gopkg.in/tylerb/graceful.v1"
 )
 
-// DefaultListenAddr represents the default address and port on which a server
+// defaultListenAddr represents the default address and port on which a server
 // will listen, provided it is not overridden by setting the `ListenAddr` field
 // on a `Config` struct.
-const DefaultListenAddr = "0.0.0.0:8080"
+const defaultListenAddr = "0.0.0.0:8080"
 
-// DefaultShutdownGracePeriod represents the default time in which the running
+// defaultShutdownGracePeriod represents the default time in which the running
 // process will allow outstanding http requests to complete before aborting
 // them.  It will be used when a grace period of 0 is used, which normally
 // signifies "no timeout" to our graceful shutdown package.  We choose not to
@@ -31,7 +30,9 @@ const DefaultListenAddr = "0.0.0.0:8080"
 // or something if you need a timeout that is effectively "no timeout"; We
 // believe that most servers should use a sane timeout and prefer one for the
 // default configuration.
-const DefaultShutdownGracePeriod = 10 * time.Second
+const defaultShutdownGracePeriod = 10 * time.Second
+
+const defaultReadTimeout = 5 * time.Second
 
 // SimpleHTTPClientInterface helps mocking http.Client in tests
 type SimpleHTTPClientInterface interface {
@@ -46,6 +47,10 @@ type Config struct {
 	ListenAddr          string
 	TLS                 *config.TLS
 	ShutdownGracePeriod time.Duration
+	ReadTimeout         time.Duration
+	WriteTimeout        time.Duration
+	IdleTimeout         time.Duration
+	TCPKeepAlive        time.Duration
 	OnStarting          func()
 	OnStopping          func()
 	OnStopped           func()
@@ -58,8 +63,6 @@ type Config struct {
 // (https://github.com/tylerb/graceful).
 func Run(conf Config) {
 	srv := setup(conf)
-
-	http2.ConfigureServer(srv.Server, nil)
 
 	if conf.OnStarting != nil {
 		conf.OnStarting()
@@ -92,20 +95,27 @@ func setup(conf Config) *graceful.Server {
 	}
 
 	if conf.ListenAddr == "" {
-		conf.ListenAddr = DefaultListenAddr
+		conf.ListenAddr = defaultListenAddr
 	}
 
-	timeout := DefaultShutdownGracePeriod
-	if conf.ShutdownGracePeriod != 0 {
-		timeout = conf.ShutdownGracePeriod
+	if conf.ShutdownGracePeriod == time.Duration(0) {
+		conf.ShutdownGracePeriod = defaultShutdownGracePeriod
+	}
+
+	if conf.ReadTimeout == time.Duration(0) {
+		conf.ReadTimeout = defaultReadTimeout
 	}
 
 	return &graceful.Server{
-		Timeout: timeout,
+		Timeout:      conf.ShutdownGracePeriod,
+		TCPKeepAlive: conf.TCPKeepAlive,
 
 		Server: &stdhttp.Server{
-			Addr:    conf.ListenAddr,
-			Handler: conf.Handler,
+			Addr:         conf.ListenAddr,
+			Handler:      conf.Handler,
+			ReadTimeout:  conf.ReadTimeout,
+			WriteTimeout: conf.WriteTimeout,
+			IdleTimeout:  conf.IdleTimeout,
 		},
 
 		ShutdownInitiated: func() {

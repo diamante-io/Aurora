@@ -56,36 +56,19 @@ func main() {
 			os.Exit(1)
 		}
 
-		log.DefaultLogger.Logger.Out = logFile
+		log.DefaultLogger.SetOutput(logFile)
 
 		ll, err := logrus.ParseLevel(*logLevel)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Could not parse log-level: %v\n", err)
 			os.Exit(1)
 		}
-		log.DefaultLogger.Logger.SetLevel(ll)
+		log.DefaultLogger.SetLevel(ll)
 	}
 
 	cfg := getConfig()
 	if cfg.ListenerPort < 0 {
 		fmt.Fprintf(os.Stderr, "Port number %d cannot be negative\n", cfg.ListenerPort)
-		os.Exit(1)
-	}
-
-	if *auth {
-		if cfg.AUTHURL == "" {
-			fmt.Fprintln(os.Stderr, "Auth is enabled but auth forwarding URL is not set")
-			os.Exit(1)
-		}
-		if _, err := url.Parse(cfg.AUTHURL); err != nil {
-			fmt.Fprintln(os.Stderr, "Invalid auth forwarding URL")
-			os.Exit(1)
-		}
-	}
-
-	aType := strings.ToUpper(*apiType)
-	if aType != keystore.REST && aType != keystore.GraphQL {
-		fmt.Fprintln(os.Stderr, `Auth forwarding endpoint type can only be either "REST" or "GRAPHQL"`)
 		os.Exit(1)
 	}
 
@@ -106,6 +89,23 @@ func main() {
 	cmd := flag.Arg(0)
 	switch cmd {
 	case "serve":
+		if *auth {
+			if cfg.AUTHURL == "" {
+				fmt.Fprintln(os.Stderr, "Auth is enabled but auth forwarding URL is not set")
+				os.Exit(1)
+			}
+			if _, err := url.Parse(cfg.AUTHURL); err != nil {
+				fmt.Fprintln(os.Stderr, "Invalid auth forwarding URL")
+				os.Exit(1)
+			}
+		}
+
+		aType := strings.ToUpper(*apiType)
+		if aType != keystore.REST && aType != keystore.GraphQL {
+			fmt.Fprintln(os.Stderr, `Auth forwarding endpoint type can only be either "REST" or "GRAPHQL"`)
+			os.Exit(1)
+		}
+
 		addr := ":" + strconv.Itoa(cfg.ListenerPort)
 		var authenticator *keystore.Authenticator
 		if *auth {
@@ -116,8 +116,9 @@ func main() {
 		}
 
 		server := &http.Server{
-			Addr:    addr,
-			Handler: keystore.ServeMux(keystore.NewService(ctx, db, authenticator)),
+			Addr:        addr,
+			Handler:     keystore.ServeMux(keystore.NewService(ctx, db, authenticator)),
+			ReadTimeout: 5 * time.Second,
 		}
 
 		listener, err := net.Listen("tcp", addr)
@@ -162,13 +163,13 @@ func main() {
 			fmt.Fprintf(os.Stdout, "Applied %d up migrations!\n", n)
 
 		case "down":
-			n, err := migrate.Exec(db, dbDriverName, keystoreMigrations, migrate.Down)
+			n, err := migrate.ExecMax(db, dbDriverName, keystoreMigrations, migrate.Down, 1)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "error applying down migrations: %v\n", err)
 				os.Exit(1)
 			}
 
-			fmt.Fprintf(os.Stdout, "Applied %d down migrations!\n", n)
+			fmt.Fprintf(os.Stdout, "Applied %d down migration!\n", n)
 
 		case "redo":
 			migrations, _, err := migrate.PlanMigration(db, dbDriverName, keystoreMigrations, migrate.Down, 1)

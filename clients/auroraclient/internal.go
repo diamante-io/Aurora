@@ -5,20 +5,22 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/diamnet/go/support/errors"
 )
 
 // decodeResponse decodes the response from a request to a aurora server
-func decodeResponse(resp *http.Response, object interface{}) (err error) {
+func decodeResponse(resp *http.Response, object interface{}, hc *Client) (err error) {
 	defer resp.Body.Close()
 	decoder := json.NewDecoder(resp.Body)
 
-	// resp.Request should not be nil for Client requests
-	if resp.Request != nil {
-		setCurrentServerTime(resp.Request.Host, resp.Header["Date"])
+	u, err := url.Parse(hc.AuroraURL)
+	if err != nil {
+		return errors.Errorf("unable to parse the provided aurora url: %s", hc.AuroraURL)
 	}
+	setCurrentServerTime(u.Hostname(), resp.Header["Date"], hc)
 
 	if !(resp.StatusCode >= 200 && resp.StatusCode < 300) {
 		auroraError := &Error{
@@ -33,7 +35,7 @@ func decodeResponse(resp *http.Response, object interface{}) (err error) {
 
 	err = decoder.Decode(&object)
 	if err != nil {
-		return
+		return errors.Wrap(err, "error decoding response")
 	}
 	return
 }
@@ -95,6 +97,14 @@ func addQueryParams(params ...interface{}) string {
 			if param {
 				query.Add("include_failed", "true")
 			}
+		case join:
+			if param != "" {
+				query.Add("join", string(param))
+			}
+		case reserves:
+			if len(param) > 0 {
+				query.Add("reserves", strings.Join(param, ","))
+			}
 		case map[string]string:
 			for key, value := range param {
 				if value != "" {
@@ -110,7 +120,7 @@ func addQueryParams(params ...interface{}) string {
 }
 
 // setCurrentServerTime saves the current time returned by a aurora server
-func setCurrentServerTime(host string, serverDate []string) {
+func setCurrentServerTime(host string, serverDate []string, hc *Client) {
 	if len(serverDate) == 0 {
 		return
 	}
@@ -119,12 +129,12 @@ func setCurrentServerTime(host string, serverDate []string) {
 		return
 	}
 	serverTimeMapMutex.Lock()
-	ServerTimeMap[host] = ServerTimeRecord{ServerTime: st.UTC().Unix(), LocalTimeRecorded: time.Now().UTC().Unix()}
+	ServerTimeMap[host] = ServerTimeRecord{ServerTime: st.UTC().Unix(), LocalTimeRecorded: hc.clock.Now().UTC().Unix()}
 	serverTimeMapMutex.Unlock()
 }
 
 // currentServerTime returns the current server time for a given aurora server
-func currentServerTime(host string) int64 {
+func currentServerTime(host string, currentTimeUTC int64) int64 {
 	serverTimeMapMutex.Lock()
 	st := ServerTimeMap[host]
 	serverTimeMapMutex.Unlock()
@@ -132,12 +142,10 @@ func currentServerTime(host string) int64 {
 		return 0
 	}
 
-	currentTime := time.Now().UTC().Unix()
 	// if it has been more than 5 minutes from the last time, then return 0 because the saved
 	// server time is behind.
-	if currentTime-st.LocalTimeRecorded > 60*5 {
+	if currentTimeUTC-st.LocalTimeRecorded > 60*5 {
 		return 0
 	}
-
-	return currentTime - st.LocalTimeRecorded + st.ServerTime
+	return currentTimeUTC - st.LocalTimeRecorded + st.ServerTime
 }

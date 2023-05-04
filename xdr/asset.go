@@ -3,12 +3,27 @@ package xdr
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/diamnet/go/strkey"
 )
 
 // This file contains helpers for working with xdr.Asset structs
+
+// AssetTypeToString maps an xdr.AssetType to its string representation
+var AssetTypeToString = map[AssetType]string{
+	AssetTypeAssetTypeNative:           "native",
+	AssetTypeAssetTypeCreditAlphanum4:  "credit_alphanum4",
+	AssetTypeAssetTypeCreditAlphanum12: "credit_alphanum12",
+}
+
+// StringToAssetType maps an strings to its xdr.AssetType representation
+var StringToAssetType = map[string]AssetType{
+	"native":            AssetTypeAssetTypeNative,
+	"credit_alphanum4":  AssetTypeAssetTypeCreditAlphanum4,
+	"credit_alphanum12": AssetTypeAssetTypeCreditAlphanum12,
+}
 
 // MustNewNativeAsset returns a new native asset, panicking if it can't.
 func MustNewNativeAsset() Asset {
@@ -22,14 +37,146 @@ func MustNewNativeAsset() Asset {
 
 // MustNewCreditAsset returns a new general asset, panicking if it can't.
 func MustNewCreditAsset(code string, issuer string) Asset {
-	a := Asset{}
-	accountID := AccountId{}
-	accountID.SetAddress(issuer)
-	err := a.SetCredit(code, accountID)
+	a, err := NewCreditAsset(code, issuer)
 	if err != nil {
 		panic(err)
 	}
 	return a
+}
+
+// NewAssetCodeFromString returns a new allow trust asset, panicking if it can't.
+func NewAssetCodeFromString(code string) (AssetCode, error) {
+	a := AssetCode{}
+	length := len(code)
+	switch {
+	case length >= 1 && length <= 4:
+		var newCode AssetCode4
+		copy(newCode[:], []byte(code)[:length])
+		a.Type = AssetTypeAssetTypeCreditAlphanum4
+		a.AssetCode4 = &newCode
+	case length >= 5 && length <= 12:
+		var newCode AssetCode12
+		copy(newCode[:], []byte(code)[:length])
+		a.Type = AssetTypeAssetTypeCreditAlphanum12
+		a.AssetCode12 = &newCode
+	default:
+		return a, errors.New("Asset code length is invalid")
+	}
+
+	return a, nil
+}
+
+// MustNewAssetCodeFromString returns a new allow trust asset, panicking if it can't.
+func MustNewAssetCodeFromString(code string) AssetCode {
+	a, err := NewAssetCodeFromString(code)
+	if err != nil {
+		panic(err)
+	}
+
+	return a
+}
+
+// NewCreditAsset returns a new general asset, returning an error if it can't.
+func NewCreditAsset(code string, issuer string) (Asset, error) {
+	a := Asset{}
+	accountID := AccountId{}
+	if err := accountID.SetAddress(issuer); err != nil {
+		return Asset{}, err
+	}
+	if err := a.SetCredit(code, accountID); err != nil {
+		return Asset{}, err
+	}
+	return a, nil
+}
+
+// BuildAsset creates a new asset from a given `assetType`, `code`, and `issuer`.
+//
+// Valid assetTypes are:
+// 		- `native`
+//		- `credit_alphanum4`
+//		- `credit_alphanum12`
+func BuildAsset(assetType, issuer, code string) (Asset, error) {
+	t, ok := StringToAssetType[assetType]
+
+	if !ok {
+		return Asset{}, errors.New("invalid asset type: was not one of 'native', 'credit_alphanum4', 'credit_alphanum12'")
+	}
+
+	var asset Asset
+	switch t {
+	case AssetTypeAssetTypeNative:
+		if err := asset.SetNative(); err != nil {
+			return Asset{}, err
+		}
+	default:
+		issuerAccountID := AccountId{}
+		if err := issuerAccountID.SetAddress(issuer); err != nil {
+			return Asset{}, err
+		}
+
+		if err := asset.SetCredit(code, issuerAccountID); err != nil {
+			return Asset{}, err
+		}
+	}
+
+	return asset, nil
+}
+
+var ValidAssetCode = regexp.MustCompile("^[[:alnum:]]{1,12}$")
+
+// BuildAssets parses a list of assets from a given string.
+// The string is expected to be a comma separated list of assets
+// encoded in the format (Code:Issuer or "native") defined by SEP-0011
+// https://github.com/diamnet/diamnet-protocol/pull/313
+// If the string is empty, BuildAssets will return an empty list of assets
+func BuildAssets(s string) ([]Asset, error) {
+	var assets []Asset
+	if s == "" {
+		return assets, nil
+	}
+
+	assetStrings := strings.Split(s, ",")
+	for _, assetString := range assetStrings {
+		var asset Asset
+
+		// Technically https://github.com/diamnet/diamnet-protocol/blob/master/ecosystem/sep-0011.md allows
+		// any string up to 12 characters not containing an unescaped colon to represent XLM
+		// however, this function only accepts the string "native" to represent XLM
+		if strings.ToLower(assetString) == "native" {
+			if err := asset.SetNative(); err != nil {
+				return nil, err
+			}
+		} else {
+			parts := strings.Split(assetString, ":")
+			if len(parts) != 2 {
+				return nil, fmt.Errorf("%s is not a valid asset", assetString)
+			}
+
+			code := parts[0]
+			if !ValidAssetCode.MatchString(code) {
+				return nil, fmt.Errorf(
+					"%s is not a valid asset, it contains an invalid asset code",
+					assetString,
+				)
+			}
+
+			issuer, err := AddressToAccountId(parts[1])
+			if err != nil {
+				return nil, fmt.Errorf(
+					"%s is not a valid asset, it contains an invalid issuer",
+					assetString,
+				)
+			}
+
+			if err := asset.SetCredit(code, issuer); err != nil {
+				return nil, fmt.Errorf("%s is not a valid asset", assetString)
+			}
+		}
+
+		assets = append(assets, asset)
+	}
+
+	return assets, nil
 }
 
 // SetCredit overwrites `a` with a credit asset using `code` and `issuer`.  The
@@ -42,12 +189,12 @@ func (a *Asset) SetCredit(code string, issuer AccountId) error {
 
 	switch {
 	case length >= 1 && length <= 4:
-		newbody := AssetAlphaNum4{Issuer: issuer}
+		newbody := AlphaNum4{Issuer: issuer}
 		copy(newbody.AssetCode[:], []byte(code)[:length])
 		typ = AssetTypeAssetTypeCreditAlphanum4
 		body = newbody
 	case length >= 5 && length <= 12:
-		newbody := AssetAlphaNum12{Issuer: issuer}
+		newbody := AlphaNum12{Issuer: issuer}
 		copy(newbody.AssetCode[:], []byte(code)[:length])
 		typ = AssetTypeAssetTypeCreditAlphanum12
 		body = newbody
@@ -73,24 +220,24 @@ func (a *Asset) SetNative() error {
 	return nil
 }
 
-// ToAllowTrustOpAsset for Asset converts the Asset to a corresponding XDR
+// ToAssetCode for Asset converts the Asset to a corresponding XDR
 // "allow trust" asset, used by the XDR allow trust operation.
-func (a *Asset) ToAllowTrustOpAsset(code string) (AllowTrustOpAsset, error) {
+func (a *Asset) ToAssetCode(code string) (AssetCode, error) {
 	length := len(code)
 
 	switch {
 	case length >= 1 && length <= 4:
-		var bytecode [4]byte
+		var bytecode AssetCode4
 		byteArray := []byte(code)
 		copy(bytecode[:], byteArray[0:length])
-		return NewAllowTrustOpAsset(AssetTypeAssetTypeCreditAlphanum4, bytecode)
+		return NewAssetCode(AssetTypeAssetTypeCreditAlphanum4, bytecode)
 	case length >= 5 && length <= 12:
-		var bytecode [12]byte
+		var bytecode AssetCode12
 		byteArray := []byte(code)
 		copy(bytecode[:], byteArray[0:length])
-		return NewAllowTrustOpAsset(AssetTypeAssetTypeCreditAlphanum12, bytecode)
+		return NewAssetCode(AssetTypeAssetTypeCreditAlphanum12, bytecode)
 	default:
-		return AllowTrustOpAsset{}, errors.New("Asset code length is invalid")
+		return AssetCode{}, errors.New("Asset code length is invalid")
 	}
 }
 
@@ -104,45 +251,21 @@ func (a Asset) String() string {
 		return t
 	}
 
-	return fmt.Sprintf("%s/%s/%s", t, c, i)
+	return t + "/" + c + "/" + i
 }
 
-// MarshalBinaryCompress marshals Asset to []byte but unlike
-// MarshalBinary() it removes all unnecessary bytes, exploting the fact
-// that XDR is padding data to 4 bytes in union discriminants etc.
-// It's primary use is in ingest/io.StateReader that keep LedgerKeys in
-// memory so this function decrease memory requirements.
-//
-// Warning, do not use UnmarshalBinary() on data encoded using this method!
-func (a Asset) MarshalBinaryCompress() ([]byte, error) {
-	m := []byte{byte(a.Type)}
+// StringCanonical returns a display friendly form of the asset following its
+// canonical representation
+func (a Asset) StringCanonical() string {
+	var t, c, i string
 
-	var err error
-	var code []byte
-	var issuer []byte
+	a.MustExtract(&t, &c, &i)
 
-	switch a.Type {
-	case AssetTypeAssetTypeNative:
-		return m, nil
-	case AssetTypeAssetTypeCreditAlphanum4:
-		code = []byte(strings.TrimRight(string(a.AlphaNum4.AssetCode[:]), "\x00"))
-		issuer, err = a.AlphaNum4.Issuer.MarshalBinary()
-		if err != nil {
-			return nil, err
-		}
-	case AssetTypeAssetTypeCreditAlphanum12:
-		code = []byte(strings.TrimRight(string(a.AlphaNum12.AssetCode[:]), "\x00"))
-		issuer, err = a.AlphaNum12.Issuer.MarshalBinary()
-		if err != nil {
-			panic(err)
-		}
-	default:
-		panic(fmt.Errorf("Unknown asset type: %v", a.Type))
+	if a.Type == AssetTypeAssetTypeNative {
+		return t
 	}
 
-	m = append(m, code...)
-	m = append(m, issuer...)
-	return m, nil
+	return fmt.Sprintf("%s:%s", c, i)
 }
 
 // Equals returns true if `other` is equivalent to `a`
@@ -176,14 +299,7 @@ func (a Asset) Extract(typ interface{}, code interface{}, issuer interface{}) er
 	case *AssetType:
 		*typ = a.Type
 	case *string:
-		switch a.Type {
-		case AssetTypeAssetTypeNative:
-			*typ = "native"
-		case AssetTypeAssetTypeCreditAlphanum4:
-			*typ = "credit_alphanum4"
-		case AssetTypeAssetTypeCreditAlphanum12:
-			*typ = "credit_alphanum12"
-		}
+		*typ = AssetTypeToString[a.Type]
 	default:
 		return errors.New("can't extract type")
 	}
@@ -194,10 +310,10 @@ func (a Asset) Extract(typ interface{}, code interface{}, issuer interface{}) er
 			switch a.Type {
 			case AssetTypeAssetTypeCreditAlphanum4:
 				an := a.MustAlphaNum4()
-				*code = strings.TrimRight(string(an.AssetCode[:]), "\x00")
+				*code = string(trimRightZeros(an.AssetCode[:]))
 			case AssetTypeAssetTypeCreditAlphanum12:
 				an := a.MustAlphaNum12()
-				*code = strings.TrimRight(string(an.AssetCode[:]), "\x00")
+				*code = string(trimRightZeros(an.AssetCode[:]))
 			}
 		default:
 			return errors.New("can't extract code")
@@ -232,4 +348,88 @@ func (a Asset) MustExtract(typ interface{}, code interface{}, issuer interface{}
 	if err != nil {
 		panic(err)
 	}
+}
+
+// ToChangeTrustAsset converts Asset to ChangeTrustAsset.
+func (a Asset) ToChangeTrustAsset() ChangeTrustAsset {
+	var cta ChangeTrustAsset
+
+	cta.Type = a.Type
+
+	switch a.Type {
+	case AssetTypeAssetTypeNative:
+		// Empty branch
+	case AssetTypeAssetTypeCreditAlphanum4:
+		assetCode4 := *a.AlphaNum4
+		cta.AlphaNum4 = &assetCode4
+	case AssetTypeAssetTypeCreditAlphanum12:
+		assetCode12 := *a.AlphaNum12
+		cta.AlphaNum12 = &assetCode12
+	default:
+		panic(fmt.Errorf("Cannot transform type %v to Asset", a.Type))
+	}
+
+	return cta
+}
+
+// ToTrustLineAsset converts Asset to TrustLineAsset.
+func (a Asset) ToTrustLineAsset() TrustLineAsset {
+	var tla TrustLineAsset
+
+	tla.Type = a.Type
+
+	switch a.Type {
+	case AssetTypeAssetTypeNative:
+		// Empty branch
+	case AssetTypeAssetTypeCreditAlphanum4:
+		assetCode4 := *a.AlphaNum4
+		tla.AlphaNum4 = &assetCode4
+	case AssetTypeAssetTypeCreditAlphanum12:
+		assetCode12 := *a.AlphaNum12
+		tla.AlphaNum12 = &assetCode12
+	default:
+		panic(fmt.Errorf("Cannot transform type %v to Asset", a.Type))
+	}
+
+	return tla
+}
+
+func (a *Asset) GetCode() string {
+	switch a.Type {
+	case AssetTypeAssetTypeNative:
+		return ""
+	case AssetTypeAssetTypeCreditAlphanum4:
+		return string((*a.AlphaNum4).AssetCode[:])
+	case AssetTypeAssetTypeCreditAlphanum12:
+		return string((*a.AlphaNum12).AssetCode[:])
+	default:
+		return ""
+	}
+}
+
+func (a *Asset) GetIssuer() string {
+	switch a.Type {
+	case AssetTypeAssetTypeNative:
+		return ""
+	case AssetTypeAssetTypeCreditAlphanum4:
+		addr, _ := (*a.AlphaNum4).Issuer.GetAddress()
+		return addr
+	case AssetTypeAssetTypeCreditAlphanum12:
+		addr, _ := (*a.AlphaNum12).Issuer.GetAddress()
+		return addr
+	default:
+		return ""
+	}
+}
+
+func (a *Asset) LessThan(b Asset) bool {
+	if a.Type != b.Type {
+		return int32(a.Type) < int32(b.Type)
+	}
+
+	if a.GetCode() != b.GetCode() {
+		return a.GetCode() < b.GetCode()
+	}
+
+	return a.GetIssuer() < b.GetIssuer()
 }

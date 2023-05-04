@@ -37,18 +37,13 @@ func TestPutKeysAPI(t *testing.T) {
 	})
 
 	blob := `[{
-		"keyType": "plaintextKey",
-		"publicKey": "diamnet-pubkey",
-		"privateKey": "encrypted-diamnet-privatekey"
+		"id": "test-id",
+		"salt": "test-salt",
+		"encrypterName": "test-encrypter-name",
+		"encryptedBlob": "test-encryptedblob"
 	}]`
-	encodedBlob := base64.RawURLEncoding.EncodeToString([]byte(blob))
-	encrypterName := "identity"
-	salt := "random-salt"
-	body, err := json.Marshal(putKeysRequest{
-		KeysBlob:      encodedBlob,
-		EncrypterName: encrypterName,
-		Salt:          salt,
-	})
+	keysBlob := base64.RawURLEncoding.EncodeToString([]byte(blob))
+	body, err := json.Marshal(putKeysRequest{KeysBlob: keysBlob})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -60,23 +55,13 @@ func TestPutKeysAPI(t *testing.T) {
 	if rr.Code != http.StatusOK {
 		t.Fatalf("PUT %s responded with %s, want %s", req.URL, http.StatusText(rr.Code), http.StatusText(http.StatusOK))
 	}
-	got := &encryptedKeys{}
+	got := &encryptedKeysData{}
 	json.Unmarshal(rr.Body.Bytes(), &got)
 	if got == nil {
-		t.Error("Expected to receive an encryptedKeys response but did not")
+		t.Error("Expected to receive an encryptedKeysData response but did not")
 	}
 
-	if got.KeysBlob != encodedBlob {
-		t.Errorf("got blob: %s, want: %s\n", got.KeysBlob, encodedBlob)
-	}
-
-	if got.EncrypterName != encrypterName {
-		t.Errorf("got encrypter name: %s, want: %s\n", got.EncrypterName, encrypterName)
-	}
-
-	if got.Salt != salt {
-		t.Errorf("got salt: %s, want: %s\n", got.Salt, salt)
-	}
+	verifyKeysBlob(t, got.KeysBlob, keysBlob)
 
 	if got.CreatedAt.Before(time.Now().Add(-time.Hour)) {
 		t.Errorf("got CreatedAt=%s, want CreatedAt within the last hour", got.CreatedAt)
@@ -106,19 +91,18 @@ func TestGetKeysAPI(t *testing.T) {
 	h := ServeMux(s)
 
 	blob := `[{
-		"keyType": "plaintextKey",
-		"publicKey": "diamnet-pubkey",
-		"privateKey": "encrypted-diamnet-privatekey"
+		"id": "test-id",
+		"salt": "test-salt",
+		"encrypterName": "test-encrypter-name",
+		"encryptedBlob": "test-encryptedblob"
 	}]`
-	encodedBlob := base64.RawURLEncoding.EncodeToString([]byte(blob))
-	encrypterName := "identity"
-	salt := "random-salt"
+	keysBlob := base64.RawURLEncoding.EncodeToString([]byte(blob))
+	_, err := json.Marshal(putKeysRequest{KeysBlob: keysBlob})
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	_, err := s.putKeys(ctx, putKeysRequest{
-		KeysBlob:      encodedBlob,
-		EncrypterName: encrypterName,
-		Salt:          salt,
-	})
+	_, err = s.putKeys(ctx, putKeysRequest{KeysBlob: keysBlob})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -130,23 +114,13 @@ func TestGetKeysAPI(t *testing.T) {
 	if rr.Code != http.StatusOK {
 		t.Fatalf("GET %s responded with %s, want %s", req.URL, http.StatusText(rr.Code), http.StatusText(http.StatusOK))
 	}
-	got := &encryptedKeys{}
+	got := &encryptedKeysData{}
 	json.Unmarshal(rr.Body.Bytes(), &got)
 	if got == nil {
-		t.Error("Expected to receive an encryptedKeys response but did not")
+		t.Error("Expected to receive an encryptedKeysData response but did not")
 	}
 
-	if got.KeysBlob != encodedBlob {
-		t.Errorf("got blob: %s, want: %s\n", got.KeysBlob, encodedBlob)
-	}
-
-	if got.EncrypterName != encrypterName {
-		t.Errorf("got encrypter name: %s, want: %s\n", got.EncrypterName, encrypterName)
-	}
-
-	if got.Salt != salt {
-		t.Errorf("got salt: %s, want: %s\n", got.Salt, salt)
-	}
+	verifyKeysBlob(t, got.KeysBlob, keysBlob)
 
 	if got.CreatedAt.Before(time.Now().Add(-time.Hour)) {
 		t.Errorf("got CreatedAt=%s, want CreatedAt within the last hour", got.CreatedAt)
@@ -187,20 +161,21 @@ func TestDeleteKeysAPI(t *testing.T) {
 	h := ServeMux(s)
 
 	blob := `[{
-		"keyType": "plaintextKey",
-		"publicKey": "diamnet-pubkey",
-		"privateKey": "encrypted-diamnet-privatekey"
+		"id": "test-id",
+		"salt": "test-salt",
+		"encrypterName": "test-encrypter-name",
+		"encryptedBlob": "test-encryptedblob"
 	}]`
-	encodedBlob := base64.RawURLEncoding.EncodeToString([]byte(blob))
-	encrypterName := "identity"
-	salt := "random-salt"
+	keysBlob := base64.RawURLEncoding.EncodeToString([]byte(blob))
+	_, err := json.Marshal(putKeysRequest{
+		KeysBlob: keysBlob,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	ctx := withUserID(context.Background(), "test-user")
-	_, err := s.putKeys(ctx, putKeysRequest{
-		KeysBlob:      encodedBlob,
-		EncrypterName: encrypterName,
-		Salt:          salt,
-	})
+	_, err = s.putKeys(ctx, putKeysRequest{KeysBlob: keysBlob})
 	if err != nil {
 		t.Fatal(err)
 	}

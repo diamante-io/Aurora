@@ -2,13 +2,14 @@
 title: Payments for Account
 clientData:
   laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=payments&endpoint=for_account
+replacement: https://developers.diamnet.org/api/resources/accounts/payments/
 ---
 
 This endpoint responds with a collection of payment-related operations where the given
 [account](../resources/account.md) was either the sender or receiver.
 
 This endpoint can also be used in [streaming](../streaming.md) mode so it is possible to use it to
-listen for new payments to or from an account as they get made in the DiamNet network.
+listen for new payments to or from an account as they get made in the Diamnet network.
 If called in streaming mode Aurora will start at the earliest known payment unless a `cursor` is
 set. In that case it will start from the `cursor`. You can also set `cursor` value to `now` to only
 stream payments created since your request time.
@@ -46,8 +47,8 @@ curl "https://aurora-testnet.diamnet.org/accounts/GCEZWKCA5VLDNRLN3RPRJMRZOX3Z6G
 ### JavaScript Example Request
 
 ```javascript
-var DiamNetSdk = require('diamnet-sdk');
-var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
+var DiamnetSdk = require('diamnet-sdk');
+var server = new DiamnetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.payments()
   .forAccount("GCEZWKCA5VLDNRLN3RPRJMRZOX3Z6G5CHCGSNFHEYVXM3XOJMDS674JZ")
@@ -63,8 +64,8 @@ server.payments()
 ### JavaScript Streaming Example
 
 ```javascript
-var DiamNetSdk = require('diamnet-sdk')
-var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
+var DiamnetSdk = require('diamnet-sdk')
+var server = new DiamnetSdk.Server('https://aurora-testnet.diamnet.org');
 
 var paymentHandler = function (paymentResponse) {
   console.log(paymentResponse);
@@ -164,4 +165,4 @@ This endpoint responds with a [page](../resources/page.md) of [payment operation
 
 ## Possible Errors
 
-- The [standard errors](../errors.md#Standard_Errors).
+- The [standard errors](../errors.md#standard-errors).

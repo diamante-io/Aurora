@@ -29,9 +29,10 @@ var (
 		Type:   "invalid_keys_blob",
 		Title:  "Invalid Keys Blob",
 		Status: 400,
-		Detail: "The keysBlob in your request body is not a valid base64 string. " +
-			"Please encode the keysBlob in your request body as a base64 string " +
-			"properly and try again.",
+		Detail: "The keysBlob in your request body is not a valid base64-URL-encoded string or " +
+			"the decoded content cannt be mapped to EncryptedKeys type." +
+			"Please encode the keysBlob in your request body as a base64-URL string properly or " +
+			"make sure the encoded content matches EncryptedKeys type specified in the spec and try again.",
 	}
 
 	probNotAuthorized = problem.P{

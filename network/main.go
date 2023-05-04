@@ -14,7 +14,7 @@ import (
 
 const (
 	// PublicNetworkPassphrase is the pass phrase used for every transaction intended for the public diamnet network
-	PublicNetworkPassphrase = "Public Global DiamNet Network ; September 2015"
+	PublicNetworkPassphrase = "Public Global Diamnet Network ; September 2015"
 	// TestNetworkPassphrase is the pass phrase used for every transaction intended for the SDF-run test network
 	TestNetworkPassphrase = "Test SDF Network ; September 2015"
 )
@@ -26,29 +26,85 @@ func ID(passphrase string) [32]byte {
 	return hash.Hash([]byte(passphrase))
 }
 
+// HashTransactionInEnvelope derives the network specific hash for the transaction
+// contained in the provided envelope using the network identified by the supplied passphrase.
+// The resulting hash is the value that can be signed by diamnet secret key to
+// authorize the transaction identified by the hash to diamnet validators.
+func HashTransactionInEnvelope(envelope xdr.TransactionEnvelope, passphrase string) ([32]byte, error) {
+	var hash [32]byte
+	var err error
+	switch envelope.Type {
+	case xdr.EnvelopeTypeEnvelopeTypeTx:
+		hash, err = HashTransaction(envelope.V1.Tx, passphrase)
+	case xdr.EnvelopeTypeEnvelopeTypeTxV0:
+		hash, err = HashTransactionV0(envelope.V0.Tx, passphrase)
+	case xdr.EnvelopeTypeEnvelopeTypeTxFeeBump:
+		hash, err = HashFeeBumpTransaction(envelope.FeeBump.Tx, passphrase)
+	default:
+		err = errors.New("invalid transaction type")
+	}
+	return hash, err
+}
+
 // HashTransaction derives the network specific hash for the provided
 // transaction using the network identified by the supplied passphrase.  The
 // resulting hash is the value that can be signed by diamnet secret key to
 // authorize the transaction identified by the hash to diamnet validators.
-func HashTransaction(tx *xdr.Transaction, passphrase string) ([32]byte, error) {
-	var txBytes bytes.Buffer
+func HashTransaction(tx xdr.Transaction, passphrase string) ([32]byte, error) {
+	taggedTx := xdr.TransactionSignaturePayloadTaggedTransaction{
+		Type: xdr.EnvelopeTypeEnvelopeTypeTx,
+		Tx:   &tx,
+	}
+	return hashTx(taggedTx, passphrase)
+}
 
+// HashFeeBumpTransaction derives the network specific hash for the provided
+// fee bump transaction using the network identified by the supplied passphrase.  The
+// resulting hash is the value that can be signed by diamnet secret key to
+// authorize the transaction identified by the hash to diamnet validators.
+func HashFeeBumpTransaction(tx xdr.FeeBumpTransaction, passphrase string) ([32]byte, error) {
+	taggedTx := xdr.TransactionSignaturePayloadTaggedTransaction{
+		Type:    xdr.EnvelopeTypeEnvelopeTypeTxFeeBump,
+		FeeBump: &tx,
+	}
+	return hashTx(taggedTx, passphrase)
+}
+
+// HashTransactionV0 derives the network specific hash for the provided
+// legacy transaction using the network identified by the supplied passphrase.  The
+// resulting hash is the value that can be signed by diamnet secret key to
+// authorize the transaction identified by the hash to diamnet validators.
+func HashTransactionV0(tx xdr.TransactionV0, passphrase string) ([32]byte, error) {
+	sa, err := xdr.NewMuxedAccount(xdr.CryptoKeyTypeKeyTypeEd25519, tx.SourceAccountEd25519)
+	if err != nil {
+		return [32]byte{}, err
+	}
+	v1Tx := xdr.Transaction{
+		SourceAccount: sa,
+		Fee:           tx.Fee,
+		Memo:          tx.Memo,
+		Operations:    tx.Operations,
+		SeqNum:        tx.SeqNum,
+		TimeBounds:    tx.TimeBounds,
+	}
+	return HashTransaction(v1Tx, passphrase)
+}
+
+func hashTx(
+	tx xdr.TransactionSignaturePayloadTaggedTransaction,
+	passphrase string,
+) ([32]byte, error) {
 	if strings.TrimSpace(passphrase) == "" {
 		return [32]byte{}, errors.New("empty network passphrase")
 	}
 
-	id := ID(passphrase)
-	_, err := txBytes.Write(id[:])
-	if err != nil {
-		return [32]byte{}, errors.Wrap(err, "fprint network id failed")
+	var txBytes bytes.Buffer
+	payload := xdr.TransactionSignaturePayload{
+		NetworkId:         ID(passphrase),
+		TaggedTransaction: tx,
 	}
 
-	_, err = xdr.Marshal(&txBytes, xdr.EnvelopeTypeEnvelopeTypeTx)
-	if err != nil {
-		return [32]byte{}, errors.Wrap(err, "marshal type failed")
-	}
-
-	_, err = xdr.Marshal(&txBytes, tx)
+	_, err := xdr.Marshal(&txBytes, payload)
 	if err != nil {
 		return [32]byte{}, errors.Wrap(err, "marshal tx failed")
 	}

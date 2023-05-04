@@ -9,7 +9,6 @@ This monorepo contains a number of projects, individually versioned and released
 * `bridge` ([changelog](./services/bridge/CHANGELOG.md))
 * `compliance` ([changelog](./services/compliance/CHANGELOG.md))
 * `federation` ([changelog](./services/federation/CHANGELOG.md))
-* `bifrost` ([changelog](./services/bifrost/CHANGELOG.md))
 * `ticker` ([changelog](./services/ticker/CHANGELOG.md))
 * `keystore` (experimental) ([changelog](./services/keystore/CHANGELOG.md))
 * `diamnet-vanity-gen` ([changelog](./tools/diamnet-vanity-gen/CHANGELOG.md))

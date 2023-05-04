@@ -10,8 +10,18 @@ import (
 // Address returns the strkey encoded form of this signer key.  This method will
 // panic if the SignerKey is of an unknown type.
 func (skey *SignerKey) Address() string {
+	address, err := skey.GetAddress()
+	if err != nil {
+		panic(err)
+	}
+	return address
+}
+
+// GetAddress returns the strkey encoded form of this signer key, and an error if the
+// SignerKey is of an unknown type.
+func (skey *SignerKey) GetAddress() (string, error) {
 	if skey == nil {
-		return ""
+		return "", nil
 	}
 
 	vb := strkey.VersionByte(0)
@@ -31,10 +41,10 @@ func (skey *SignerKey) Address() string {
 		key := skey.MustPreAuthTx()
 		copy(raw, key[:])
 	default:
-		panic(fmt.Errorf("Unknown signer key type: %v", skey.Type))
+		return "", fmt.Errorf("unknown signer key type: %v", skey.Type)
 	}
 
-	return strkey.MustEncode(vb, raw)
+	return strkey.Encode(vb, raw)
 }
 
 // Equals returns true if `other` is equivalent to `skey`

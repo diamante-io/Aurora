@@ -2,84 +2,323 @@ package actions
 
 import (
 	"context"
+	"net/http"
+	"strings"
 
 	protocol "github.com/diamnet/go/protocols/aurora"
-	"github.com/diamnet/go/services/aurora/internal/db2"
-	"github.com/diamnet/go/services/aurora/internal/db2/core"
+	auroraContext "github.com/diamnet/go/services/aurora/internal/context"
 	"github.com/diamnet/go/services/aurora/internal/db2/history"
+	"github.com/diamnet/go/services/aurora/internal/ledger"
 	"github.com/diamnet/go/services/aurora/internal/resourceadapter"
 	"github.com/diamnet/go/support/errors"
 	"github.com/diamnet/go/support/render/hal"
+	"github.com/diamnet/go/support/render/problem"
+	"github.com/diamnet/go/xdr"
 )
 
 // AccountInfo returns the information about an account identified by addr.
-func AccountInfo(ctx context.Context, cq *core.Q, addr string) (*protocol.Account, error) {
+func AccountInfo(ctx context.Context, hq *history.Q, addr string) (*protocol.Account, error) {
 	var (
-		coreRecord     core.Account
-		coreData       []core.AccountData
-		coreSigners    []core.Signer
-		coreTrustlines []core.Trustline
-		resource       protocol.Account
+		record     history.AccountEntry
+		data       []history.Data
+		signers    []history.AccountSigner
+		trustlines []history.TrustLine
+		resouce    protocol.Account
 	)
 
-	err := cq.AccountByAddress(&coreRecord, addr)
+	record, err := hq.GetAccountByID(ctx, addr)
 	if err != nil {
-		return nil, errors.Wrap(err, "getting core account record")
+		return nil, errors.Wrap(err, "getting history account record")
 	}
 
-	err = cq.AllDataByAddress(&coreData, addr)
+	data, err = hq.GetAccountDataByAccountID(ctx, addr)
 	if err != nil {
-		return nil, errors.Wrap(err, "getting core account data")
+		return nil, errors.Wrap(err, "getting history account data")
 	}
 
-	err = cq.SignersByAddress(&coreSigners, addr)
+	signers, err = hq.GetAccountSignersByAccountID(ctx, addr)
 	if err != nil {
-		return nil, errors.Wrap(err, "getting core signer")
+		return nil, errors.Wrap(err, "getting history signers")
 	}
 
-	err = cq.TrustlinesByAddress(&coreTrustlines, addr)
+	trustlines, err = hq.GetSortedTrustLinesByAccountID(ctx, addr)
 	if err != nil {
-		return nil, errors.Wrap(err, "getting core trustline")
+		return nil, errors.Wrap(err, "getting history trustlines")
 	}
 
-	err = resourceadapter.PopulateAccount(
+	ledger, err := getLedgerBySequence(ctx, hq, int32(record.LastModifiedLedger))
+	if err != nil {
+		return nil, err
+	}
+
+	err = resourceadapter.PopulateAccountEntry(
 		ctx,
-		&resource,
-		coreRecord,
-		coreData,
-		coreSigners,
-		coreTrustlines,
+		&resouce,
+		record,
+		data,
+		signers,
+		trustlines,
+		ledger,
 	)
+	if err != nil {
+		return nil, errors.Wrap(err, "populating account entry")
+	}
 
-	return &resource, errors.Wrap(err, "populating account")
+	return &resouce, nil
 }
 
-// AccountPage returns a page containing the account records that
-// have `signer` as a signer.
-// This doesn't return full account details resource because of the
-// limitations of existing ingestion architecture. In a future, when
-// the new ingestion system is fully integrated, this endpoint can be
-// used to find accounts for signer but also accounts for assets,
-// home domain, inflation_dest etc.
-func AccountPage(ctx context.Context, hq history.QSigners, signer string, pq db2.PageQuery) (hal.Page, error) {
-	records, err := hq.AccountsForSigner(signer, pq)
-	if err != nil {
-		return hal.Page{}, errors.Wrap(err, "loading account records")
+// AccountsQuery query struct for accounts end-point
+type AccountsQuery struct {
+	Signer        string `schema:"signer" valid:"accountID,optional"`
+	Sponsor       string `schema:"sponsor" valid:"accountID,optional"`
+	AssetFilter   string `schema:"asset" valid:"asset,optional"`
+	LiquidityPool string `schema:"liquidity_pool" valid:"sha256,optional"`
+}
+
+// URITemplate returns a rfc6570 URI template the query struct
+func (q AccountsQuery) URITemplate() string {
+	return "/accounts{?" + strings.Join(getURIParams(&q, true), ",") + "}"
+}
+
+var invalidAccountsParams = problem.P{
+	Type:   "invalid_accounts_params",
+	Title:  "Invalid Accounts Parameters",
+	Status: http.StatusBadRequest,
+	Detail: "Exactly one filter is required. Please ensure that you are including a signer, sponsor, asset, or liquidity pool filter.",
+}
+
+// Validate runs custom validations.
+func (q AccountsQuery) Validate() error {
+	if q.AssetFilter == "native" {
+		return problem.MakeInvalidFieldProblem(
+			"asset",
+			errors.New("you can't filter by asset: native"),
+		)
 	}
 
-	page := hal.Page{
-		Cursor: pq.Cursor,
-		Order:  pq.Order,
-		Limit:  pq.Limit,
+	numParams, err := countNonEmpty(q.Sponsor, q.Signer, q.Asset(), q.LiquidityPool)
+	if err != nil {
+		return errors.Wrap(err, "Could not count request params")
+	}
+	if numParams != 1 {
+		return invalidAccountsParams
+	}
+
+	return nil
+}
+
+// Asset returns an xdr.Asset representing the Asset we want to find the trustees by.
+func (q AccountsQuery) Asset() *xdr.Asset {
+	if len(q.AssetFilter) == 0 {
+		return nil
+	}
+
+	parts := strings.Split(q.AssetFilter, ":")
+	asset := xdr.MustNewCreditAsset(parts[0], parts[1])
+
+	return &asset
+}
+
+// GetAccountsHandler is the action handler for the /accounts endpoint
+type GetAccountsHandler struct {
+	LedgerState *ledger.State
+}
+
+// GetResourcePage returns a page containing the account records that have
+// `signer` as a signer, `sponsor` as a sponsor, a trustline to the given
+// `asset`, or participate in a particular `liquidity_pool`.
+func (handler GetAccountsHandler) GetResourcePage(
+	w HeaderWriter,
+	r *http.Request,
+) ([]hal.Pageable, error) {
+	ctx := r.Context()
+	pq, err := GetPageQuery(handler.LedgerState, r, DisableCursorValidation)
+	if err != nil {
+		return nil, err
+	}
+
+	historyQ, err := auroraContext.HistoryQFromRequest(r)
+	if err != nil {
+		return nil, err
+	}
+
+	qp := AccountsQuery{}
+	err = getParams(&qp, r)
+	if err != nil {
+		return nil, err
+	}
+
+	var records []history.AccountEntry
+
+	if len(qp.Sponsor) > 0 {
+		records, err = historyQ.AccountsForSponsor(ctx, qp.Sponsor, pq)
+		if err != nil {
+			return nil, errors.Wrap(err, "loading account records")
+		}
+	} else if len(qp.Signer) > 0 {
+		records, err = historyQ.AccountEntriesForSigner(ctx, qp.Signer, pq)
+		if err != nil {
+			return nil, errors.Wrap(err, "loading account records")
+		}
+	} else if len(qp.LiquidityPool) > 0 {
+		records, err = historyQ.AccountsForLiquidityPool(ctx, qp.LiquidityPool, pq)
+		if err != nil {
+			return nil, errors.Wrap(err, "loading account records")
+		}
+	} else {
+		records, err = historyQ.AccountsForAsset(ctx, *qp.Asset(), pq)
+		if err != nil {
+			return nil, errors.Wrap(err, "loading account records")
+		}
+	}
+
+	accounts := make([]hal.Pageable, 0, len(records))
+
+	if len(records) == 0 {
+		// early return
+		return accounts, nil
+	}
+
+	accountIDs := make([]string, 0, len(records))
+	for _, record := range records {
+		accountIDs = append(accountIDs, record.AccountID)
+	}
+
+	signers, err := handler.loadSigners(ctx, historyQ, accountIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	trustlines, err := handler.loadTrustlines(ctx, historyQ, accountIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := handler.loadData(ctx, historyQ, accountIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	ledgerCache := history.LedgerCache{}
+	for _, record := range records {
+		ledgerCache.Queue(int32(record.LastModifiedLedger))
+	}
+
+	if err := ledgerCache.Load(ctx, historyQ); err != nil {
+		return nil, errors.Wrap(err, "failed to load ledger batch")
 	}
 
 	for _, record := range records {
-		var res protocol.AccountSigner
-		resourceadapter.PopulateAccountSigner(ctx, &res, record)
-		page.Add(res)
+		var res protocol.Account
+		s := signers[record.AccountID]
+		t := trustlines[record.AccountID]
+		d := data[record.AccountID]
+		var ledger *history.Ledger
+		if l, ok := ledgerCache.Records[int32(record.LastModifiedLedger)]; ok {
+			ledger = &l
+		}
+		resourceadapter.PopulateAccountEntry(ctx, &res, record, d, s, t, ledger)
+
+		accounts = append(accounts, res)
 	}
 
-	page.FullURL = fullURL(ctx)
-	page.PopulateLinks()
-	return page, nil
+	return accounts, nil
+}
+
+func (handler GetAccountsHandler) loadData(ctx context.Context, historyQ *history.Q, accounts []string) (map[string][]history.Data, error) {
+	data := make(map[string][]history.Data)
+
+	records, err := historyQ.GetAccountDataByAccountsID(ctx, accounts)
+	if err != nil {
+		return data, errors.Wrap(err, "loading account data records by accounts id")
+	}
+
+	for _, record := range records {
+		data[record.AccountID] = append(data[record.AccountID], record)
+	}
+
+	return data, nil
+}
+
+func (handler GetAccountsHandler) loadTrustlines(ctx context.Context, historyQ *history.Q, accounts []string) (map[string][]history.TrustLine, error) {
+	trustLines := make(map[string][]history.TrustLine)
+
+	records, err := historyQ.GetSortedTrustLinesByAccountIDs(ctx, accounts)
+	if err != nil {
+		return trustLines, errors.Wrap(err, "loading trustline records by accounts")
+	}
+
+	for _, record := range records {
+		trustLines[record.AccountID] = append(trustLines[record.AccountID], record)
+	}
+
+	return trustLines, nil
+}
+
+func (handler GetAccountsHandler) loadSigners(ctx context.Context, historyQ *history.Q, accounts []string) (map[string][]history.AccountSigner, error) {
+	signers := make(map[string][]history.AccountSigner)
+
+	records, err := historyQ.SignersForAccounts(ctx, accounts)
+	if err != nil {
+		return signers, errors.Wrap(err, "loading account signers by account")
+	}
+
+	for _, record := range records {
+		signers[record.Account] = append(signers[record.Account], record)
+	}
+
+	return signers, nil
+}
+
+func getLedgerBySequence(ctx context.Context, hq *history.Q, sequence int32) (*history.Ledger, error) {
+	ledger := &history.Ledger{}
+	err := hq.LedgerBySequence(ctx, ledger, sequence)
+	switch {
+	case hq.NoRows(err):
+		return nil, nil
+	case err != nil:
+		return nil, err
+	default:
+		return ledger, nil
+	}
+}
+
+// AccountByIDQuery query struct for accounts/{account_id} end-point
+type AccountByIDQuery struct {
+	AccountID string `schema:"account_id" valid:"accountID,optional"`
+}
+
+// GetAccountByIDHandler is the action handler for the /accounts/{account_id} endpoint
+type GetAccountByIDHandler struct{}
+
+type Account protocol.Account
+
+func (a Account) Equals(other StreamableObjectResponse) bool {
+	otherAccount, ok := other.(Account)
+	if !ok {
+		return false
+	}
+	return a.ID == otherAccount.ID
+}
+
+func (handler GetAccountByIDHandler) GetResource(
+	w HeaderWriter,
+	r *http.Request,
+) (StreamableObjectResponse, error) {
+
+	historyQ, err := auroraContext.HistoryQFromRequest(r)
+	if err != nil {
+		return nil, err
+	}
+
+	qp := AccountByIDQuery{}
+	err = getParams(&qp, r)
+	if err != nil {
+		return nil, err
+	}
+	account, err := AccountInfo(r.Context(), historyQ, qp.AccountID)
+	if err != nil {
+		return Account{}, err
+	}
+	return Account(*account), nil
 }

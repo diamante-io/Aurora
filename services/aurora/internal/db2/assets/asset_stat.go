@@ -5,18 +5,6 @@ import (
 	"github.com/diamnet/go/services/aurora/internal/db2"
 )
 
-// AssetStatsR is the result from the AssetStatsQ query
-type AssetStatsR struct {
-	SortKey     string `db:"sort_key"`
-	Type        string `db:"asset_type"`
-	Code        string `db:"asset_code"`
-	Issuer      string `db:"asset_issuer"`
-	Amount      string `db:"amount"`
-	NumAccounts int32  `db:"num_accounts"`
-	Flags       int8   `db:"flags"`
-	Toml        string `db:"toml"`
-}
-
 // PagingToken implementation for hal.Pageable
 //func (res AssetStat) PagingToken() string {
 //	return res.PT

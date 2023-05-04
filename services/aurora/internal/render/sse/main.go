@@ -17,18 +17,6 @@ type Event struct {
 	Retry int
 }
 
-// SseEvent returns the SSE compatible form of the Event... itself.
-func (e Event) SseEvent() Event {
-	return e
-}
-
-// Eventable represents an object that can be converted to an SSE compatible
-// event.
-type Eventable interface {
-	// SseEvent returns the SSE compatible form of the implementer
-	SseEvent() Event
-}
-
 // WritePreamble prepares this http connection for streaming using Server Sent
 // Events. It sends the initial http response with the appropriate headers to
 // do so.

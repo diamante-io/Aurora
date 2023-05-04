@@ -1,6 +1,9 @@
+//lint:file-ignore U1001 Ignore all unused code, thinks the code is unused because of the test skips
 package aurora
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"strconv"
@@ -8,142 +11,314 @@ import (
 	"testing"
 	"time"
 
+	"github.com/guregu/null"
+	"github.com/diamnet/go/amount"
+	"github.com/diamnet/go/keypair"
+
 	"github.com/diamnet/go/protocols/aurora"
 	"github.com/diamnet/go/services/aurora/internal/db2/history"
-	. "github.com/diamnet/go/services/aurora/internal/db2/history"
-	. "github.com/diamnet/go/services/aurora/internal/test/trades"
-	"github.com/diamnet/go/support/render/hal"
 	diamnetTime "github.com/diamnet/go/support/time"
 	"github.com/diamnet/go/xdr"
 )
 
-func TestTradeActions_Index(t *testing.T) {
-	ht := StartHTTPTest(t, "trades")
+func TestLiquidityPoolTrades(t *testing.T) {
+	ht := StartHTTPTestWithoutScenario(t)
 	defer ht.Finish()
-	var records []aurora.Trade
-	var firstTrade aurora.Trade
+	dbQ := &history.Q{ht.AuroraSession()}
+	fixtures := history.TradeScenario(ht.T, dbQ)
 
-	// All trades
-	w := ht.Get("/trades")
-	if ht.Assert.Equal(200, w.Code) {
-		ht.Assert.PageOf(2, w.Body)
-
-		// 	ensure created_at is populated correctly
-		ht.UnmarshalPage(w.Body, &records)
-		firstTrade = records[0]
-
-		// 	ensure created_at is populated correctly
-		l := history.Ledger{}
-		hq := history.Q{Session: ht.AuroraSession()}
-		ht.Require.NoError(hq.LedgerBySequence(&l, 9))
-
-		ht.Assert.WithinDuration(l.ClosedAt, records[0].LedgerCloseTime, 1*time.Second)
+	for _, liquidityPoolID := range fixtures.LiquidityPools {
+		expected := fixtures.TradesByPool[liquidityPoolID]
+		var records []aurora.Trade
+		// All trades
+		w := ht.Get("/liquidity_pools/" + liquidityPoolID + "/trades")
+		if ht.Assert.Equal(200, w.Code) {
+			ht.Assert.PageOf(len(expected), w.Body)
+			ht.UnmarshalPage(w.Body, &records)
+			for i, row := range expected {
+				record := records[i]
+				assertResponseTradeEqualsDBTrade(ht, row, record)
+			}
+		}
 	}
 
-	// reverse order
-	w = ht.Get("/trades?order=desc")
-	if ht.Assert.Equal(200, w.Code) {
-		ht.Assert.PageOf(2, w.Body)
-		ht.UnmarshalPage(w.Body, &records)
-
-		// ensure that ordering is indeed reversed
-		ht.Assert.Equal(firstTrade, records[len(records)-1])
+	w := ht.Get("/liquidity_pools/" + fixtures.LiquidityPools[0] + "/trades?account_id=" + fixtures.Addresses[0])
+	if ht.Assert.Equal(400, w.Code) {
+		extras := ht.UnmarshalExtras(w.Body)
+		ht.Assert.Equal("account_id,liquidity_pool_id,offer_id", extras["invalid_field"])
+		ht.Assert.Equal("Use a single filter for trades, you can only use one of account_id, liquidity_pool_id, offer_id", extras["reason"])
 	}
 
-	var q = make(url.Values)
-	q.Add("base_asset_type", "credit_alphanum4")
-	q.Add("base_asset_code", "USD")
-	q.Add("base_asset_issuer", "GC23QF2HUE52AMXUFUH3AYJAXXGXXV2VHXYYR6EYXETPKDXZSAW67XO4")
-	q.Add("counter_asset_type", "credit_alphanum4")
-	q.Add("counter_asset_code", "EUR")
-	q.Add("counter_asset_issuer", "GCQPYGH4K57XBDENKKX55KDTWOTK5WDWRQOH2LHEDX3EKVIQRLMESGBG")
-
-	w = ht.GetWithParams("/trades", q)
-	if ht.Assert.Equal(200, w.Code) {
-		ht.Assert.PageOf(2, w.Body)
-
-		records := []map[string]interface{}{}
-		ht.UnmarshalPage(w.Body, &records)
-
-		ht.Assert.Contains(records[0], "base_amount")
-		ht.Assert.Contains(records[0], "counter_amount")
+	w = ht.Get("/liquidity_pools/" + fixtures.LiquidityPools[0] + "/trades?offer_id=1")
+	if ht.Assert.Equal(400, w.Code) {
+		extras := ht.UnmarshalExtras(w.Body)
+		ht.Assert.Equal("account_id,liquidity_pool_id,offer_id", extras["invalid_field"])
+		ht.Assert.Equal("Use a single filter for trades, you can only use one of account_id, liquidity_pool_id, offer_id", extras["reason"])
 	}
 
-	q = make(url.Values)
-	q.Add("base_asset_type", "credit_alphanum4")
-	q.Add("base_asset_code", "EUR")
-	q.Add("base_asset_issuer", "GCQPYGH4K57XBDENKKX55KDTWOTK5WDWRQOH2LHEDX3EKVIQRLMESGBG")
-	q.Add("counter_asset_type", "credit_alphanum4")
-	q.Add("counter_asset_code", "USD")
-	q.Add("counter_asset_issuer", "GC23QF2HUE52AMXUFUH3AYJAXXGXXV2VHXYYR6EYXETPKDXZSAW67XO4")
+	w = ht.Get("/liquidity_pools/" + fixtures.LiquidityPools[0] + "/trades?trade_type=orderbook")
+	if ht.Assert.Equal(400, w.Code) {
+		extras := ht.UnmarshalExtras(w.Body)
+		ht.Assert.Equal("trade_type", extras["invalid_field"])
+		ht.Assert.Equal("trade_type orderbook cannot be used with the liquidity_pool_id filter", extras["reason"])
+	}
+}
 
-	w = ht.GetWithParams("/trades", q)
-	if ht.Assert.Equal(200, w.Code) {
-		ht.Assert.PageOf(2, w.Body)
+func TestOrderbookTrades(t *testing.T) {
+	ht := StartHTTPTestWithoutScenario(t)
+	defer ht.Finish()
+	dbQ := &history.Q{ht.AuroraSession()}
+	fixtures := history.TradeScenario(ht.T, dbQ)
 
-		records := []map[string]interface{}{}
-		ht.UnmarshalPage(w.Body, &records)
-
-		ht.Assert.Contains(records[0], "base_amount")
-		ht.Assert.Contains(records[0], "counter_amount")
+	for offerID, expected := range fixtures.TradesByOffer {
+		var records []aurora.Trade
+		// All trades
+		w := ht.Get("/offers/" + strconv.FormatInt(offerID, 10) + "/trades")
+		if ht.Assert.Equal(200, w.Code) {
+			ht.Assert.PageOf(len(expected), w.Body)
+			ht.UnmarshalPage(w.Body, &records)
+			for i, row := range expected {
+				record := records[i]
+				assertResponseTradeEqualsDBTrade(ht, row, record)
+			}
+		}
 	}
 
-	// For offer
-	w = ht.Get("/offers/1/trades")
-	if ht.Assert.Equal(200, w.Code) {
-		ht.Assert.PageOf(2, w.Body)
+	w := ht.Get("/offers/1/trades?account_id=" + fixtures.Addresses[0])
+	if ht.Assert.Equal(400, w.Code) {
+		extras := ht.UnmarshalExtras(w.Body)
+		ht.Assert.Equal("account_id,liquidity_pool_id,offer_id", extras["invalid_field"])
+		ht.Assert.Equal("Use a single filter for trades, you can only use one of account_id, liquidity_pool_id, offer_id", extras["reason"])
 	}
 
-	w = ht.Get("/offers/2/trades")
-	if ht.Assert.Equal(200, w.Code) {
-		ht.Assert.PageOf(0, w.Body)
+	w = ht.Get("/offers/1/trades?liquidity_pool_id=" + fixtures.LiquidityPools[0])
+	if ht.Assert.Equal(400, w.Code) {
+		extras := ht.UnmarshalExtras(w.Body)
+		ht.Assert.Equal("account_id,liquidity_pool_id,offer_id", extras["invalid_field"])
+		ht.Assert.Equal("Use a single filter for trades, you can only use one of account_id, liquidity_pool_id, offer_id", extras["reason"])
 	}
 
-	// for an account
-	w = ht.Get("/accounts/GA5WBPYA5Y4WAEHXWR2UKO2UO4BUGHUQ74EUPKON2QHV4WRHOIRNKKH2/trades")
-	if ht.Assert.Equal(200, w.Code) {
-		ht.Assert.PageOf(2, w.Body)
+	w = ht.Get("/offers/1/trades?trade_type=liquidity_pool")
+	if ht.Assert.Equal(400, w.Code) {
+		extras := ht.UnmarshalExtras(w.Body)
+		ht.Assert.Equal("trade_type", extras["invalid_field"])
+		ht.Assert.Equal("trade_type liquidity_pool cannot be used with the offer_id filter", extras["reason"])
+	}
+}
+
+func TestAccountTrades(t *testing.T) {
+	ht := StartHTTPTestWithoutScenario(t)
+	defer ht.Finish()
+	dbQ := &history.Q{ht.AuroraSession()}
+	fixtures := history.TradeScenario(ht.T, dbQ)
+
+	for _, tradeType := range []string{"", history.AllTrades, history.OrderbookTrades, history.LiquidityPoolTrades} {
+		for accountAddress, expected := range fixtures.TradesByAccount {
+			var query string
+			if tradeType != "" {
+				expected = history.FilterTradesByType(expected, tradeType)
+				query = "?trade_type=" + tradeType
+			}
+			var records []aurora.Trade
+			// All trades
+			w := ht.Get("/accounts/" + accountAddress + "/trades" + query)
+			if ht.Assert.Equal(200, w.Code) {
+				ht.Assert.PageOf(len(expected), w.Body)
+				ht.UnmarshalPage(w.Body, &records)
+				for i, row := range expected {
+					record := records[i]
+					assertResponseTradeEqualsDBTrade(ht, row, record)
+				}
+			}
+		}
 	}
 
-	// for other account
-	w = ht.Get("/accounts/GCXKG6RN4ONIEPCMNFB732A436Z5PNDSRLGWK7GBLCMQLIFO4S7EYWVU/trades")
-	if ht.Assert.Equal(200, w.Code) {
-		ht.Assert.PageOf(2, w.Body)
-		records := []map[string]interface{}{}
-		ht.UnmarshalPage(w.Body, &records)
-		ht.Assert.Contains(records[0], "base_amount")
-		ht.Assert.Contains(records[0], "counter_amount")
+	w := ht.Get("/accounts/" + fixtures.Addresses[0] + "/trades?offer_id=1")
+	if ht.Assert.Equal(400, w.Code) {
+		extras := ht.UnmarshalExtras(w.Body)
+		ht.Assert.Equal("account_id,liquidity_pool_id,offer_id", extras["invalid_field"])
+		ht.Assert.Equal("Use a single filter for trades, you can only use one of account_id, liquidity_pool_id, offer_id", extras["reason"])
 	}
 
-	//test paging from account 1
-	w = ht.Get("/accounts/GA5WBPYA5Y4WAEHXWR2UKO2UO4BUGHUQ74EUPKON2QHV4WRHOIRNKKH2/trades?order=desc&limit=1")
-	var links hal.Links
-	if ht.Assert.Equal(200, w.Code) {
-		ht.Assert.PageOf(1, w.Body)
-		links = ht.UnmarshalPage(w.Body, &records)
+	w = ht.Get("/accounts/" + fixtures.Addresses[0] + "/trades?liquidity_pool_id=" + fixtures.LiquidityPools[0])
+	if ht.Assert.Equal(400, w.Code) {
+		extras := ht.UnmarshalExtras(w.Body)
+		ht.Assert.Equal("account_id,liquidity_pool_id,offer_id", extras["invalid_field"])
+		ht.Assert.Equal("Use a single filter for trades, you can only use one of account_id, liquidity_pool_id, offer_id", extras["reason"])
 	}
 
-	w = ht.Get(links.Next.Href)
-	if ht.Assert.Equal(200, w.Code) {
-		ht.Assert.PageOf(1, w.Body)
-		prevRecord := records[0]
-		links = ht.UnmarshalPage(w.Body, &records)
-		ht.Assert.NotEqual(prevRecord, records[0])
+	w = ht.Get("/accounts/" + fixtures.Addresses[0] + "/trades?trade_type=invalid")
+	if ht.Assert.Equal(400, w.Code) {
+		extras := ht.UnmarshalExtras(w.Body)
+		ht.Assert.Equal("trade_type", extras["invalid_field"])
+		ht.Assert.Equal("Trade type must be all, orderbook, or liquidity_pool", extras["reason"])
+	}
+}
+
+func TestTrades(t *testing.T) {
+	ht := StartHTTPTestWithoutScenario(t)
+	defer ht.Finish()
+	dbQ := &history.Q{ht.AuroraSession()}
+	fixtures := history.TradeScenario(ht.T, dbQ)
+
+	for _, tradeType := range []string{"", history.AllTrades, history.OrderbookTrades, history.LiquidityPoolTrades} {
+		var query string
+		expected := fixtures.Trades
+		if tradeType != "" {
+			expected = history.FilterTradesByType(expected, tradeType)
+			query = "trade_type=" + tradeType
+		}
+		w := ht.Get("/trades?" + query)
+		var records []aurora.Trade
+		if ht.Assert.Equal(200, w.Code) {
+			ht.Assert.PageOf(len(expected), w.Body)
+			ht.UnmarshalPage(w.Body, &records)
+			for i, row := range expected {
+				record := records[i]
+				assertResponseTradeEqualsDBTrade(ht, row, record)
+			}
+		}
+
+		// reverseTrade order
+		w = ht.Get("/trades?order=desc&" + query)
+		if ht.Assert.Equal(200, w.Code) {
+			ht.Assert.PageOf(len(records), w.Body)
+			var reverseRecords []aurora.Trade
+			ht.UnmarshalPage(w.Body, &reverseRecords)
+			ht.Assert.Len(reverseRecords, len(records))
+
+			// ensure that ordering is indeed reversed
+			for i := 0; i < len(records); i++ {
+				ht.Assert.Equal(records[i], reverseRecords[len(reverseRecords)-1-i])
+			}
+		}
 	}
 
-	//test paging from account 2
-	w = ht.Get("/accounts/GCXKG6RN4ONIEPCMNFB732A436Z5PNDSRLGWK7GBLCMQLIFO4S7EYWVU/trades?order=desc&limit=1")
-	if ht.Assert.Equal(200, w.Code) {
-		ht.Assert.PageOf(1, w.Body)
-		links = ht.UnmarshalPage(w.Body, &records)
+	w := ht.Get("/trades?trade_type=invalid")
+	if ht.Assert.Equal(400, w.Code) {
+		extras := ht.UnmarshalExtras(w.Body)
+		ht.Assert.Equal("trade_type", extras["invalid_field"])
+		ht.Assert.Equal("Trade type must be all, orderbook, or liquidity_pool", extras["reason"])
 	}
+}
 
-	w = ht.Get(links.Next.Href)
-	if ht.Assert.Equal(200, w.Code) {
-		ht.Assert.PageOf(1, w.Body)
-		prevRecord := records[0]
-		links = ht.UnmarshalPage(w.Body, &records)
-		ht.Assert.NotEqual(prevRecord, records[0])
+func TestTradesForAssetPair(t *testing.T) {
+	ht := StartHTTPTestWithoutScenario(t)
+	defer ht.Finish()
+	dbQ := &history.Q{ht.AuroraSession()}
+	fixtures := history.TradeScenario(ht.T, dbQ)
+
+	q := make(url.Values)
+	q.Add("base_asset_type", fixtures.Trades[0].BaseAssetType)
+	q.Add("base_asset_code", fixtures.Trades[0].BaseAssetCode)
+	q.Add("base_asset_issuer", fixtures.Trades[0].BaseAssetIssuer)
+	q.Add("counter_asset_type", fixtures.Trades[0].CounterAssetType)
+	q.Add("counter_asset_code", fixtures.Trades[0].CounterAssetCode)
+	q.Add("counter_asset_issuer", fixtures.Trades[0].CounterAssetIssuer)
+
+	reverseQ := make(url.Values)
+	reverseQ.Add("counter_asset_type", fixtures.Trades[0].BaseAssetType)
+	reverseQ.Add("counter_asset_code", fixtures.Trades[0].BaseAssetCode)
+	reverseQ.Add("counter_asset_issuer", fixtures.Trades[0].BaseAssetIssuer)
+	reverseQ.Add("base_asset_type", fixtures.Trades[0].CounterAssetType)
+	reverseQ.Add("base_asset_code", fixtures.Trades[0].CounterAssetCode)
+	reverseQ.Add("base_asset_issuer", fixtures.Trades[0].CounterAssetIssuer)
+
+	baseAsset, err := xdr.BuildAsset(
+		fixtures.Trades[0].BaseAssetType, fixtures.Trades[0].BaseAssetIssuer, fixtures.Trades[0].BaseAssetCode,
+	)
+	ht.Assert.NoError(err)
+	counterAsset, err := xdr.BuildAsset(
+		fixtures.Trades[0].CounterAssetType, fixtures.Trades[0].CounterAssetIssuer, fixtures.Trades[0].CounterAssetCode,
+	)
+	ht.Assert.NoError(err)
+
+	rows := fixtures.TradesByAssetPair(baseAsset, counterAsset)
+
+	for _, tradeType := range []string{"", history.AllTrades, history.OrderbookTrades, history.LiquidityPoolTrades} {
+		expected := rows
+		if tradeType != "" {
+			expected = history.FilterTradesByType(expected, tradeType)
+			q.Set("trade_type", tradeType)
+			reverseQ.Set("trade_type", tradeType)
+		}
+
+		w := ht.GetWithParams("/trades", q)
+		var tradesForPair []aurora.Trade
+		if ht.Assert.Equal(200, w.Code) {
+			ht.UnmarshalPage(w.Body, &tradesForPair)
+
+			ht.Assert.Equal(len(expected), len(tradesForPair))
+			for i, row := range expected {
+				assertResponseTradeEqualsDBTrade(ht, row, tradesForPair[i])
+			}
+		}
+
+		w = ht.GetWithParams("/trades", reverseQ)
+		if ht.Assert.Equal(200, w.Code) {
+			var trades []aurora.Trade
+			ht.UnmarshalPage(w.Body, &trades)
+			ht.Assert.Equal(len(tradesForPair), len(trades))
+
+			for i, expected := range tradesForPair {
+				ht.Assert.Equal(reverseTrade(expected), trades[i])
+			}
+		}
+	}
+}
+
+func reverseTrade(expected aurora.Trade) aurora.Trade {
+	expected.Links.Base, expected.Links.Counter = expected.Links.Counter, expected.Links.Base
+	expected.BaseIsSeller = !expected.BaseIsSeller
+	expected.BaseAssetCode, expected.CounterAssetCode = expected.CounterAssetCode, expected.BaseAssetCode
+	expected.BaseAssetIssuer, expected.CounterAssetIssuer = expected.CounterAssetIssuer, expected.BaseAssetIssuer
+	expected.BaseOfferID, expected.CounterOfferID = expected.CounterOfferID, expected.BaseOfferID
+	expected.BaseLiquidityPoolID, expected.CounterLiquidityPoolID = expected.CounterLiquidityPoolID, expected.BaseLiquidityPoolID
+	expected.BaseAssetType, expected.CounterAssetType = expected.CounterAssetType, expected.BaseAssetType
+	expected.BaseAccount, expected.CounterAccount = expected.CounterAccount, expected.BaseAccount
+	expected.BaseAmount, expected.CounterAmount = expected.CounterAmount, expected.BaseAmount
+	expected.Price.N, expected.Price.D = expected.Price.D, expected.Price.N
+	return expected
+}
+
+func assertResponseTradeEqualsDBTrade(ht *HTTPT, row history.Trade, record aurora.Trade) {
+	ht.Assert.Equal(row.BaseAssetCode, record.BaseAssetCode)
+	ht.Assert.Equal(row.BaseAssetType, record.BaseAssetType)
+	ht.Assert.Equal(row.BaseAssetIssuer, record.BaseAssetIssuer)
+	if row.BaseOfferID.Valid {
+		ht.Assert.Equal(strconv.FormatInt(row.BaseOfferID.Int64, 10), record.BaseOfferID)
+	} else {
+		ht.Assert.Equal("", record.BaseOfferID)
+	}
+	ht.Assert.Equal(row.BaseAmount, int64(amount.MustParse(record.BaseAmount)))
+	ht.Assert.Equal(row.BaseLiquidityPoolID.String, record.BaseLiquidityPoolID)
+	ht.Assert.Equal(row.BaseAccount.String, record.BaseAccount)
+	ht.Assert.Equal(row.BaseLiquidityPoolID.String, record.BaseLiquidityPoolID)
+	ht.Assert.Equal(row.BaseIsSeller, record.BaseIsSeller)
+
+	ht.Assert.Equal(row.CounterAssetCode, record.CounterAssetCode)
+	ht.Assert.Equal(row.CounterAssetType, record.CounterAssetType)
+	ht.Assert.Equal(row.CounterAssetIssuer, record.CounterAssetIssuer)
+	if row.CounterOfferID.Valid {
+		ht.Assert.Equal(strconv.FormatInt(row.CounterOfferID.Int64, 10), record.CounterOfferID)
+	} else {
+		ht.Assert.Equal("", record.CounterOfferID)
+	}
+	ht.Assert.Equal(row.CounterAmount, int64(amount.MustParse(record.CounterAmount)))
+	ht.Assert.Equal(row.CounterLiquidityPoolID.String, record.CounterLiquidityPoolID)
+	ht.Assert.Equal(row.CounterAccount.String, record.CounterAccount)
+	ht.Assert.Equal(row.CounterLiquidityPoolID.String, record.CounterLiquidityPoolID)
+
+	ht.Assert.Equal(uint32(row.LiquidityPoolFee.Int64), record.LiquidityPoolFeeBP)
+	ht.Assert.Equal(row.PagingToken(), record.PagingToken())
+	ht.Assert.Equal(row.LedgerCloseTime.Unix(), record.LedgerCloseTime.Unix())
+	ht.Assert.Equal(row.PriceN.Int64, record.Price.N)
+	ht.Assert.Equal(row.PriceD.Int64, record.Price.D)
+
+	if row.BaseLiquidityPoolID.Valid || row.CounterLiquidityPoolID.Valid {
+		ht.Assert.Equal(history.LiquidityPoolTrades, record.TradeType)
+	} else {
+		ht.Assert.Equal(history.OrderbookTrades, record.TradeType)
 	}
 }
 
@@ -156,8 +331,15 @@ func setAssetQuery(q *url.Values, prefix string, asset xdr.Asset) {
 	q.Add(prefix+"asset_issuer", assetFilter)
 }
 
+// unsetAssetQuery removes an asset filter with a given prefix from a query
+func unsetAssetQuery(q *url.Values, prefix string) {
+	q.Del(prefix + "asset_type")
+	q.Del(prefix + "asset_code")
+	q.Del(prefix + "asset_issuer")
+}
+
 //testPrice ensures that the price float string is equal to the rational price
-func testPrice(t *HTTPT, priceStr string, priceR xdr.Price) {
+func testPrice(t *HTTPT, priceStr string, priceR aurora.TradePrice) {
 	price, err := strconv.ParseFloat(priceStr, 64)
 	if t.Assert.NoError(err) {
 		t.Assert.Equal(price, float64(priceR.N)/float64(priceR.D))
@@ -178,7 +360,7 @@ const week = int64(7 * 24 * time.Hour / time.Millisecond)
 const aggregationPath = "/trade_aggregations"
 
 func TestTradeActions_Aggregation(t *testing.T) {
-	ht := StartHTTPTest(t, "base")
+	ht := StartHTTPTestWithoutScenario(t)
 	defer ht.Finish()
 
 	const numOfTrades = 10
@@ -187,7 +369,7 @@ func TestTradeActions_Aggregation(t *testing.T) {
 	//it represents a round hour and is bigger than a max int32
 	const start = int64(1510693200000)
 
-	dbQ := &Q{ht.AuroraSession()}
+	dbQ := &history.Q{ht.AuroraSession()}
 	ass1, ass2, err := PopulateTestTrades(dbQ, start, numOfTrades, minute, 0)
 	ht.Require.NoError(err)
 
@@ -229,7 +411,7 @@ func TestTradeActions_Aggregation(t *testing.T) {
 		ht.Assert.Equal("0.0005500", records[0].BaseVolume)
 	}
 
-	//test reverse one bucket - make sure values don't change
+	//test reverseTrade one bucket - make sure values don't change
 	q.Set("order", "desc")
 	w = ht.GetWithParams(aggregationPath, q)
 	if ht.Assert.Equal(200, w.Code) {
@@ -309,19 +491,61 @@ func TestTradeActions_Aggregation(t *testing.T) {
 	if ht.Assert.Equal(200, w.Code) {
 		ht.Assert.PageOf(0, w.Body)
 	}
+
+	//test non-existent base asset
+	foo := GetTestAsset("FOO")
+
+	unsetAssetQuery(&q, "base_")
+	setAssetQuery(&q, "base_", foo)
+
+	w = ht.GetWithParams(aggregationPath, q)
+	ht.Assert.Equal(404, w.Code)
+
+	jsonErr := map[string]interface{}{}
+	err = json.Unmarshal(w.Body.Bytes(), &jsonErr)
+	ht.Assert.NoError(err)
+	ht.Assert.Equal(float64(404), jsonErr["status"])
+	ht.Assert.Equal(
+		map[string]interface{}{
+			"invalid_field": "base_asset",
+			"reason":        "not found",
+		},
+		jsonErr["extras"],
+	)
+
+	unsetAssetQuery(&q, "base_")
+	setAssetQuery(&q, "base_", ass1)
+
+	//test non-existent counter asset
+	unsetAssetQuery(&q, "counter_")
+	setAssetQuery(&q, "counter_", foo)
+
+	w = ht.GetWithParams(aggregationPath, q)
+	ht.Assert.Equal(404, w.Code)
+
+	err = json.Unmarshal(w.Body.Bytes(), &jsonErr)
+	ht.Assert.NoError(err)
+	ht.Assert.Equal(float64(404), jsonErr["status"])
+	ht.Assert.Equal(
+		map[string]interface{}{
+			"invalid_field": "counter_asset",
+			"reason":        "not found",
+		},
+		jsonErr["extras"],
+	)
 }
 
 func TestTradeActions_AmountsExceedInt64(t *testing.T) {
-	ht := StartHTTPTest(t, "base")
+	ht := StartHTTPTestWithoutScenario(t)
 	defer ht.Finish()
-	dbQ := &Q{ht.AuroraSession()}
+	dbQ := &history.Q{ht.AuroraSession()}
 
 	const start = int64(1510693200000)
 
 	acc1 := GetTestAccount()
 	acc2 := GetTestAccount()
-	ass1 := GetTestAsset("usd")
-	ass2 := GetTestAsset("euro")
+	ass1 := GetTestAsset("euro")
+	ass2 := GetTestAsset("usd")
 	for i := 1; i <= 3; i++ {
 		timestamp := diamnetTime.MillisFromInt64(start + (minute * int64(i-1)))
 		err := IngestTestTrade(
@@ -350,8 +574,8 @@ func TestTradeActions_AmountsExceedInt64(t *testing.T) {
 }
 
 func TestTradeActions_IndexRegressions(t *testing.T) {
-	t.Run("Regression:  https://github.com/diamnet/go/services/aurora/internal/issues/318", func(t *testing.T) {
-		ht := StartHTTPTest(t, "trades")
+	t.Run("Assets Dont Exist trades - 404", func(t *testing.T) {
+		ht := StartHTTPTestWithoutScenario(t)
 		defer ht.Finish()
 
 		var q = make(url.Values)
@@ -366,7 +590,9 @@ func TestTradeActions_IndexRegressions(t *testing.T) {
 	})
 
 	t.Run("Regression for nil prices: https://github.com/diamnet/go/issues/357", func(t *testing.T) {
-		ht := StartHTTPTest(t, "trades")
+		ht := StartHTTPTestWithoutScenario(t)
+		dbQ := &history.Q{ht.AuroraSession()}
+		history.TradeScenario(ht.T, dbQ)
 		defer ht.Finish()
 
 		w := ht.Get("/trades")
@@ -382,16 +608,15 @@ func TestTradeActions_IndexRegressions(t *testing.T) {
 // fields are correct for multiple trades that occur in the same ledger
 // https://github.com/diamnet/go/issues/215
 func TestTradeActions_AggregationOrdering(t *testing.T) {
-
-	ht := StartHTTPTest(t, "base")
+	ht := StartHTTPTestWithoutScenario(t)
 	defer ht.Finish()
 
 	seller := GetTestAccount()
 	buyer := GetTestAccount()
-	ass1 := GetTestAsset("usd")
-	ass2 := GetTestAsset("euro")
+	ass1 := GetTestAsset("euro")
+	ass2 := GetTestAsset("usd")
 
-	dbQ := &Q{ht.AuroraSession()}
+	dbQ := &history.Q{ht.AuroraSession()}
 	IngestTestTrade(dbQ, ass1, ass2, seller, buyer, 1, 3, 0, 3)
 	IngestTestTrade(dbQ, ass1, ass2, seller, buyer, 1, 1, 0, 1)
 	IngestTestTrade(dbQ, ass1, ass2, seller, buyer, 1, 2, 0, 2)
@@ -415,32 +640,8 @@ func TestTradeActions_AggregationOrdering(t *testing.T) {
 	}
 }
 
-func assertOfferType(ht *HTTPT, offerId string, idType OfferIDType) {
-	offerIdInt64, _ := strconv.ParseInt(offerId, 10, 64)
-	_, offerType := DecodeOfferID(offerIdInt64)
-	ht.Assert.Equal(offerType, idType)
-}
-
-// TestTradeActions_SyntheticOfferIds loads the offer_ids scenario and ensures that synthetic offer
-// ids are created when necessary and not when unnecessary
-func TestTradeActions_SyntheticOfferIds(t *testing.T) {
-	ht := StartHTTPTest(t, "offer_ids")
-	defer ht.Finish()
-	var records []aurora.Trade
-	w := ht.Get("/trades")
-	if ht.Assert.Equal(200, w.Code) {
-		if ht.Assert.PageOf(4, w.Body) {
-			ht.UnmarshalPage(w.Body, &records)
-			assertOfferType(ht, records[0].BaseOfferID, TOIDType)
-			assertOfferType(ht, records[1].BaseOfferID, TOIDType)
-			assertOfferType(ht, records[2].BaseOfferID, CoreOfferIDType)
-			assertOfferType(ht, records[3].BaseOfferID, CoreOfferIDType)
-		}
-	}
-}
-
 func TestTradeActions_AssetValidation(t *testing.T) {
-	ht := StartHTTPTest(t, "trades")
+	ht := StartHTTPTestWithoutScenario(t)
 	defer ht.Finish()
 
 	var q = make(url.Values)
@@ -455,9 +656,10 @@ func TestTradeActions_AssetValidation(t *testing.T) {
 }
 
 func TestTradeActions_AggregationInvalidOffset(t *testing.T) {
-	ht := StartHTTPTest(t, "base")
+	ht := StartHTTPTestWithoutScenario(t)
 	defer ht.Finish()
-	dbQ := &Q{ht.AuroraSession()}
+
+	dbQ := &history.Q{ht.AuroraSession()}
 	ass1, ass2, err := PopulateTestTrades(dbQ, 0, 100, hour, 1)
 	ht.Require.NoError(err)
 
@@ -497,9 +699,10 @@ func TestTradeActions_AggregationInvalidOffset(t *testing.T) {
 }
 
 func TestTradeActions_AggregationOffset(t *testing.T) {
-	ht := StartHTTPTest(t, "base")
+	ht := StartHTTPTestWithoutScenario(t)
 	defer ht.Finish()
-	dbQ := &Q{ht.AuroraSession()}
+
+	dbQ := &history.Q{ht.AuroraSession()}
 	// One trade every hour
 	ass1, ass2, err := PopulateTestTrades(dbQ, 0, 100, hour, 1)
 	ht.Require.NoError(err)
@@ -549,4 +752,121 @@ func TestTradeActions_AggregationOffset(t *testing.T) {
 			}
 		})
 	}
+}
+
+//GetTestAsset generates an issuer on the fly and creates a CreditAlphanum4 Asset with given code
+func GetTestAsset(code string) xdr.Asset {
+	var codeBytes [4]byte
+	copy(codeBytes[:], []byte(code))
+	ca4 := xdr.AlphaNum4{Issuer: GetTestAccount(), AssetCode: codeBytes}
+	return xdr.Asset{Type: xdr.AssetTypeAssetTypeCreditAlphanum4, AlphaNum4: &ca4, AlphaNum12: nil}
+}
+
+//Get generates and returns an account on the fly
+func GetTestAccount() xdr.AccountId {
+	var key xdr.Uint256
+	kp, _ := keypair.Random()
+	copy(key[:], kp.Address())
+	acc, _ := xdr.NewAccountId(xdr.PublicKeyTypePublicKeyTypeEd25519, key)
+	return acc
+}
+
+func abs(a xdr.Int32) xdr.Int32 {
+	if a < 0 {
+		return -a
+	}
+	return a
+}
+
+//IngestTestTrade mock ingests a trade
+func IngestTestTrade(
+	q *history.Q,
+	assetSold xdr.Asset,
+	assetBought xdr.Asset,
+	seller xdr.AccountId,
+	buyer xdr.AccountId,
+	amountSold int64,
+	amountBought int64,
+	timestamp diamnetTime.Millis,
+	opCounter int64) error {
+
+	trade := xdr.ClaimAtom{
+		Type: xdr.ClaimAtomTypeClaimAtomTypeOrderBook,
+		OrderBook: &xdr.ClaimOfferAtom{
+			AmountBought: xdr.Int64(amountBought),
+			SellerId:     seller,
+			AmountSold:   xdr.Int64(amountSold),
+			AssetBought:  assetBought,
+			AssetSold:    assetSold,
+			OfferId:      100,
+		},
+	}
+
+	price := xdr.Price{
+		N: abs(xdr.Int32(amountBought)),
+		D: abs(xdr.Int32(amountSold)),
+	}
+
+	ctx := context.Background()
+	accounts, err := q.CreateAccounts(ctx, []string{seller.Address(), buyer.Address()}, 2)
+	if err != nil {
+		return err
+	}
+	assets, err := q.CreateAssets(ctx, []xdr.Asset{assetBought, assetSold}, 2)
+	if err != nil {
+		return err
+	}
+
+	batch := q.NewTradeBatchInsertBuilder(0)
+	batch.Add(ctx, history.InsertTrade{
+		HistoryOperationID: opCounter,
+		Order:              0,
+		CounterAssetID:     assets[assetBought.String()].ID,
+		CounterAccountID:   null.IntFrom(accounts[buyer.Address()]),
+		CounterAmount:      amountBought,
+
+		BaseAssetID:     assets[assetSold.String()].ID,
+		BaseAccountID:   null.IntFrom(accounts[seller.Address()]),
+		BaseAmount:      amountSold,
+		BaseOfferID:     null.IntFrom(int64(trade.OfferId())),
+		BaseIsSeller:    true,
+		PriceN:          int64(price.N),
+		PriceD:          int64(price.D),
+		LedgerCloseTime: timestamp.ToTime(),
+	})
+	err = batch.Exec(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = q.RebuildTradeAggregationTimes(context.Background(), timestamp, timestamp)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+//PopulateTestTrades generates and ingests trades between two assets according to given parameters
+func PopulateTestTrades(
+	q *history.Q,
+	startTs int64,
+	numOfTrades int,
+	delta int64,
+	opStart int64) (ass1 xdr.Asset, ass2 xdr.Asset, err error) {
+
+	acc1 := GetTestAccount()
+	acc2 := GetTestAccount()
+	ass1 = GetTestAsset("euro")
+	ass2 = GetTestAsset("usd")
+	for i := 1; i <= numOfTrades; i++ {
+		timestamp := diamnetTime.MillisFromInt64(startTs + (delta * int64(i-1)))
+		err = IngestTestTrade(
+			q, ass1, ass2, acc1, acc2, int64(i*100), int64(i*100)*int64(i), timestamp, opStart+int64(i))
+		//tt.Assert.NoError(err)
+		if err != nil {
+			return
+		}
+	}
+	return
 }

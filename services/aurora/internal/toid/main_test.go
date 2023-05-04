@@ -139,3 +139,43 @@ func ExampleParse() {
 	fmt.Printf("ledger:%d, tx:%d, op:%d", toid.LedgerSequence, toid.TransactionOrder, toid.OperationOrder)
 	// Output: ledger:3, tx:2, op:0
 }
+
+func TestLedgerRangeInclusive(t *testing.T) {
+	testCases := []struct {
+		from int32
+		to   int32
+
+		fromLedger int32
+		toLedger   int32
+	}{
+		{1, 1, 0, 2},
+		{1, 2, 0, 3},
+		{2, 2, 2, 3},
+		{2, 3, 2, 4},
+	}
+	for _, tc := range testCases {
+		t.Run("Testing TestLedgerRangeInclusive", func(t *testing.T) {
+			toidFrom, toidTo, err := LedgerRangeInclusive(tc.from, tc.to)
+			assert.NoError(t, err)
+
+			id := Parse(toidFrom)
+			assert.Equal(t, tc.fromLedger, id.LedgerSequence)
+			assert.Equal(t, int32(0), id.TransactionOrder)
+			assert.Equal(t, int32(0), id.OperationOrder)
+
+			id = Parse(toidTo)
+			assert.Equal(t, tc.toLedger, id.LedgerSequence)
+			assert.Equal(t, int32(0), id.TransactionOrder)
+			assert.Equal(t, int32(0), id.OperationOrder)
+		})
+	}
+
+	_, _, err := LedgerRangeInclusive(2, 1)
+	assert.Error(t, err)
+
+	_, _, err = LedgerRangeInclusive(-1, 1)
+	assert.Error(t, err)
+
+	_, _, err = LedgerRangeInclusive(-3, -5)
+	assert.Error(t, err)
+}

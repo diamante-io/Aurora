@@ -1,9 +1,11 @@
 package env
 
 import (
-	"log"
 	"os"
 	"strconv"
+	"time"
+
+	"github.com/diamnet/go/support/errors"
 )
 
 // String returns the value of the environment variable "name".
@@ -22,8 +24,23 @@ func Int(name string, value int) int {
 		var err error
 		value, err = strconv.Atoi(s)
 		if err != nil {
-			log.Println(name, err)
-			os.Exit(1)
+			panic(errors.Wrapf(err, "env var %q cannot be parsed as int", name))
+		}
+	}
+	return value
+}
+
+// Duration returns the value of the environment variable "name" as a
+// time.Duration where the value of the environment variable is parsed as a
+// duration string as defined in the Go stdlib time documentation. e.g. 5m30s.
+// If name is not set, it returns value.
+// Ref: https://golang.org/pkg/time/#ParseDuration
+func Duration(name string, value time.Duration) time.Duration {
+	if s := os.Getenv(name); s != "" {
+		var err error
+		value, err = time.ParseDuration(s)
+		if err != nil {
+			panic(errors.Wrapf(err, "env var %q cannot be parsed as time.Duration", name))
 		}
 	}
 	return value

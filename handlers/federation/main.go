@@ -1,4 +1,4 @@
-// Package federation provides a pluggable handler that satisfies the DiamNet
+// Package federation provides a pluggable handler that satisfies the Diamnet
 // federation protocol.  Add an instance of `Handler` onto your router to allow
 // a server to satisfy the protocol.
 //
@@ -11,6 +11,7 @@
 package federation
 
 import (
+	"context"
 	"database/sql"
 	"net/url"
 	"sync"
@@ -25,7 +26,7 @@ type Driver interface {
 	// federation request to lookup a `Record` using the provided diamnet address.
 	// An implementation should return a nil `*Record` value if the lookup
 	// successfully executed but no result was found.
-	LookupRecord(name string, domain string) (*Record, error)
+	LookupRecord(ctx context.Context, name, domain string) (*Record, error)
 }
 
 // ErrorResponse represents the JSON response sent to a client when the request
@@ -42,7 +43,7 @@ func (response ErrorResponse) Error() string {
 }
 
 // Handler represents an http handler that can service http requests that
-// conform to the DiamNet federation protocol.  This handler should be added to
+// conform to the Diamnet federation protocol.  This handler should be added to
 // your chosen mux at the path `/federation` (and for good measure
 // `/federation/` if your middleware doesn't normalize trailing slashes).
 type Handler struct {
@@ -65,7 +66,7 @@ type ReverseDriver interface {
 	// federation request to lookup a `ReverseRecord` using the provided strkey
 	// encoded accountID. An implementation should return a nil `*ReverseRecord`
 	// value if the lookup successfully executed but no result was found.
-	LookupReverseRecord(accountID string) (*ReverseRecord, error)
+	LookupReverseRecord(ctx context.Context, accountID string) (*ReverseRecord, error)
 }
 
 // ForwardDriver represents a data source against which forward queries can

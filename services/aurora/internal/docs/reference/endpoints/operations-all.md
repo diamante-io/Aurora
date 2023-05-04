@@ -2,12 +2,13 @@
 title: All Operations
 clientData:
   laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=operations&endpoint=all
+replacement: https://developers.diamnet.org/api/resources/operations/
 ---
 
 This endpoint represents [operations](../resources/operation.md) that are part of successfully validated [transactions](../resources/transaction.md).
 Please note that this endpoint returns operations that are part of failed transactions if `include_failed` parameter is `true`
 and Aurora is ingesting failed transactions.
-This endpoint can also be used in [streaming](../streaming.md) mode so it is possible to use it to listen as operations are processed in the DiamNet network.
+This endpoint can also be used in [streaming](../streaming.md) mode so it is possible to use it to listen as operations are processed in the Diamnet network.
 If called in streaming mode Aurora will start at the earliest known operation unless a `cursor` is set. In that case it will start from the `cursor`. You can also set `cursor` value to `now` to only stream operations created since your request time.
 
 ## Request
@@ -35,8 +36,8 @@ curl "https://aurora-testnet.diamnet.org/operations?limit=200&order=desc"
 ### JavaScript Example Request
 
 ```js
-var DiamNetSdk = require('diamnet-sdk');
-var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
+var DiamnetSdk = require('diamnet-sdk');
+var server = new DiamnetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.operations()
   .call()
@@ -57,8 +58,8 @@ server.operations()
 ### JavaScript Streaming Example
 
 ```javascript
-var DiamNetSdk = require('diamnet-sdk')
-var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
+var DiamnetSdk = require('diamnet-sdk')
+var server = new DiamnetSdk.Server('https://aurora-testnet.diamnet.org');
 
 var operationHandler = function (operationResponse) {
   console.log(operationResponse);
@@ -188,4 +189,4 @@ This endpoint responds with a list of operations. See [operation resource](../re
 
 ## Possible Errors
 
-- The [standard errors](../errors.md#Standard_Errors).
+- The [standard errors](../errors.md#standard-errors).

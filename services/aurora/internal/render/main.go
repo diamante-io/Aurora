@@ -3,7 +3,7 @@ package render
 import (
 	"net/http"
 
-	"bitbucket.org/ww/goautoneg"
+	"github.com/adjust/goautoneg"
 	"github.com/diamnet/go/support/log"
 )
 

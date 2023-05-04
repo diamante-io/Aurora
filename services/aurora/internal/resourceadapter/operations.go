@@ -6,8 +6,8 @@ import (
 
 	"github.com/diamnet/go/protocols/aurora"
 	"github.com/diamnet/go/protocols/aurora/operations"
+	auroraContext "github.com/diamnet/go/services/aurora/internal/context"
 	"github.com/diamnet/go/services/aurora/internal/db2/history"
-	"github.com/diamnet/go/services/aurora/internal/httpx"
 	"github.com/diamnet/go/support/render/hal"
 	"github.com/diamnet/go/xdr"
 )
@@ -17,12 +17,16 @@ import (
 func NewOperation(
 	ctx context.Context,
 	operationRow history.Operation,
+	transactionHash string,
 	transactionRow *history.Transaction,
 	ledger history.Ledger,
 ) (result hal.Pageable, err error) {
 
 	base := operations.Base{}
-	PopulateBaseOperation(ctx, &base, operationRow, transactionRow, ledger)
+	err = PopulateBaseOperation(ctx, &base, operationRow, transactionHash, transactionRow, ledger)
+	if err != nil {
+		return
+	}
 
 	switch operationRow.Type {
 	case xdr.OperationTypeBumpSequence:
@@ -37,7 +41,7 @@ func NewOperation(
 		e := operations.Payment{Base: base}
 		err = operationRow.UnmarshalDetails(&e)
 		result = e
-	case xdr.OperationTypePathPayment:
+	case xdr.OperationTypePathPaymentStrictReceive:
 		e := operations.PathPayment{}
 		e.Payment.Base = base
 		err = operationRow.UnmarshalDetails(&e)
@@ -45,12 +49,22 @@ func NewOperation(
 	case xdr.OperationTypeManageBuyOffer:
 		e := operations.ManageBuyOffer{}
 		e.Offer.Base = base
-		err = operationRow.UnmarshalDetails(&e)
+		err = operationRow.UnmarshalDetails(&e.Offer)
+		if err == nil {
+			hmo := history.ManageOffer{}
+			err = operationRow.UnmarshalDetails(&hmo)
+			e.OfferID = hmo.OfferID
+		}
 		result = e
 	case xdr.OperationTypeManageSellOffer:
 		e := operations.ManageSellOffer{}
 		e.Offer.Base = base
-		err = operationRow.UnmarshalDetails(&e)
+		err = operationRow.UnmarshalDetails(&e.Offer)
+		if err == nil {
+			hmo := history.ManageOffer{}
+			err = operationRow.UnmarshalDetails(&hmo)
+			e.OfferID = hmo.OfferID
+		}
 		result = e
 	case xdr.OperationTypeCreatePassiveSellOffer:
 		e := operations.CreatePassiveSellOffer{}
@@ -68,6 +82,12 @@ func NewOperation(
 	case xdr.OperationTypeAllowTrust:
 		e := operations.AllowTrust{Base: base}
 		err = operationRow.UnmarshalDetails(&e)
+		// if the trustline is authorized, we want to reflect that it implies
+		// authorized_to_maintain_liabilities to true, otherwise, we use the
+		// value from details
+		if e.Authorize {
+			e.AuthorizeToMaintainLiabilities = e.Authorize
+		}
 		result = e
 	case xdr.OperationTypeAccountMerge:
 		e := operations.AccountMerge{Base: base}
@@ -81,6 +101,51 @@ func NewOperation(
 		e := operations.ManageData{Base: base}
 		err = operationRow.UnmarshalDetails(&e)
 		result = e
+	case xdr.OperationTypePathPaymentStrictSend:
+		e := operations.PathPaymentStrictSend{}
+		e.Payment.Base = base
+		err = operationRow.UnmarshalDetails(&e)
+		result = e
+	case xdr.OperationTypeCreateClaimableBalance:
+		e := operations.CreateClaimableBalance{Base: base}
+		err = operationRow.UnmarshalDetails(&e)
+		result = e
+	case xdr.OperationTypeClaimClaimableBalance:
+		e := operations.ClaimClaimableBalance{Base: base}
+		err = operationRow.UnmarshalDetails(&e)
+		result = e
+	case xdr.OperationTypeBeginSponsoringFutureReserves:
+		e := operations.BeginSponsoringFutureReserves{Base: base}
+		err = operationRow.UnmarshalDetails(&e)
+		result = e
+	case xdr.OperationTypeEndSponsoringFutureReserves:
+		e := operations.EndSponsoringFutureReserves{Base: base}
+		err = operationRow.UnmarshalDetails(&e)
+		result = e
+	case xdr.OperationTypeRevokeSponsorship:
+		e := operations.RevokeSponsorship{Base: base}
+		err = operationRow.UnmarshalDetails(&e)
+		result = e
+	case xdr.OperationTypeClawback:
+		e := operations.Clawback{Base: base}
+		err = operationRow.UnmarshalDetails(&e)
+		result = e
+	case xdr.OperationTypeClawbackClaimableBalance:
+		e := operations.ClawbackClaimableBalance{Base: base}
+		err = operationRow.UnmarshalDetails(&e)
+		result = e
+	case xdr.OperationTypeSetTrustLineFlags:
+		e := operations.SetTrustLineFlags{Base: base}
+		err = operationRow.UnmarshalDetails(&e)
+		result = e
+	case xdr.OperationTypeLiquidityPoolDeposit:
+		e := operations.LiquidityPoolDeposit{Base: base}
+		err = operationRow.UnmarshalDetails(&e)
+		result = e
+	case xdr.OperationTypeLiquidityPoolWithdraw:
+		e := operations.LiquidityPoolWithdraw{Base: base}
+		err = operationRow.UnmarshalDetails(&e)
+		result = e
 	default:
 		result = base
 	}
@@ -89,27 +154,21 @@ func NewOperation(
 }
 
 // Populate fills out this resource using `row` as the source.
-func PopulateBaseOperation(
-	ctx context.Context,
-	dest *operations.Base,
-	operationRow history.Operation,
-	transactionRow *history.Transaction,
-	ledger history.Ledger,
-) {
+func PopulateBaseOperation(ctx context.Context, dest *operations.Base, operationRow history.Operation, transactionHash string, transactionRow *history.Transaction, ledger history.Ledger) error {
 	dest.ID = fmt.Sprintf("%d", operationRow.ID)
 	dest.PT = operationRow.PagingToken()
-	// Check db2/history.Transaction.Successful field comment for more information.
-	if operationRow.TransactionSuccessful == nil {
-		dest.TransactionSuccessful = true
-	} else {
-		dest.TransactionSuccessful = *operationRow.TransactionSuccessful
-	}
+	dest.TransactionSuccessful = operationRow.TransactionSuccessful
 	dest.SourceAccount = operationRow.SourceAccount
+	if operationRow.SourceAccountMuxed.Valid {
+		dest.SourceAccountMuxed = operationRow.SourceAccountMuxed.String
+		muxedAccount := xdr.MustMuxedAddress(dest.SourceAccountMuxed)
+		dest.SourceAccountMuxedID = uint64(muxedAccount.Med25519.Id)
+	}
 	populateOperationType(dest, operationRow)
 	dest.LedgerCloseTime = ledger.ClosedAt
-	dest.TransactionHash = operationRow.TransactionHash
+	dest.TransactionHash = transactionHash
 
-	lb := hal.LinkBuilder{Base: httpx.BaseURL(ctx)}
+	lb := hal.LinkBuilder{Base: auroraContext.BaseURL(ctx)}
 	self := fmt.Sprintf("/operations/%d", operationRow.ID)
 	dest.Links.Self = lb.Link(self)
 	dest.Links.Succeeds = lb.Linkf("/effects?order=desc&cursor=%s", dest.PT)
@@ -119,8 +178,9 @@ func PopulateBaseOperation(
 
 	if transactionRow != nil {
 		dest.Transaction = new(aurora.Transaction)
-		PopulateTransaction(ctx, dest.Transaction, *transactionRow)
+		return PopulateTransaction(ctx, transactionHash, dest.Transaction, *transactionRow)
 	}
+	return nil
 }
 
 func populateOperationType(dest *operations.Base, row history.Operation) {

@@ -10,7 +10,7 @@ import (
 // NOTE: this test is presently failing because govalidator doesn't support
 // optional fields that also use a custom validator.  We'll remove the build tag
 // above that disabled it from running during tests when we fix upstream.
-func TestOptionalDiamNetFields(t *testing.T) {
+func TestOptionalDiamnetFields(t *testing.T) {
 	var val struct {
 		F1 string `valid:"diamnet_accountid,optional"`
 		F2 string `valid:"optional,diamnet_accountid"`

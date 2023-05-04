@@ -2,6 +2,7 @@
 title: Transactions for Ledger
 clientData:
   laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=transactions&endpoint=for_ledger
+replacement: https://developers.diamnet.org/api/resources/ledgers/transactions/
 ---
 
 This endpoint represents successful [transactions](../resources/transaction.md) in a given [ledger](../resources/ledger.md).
@@ -31,8 +32,8 @@ curl "https://aurora-testnet.diamnet.org/ledgers/697121/transactions?limit=1"
 ### JavaScript Example Request
 
 ```javascript
-var DiamNetSdk = require('diamnet-sdk');
-var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
+var DiamnetSdk = require('diamnet-sdk');
+var server = new DiamnetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.transactions()
   .forLedger("697121")
@@ -102,7 +103,8 @@ resource](../resources/transaction.md) for reference.
         "created_at": "2019-04-09T20:14:25Z",
         "source_account": "GAIH3ULLFQ4DGSECF2AR555KZ4KNDGEKN4AFI4SU2M7B43MGK3QJZNSR",
         "source_account_sequence": "4660039994869",
-        "fee_paid": 100,
+        "fee_charged": 100,
+        "max_fee": 100,
         "operation_count": 1,
         "envelope_xdr": "AAAAABB90WssODNIgi6BHveqzxTRmIpvAFRyVNM+Hm2GVuCcAAAAZAAABD0AB031AAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAFIMRkFZ9gZifhRSlklQpsz/9P04Earv0dzS3MkIM1cYAAAAXSHboAAAAAAAAAAABhlbgnAAAAEA+biIjrDy8yi+SvhFElIdWGBRYlDscnSSHkPchePy2JYDJn4wvJYDBumXI7/NmttUey3+cGWbBFfnnWh1H5EoD",
         "result_xdr": "AAAAAAAAAGQAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAA=",
@@ -148,7 +150,8 @@ resource](../resources/transaction.md) for reference.
         "created_at": "2019-04-09T20:14:25Z",
         "source_account": "GAZ4A54KE6MTMXYEPM7T3IDLZWGNCCKB5ME422NZ3MAMTHWWP37RPEBW",
         "source_account_sequence": "2994107601387521",
-        "fee_paid": 100,
+        "fee_charged": 100,
+        "max_fee": 100,
         "operation_count": 1,
         "envelope_xdr": "AAAAADPAd4onmTZfBHs/PaBrzYzRCUHrCc1pudsAyZ7Wfv8XAAAAZAAKoyAAAAABAAAAAAAAAAEAAAAQMkExVjZKNTcwM0c0N1hIWQAAAAEAAAABAAAAADPAd4onmTZfBHs/PaBrzYzRCUHrCc1pudsAyZ7Wfv8XAAAAAQAAAADMSEvcRKXsaUNna++Hy7gWm/CfqTjEA7xoGypfrFGUHAAAAAAAAAAAhFKDAAAAAAAAAAAB1n7/FwAAAEBJdXuYg13Glzx1RinVCXd/cc1usrhU/0f5HFZ7lyIR8kS3T6PRrW78TQDNqXz+ukUiPwlB1A8MqxoW/SAL5FIB",
         "result_xdr": "AAAAAAAAAGQAAAAAAAAAAQAAAAAAAAABAAAAAAAAAAA=",
@@ -194,7 +197,8 @@ resource](../resources/transaction.md) for reference.
         "created_at": "2019-04-09T20:14:25Z",
         "source_account": "GABRMXDIJCTDSMPC67J64NSAMWRSYXVCXYTXVFC73DTHBKELHNKWANXP",
         "source_account_sequence": "122518237256298",
-        "fee_paid": 100,
+        "fee_charged": 100,
+        "max_fee": 100,
         "operation_count": 1,
         "envelope_xdr": "AAAAAAMWXGhIpjkx4vfT7jZAZaMsXqK+J3qUX9jmcKiLO1VgAAAAZAAAb24AAppqAAAAAQAAAAAAAAAAAAAAAFys/kkAAAABAAAABVdIQUxFAAAAAAAAAQAAAAAAAAAAAAAAAKrN4k6edFMb0WEyPzEEjWUAji0pvvALw+BAH4OnekA5AAAAAAcnDgAAAAAAAAAAAYs7VWAAAABAYd9uIm+TjIcAjTU90YJoNg/r+6PU3Uss7ewUb1w3yMa+HyoSvDq8sDz/SYmDBH7F+0ACIeBF4kkVEKVBJMh0AQ==",
         "result_xdr": "AAAAAAAAAGQAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAA=",

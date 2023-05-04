@@ -9,17 +9,20 @@ const (
 	_ = iota
 	// the operationType enum values start at 1 because when constructing a
 	// orderBookOperation struct, the operationType field should always be specified
-	// explicity. if the operationType enum values started at 0 then it would be
+	// explicitly. if the operationType enum values started at 0 then it would be
 	// possible to create a valid orderBookOperation struct without specifying
 	// the operationType field
-	addOfferOperationType    = iota
-	removeOfferOperationType = iota
+	addOfferOperationType            = iota
+	removeOfferOperationType         = iota
+	addLiquidityPoolOperationType    = iota
+	removeLiquidityPoolOperationType = iota
 )
 
 type orderBookOperation struct {
 	operationType int
 	offerID       xdr.Int64
 	offer         *xdr.OfferEntry
+	liquidityPool *xdr.LiquidityPoolEntry
 }
 
 type orderBookBatchedUpdates struct {
@@ -39,6 +42,16 @@ func (tx *orderBookBatchedUpdates) addOffer(offer xdr.OfferEntry) *orderBookBatc
 	return tx
 }
 
+// addLiquidityPool will queue an operation to add the given liquidity pool to the order book graph
+func (tx *orderBookBatchedUpdates) addLiquidityPool(pool xdr.LiquidityPoolEntry) *orderBookBatchedUpdates {
+	tx.operations = append(tx.operations, orderBookOperation{
+		operationType: addLiquidityPoolOperationType,
+		liquidityPool: &pool,
+	})
+
+	return tx
+}
+
 // removeOffer will queue an operation to remove the given offer from the order book
 func (tx *orderBookBatchedUpdates) removeOffer(offerID xdr.Int64) *orderBookBatchedUpdates {
 	tx.operations = append(tx.operations, orderBookOperation{
@@ -49,8 +62,18 @@ func (tx *orderBookBatchedUpdates) removeOffer(offerID xdr.Int64) *orderBookBatc
 	return tx
 }
 
+// removeLiquidityPool will queue an operation to remove the given liquidity pool from the order book
+func (tx *orderBookBatchedUpdates) removeLiquidityPool(pool xdr.LiquidityPoolEntry) *orderBookBatchedUpdates {
+	tx.operations = append(tx.operations, orderBookOperation{
+		operationType: removeLiquidityPoolOperationType,
+		liquidityPool: &pool,
+	})
+
+	return tx
+}
+
 // apply will attempt to apply all the updates in the batch to the order book
-func (tx *orderBookBatchedUpdates) apply() error {
+func (tx *orderBookBatchedUpdates) apply(ledger uint32) error {
 	tx.orderbook.lock.Lock()
 	defer tx.orderbook.lock.Unlock()
 
@@ -60,20 +83,36 @@ func (tx *orderBookBatchedUpdates) apply() error {
 	}
 	tx.committed = true
 
+	if tx.orderbook.lastLedger > 0 && ledger <= tx.orderbook.lastLedger {
+		return errUnexpectedLedger
+	}
+
 	for _, operation := range tx.operations {
 		switch operation.operationType {
 		case addOfferOperationType:
-			if err := tx.orderbook.add(*operation.offer); err != nil {
+			if err := tx.orderbook.addOffer(*operation.offer); err != nil {
 				panic(errors.Wrap(err, "could not apply update in batch"))
 			}
 		case removeOfferOperationType:
-			if err := tx.orderbook.remove(operation.offerID); err != nil {
+			if _, ok := tx.orderbook.tradingPairForOffer[operation.offerID]; !ok {
+				continue
+			}
+			if err := tx.orderbook.removeOffer(operation.offerID); err != nil {
 				panic(errors.Wrap(err, "could not apply update in batch"))
 			}
+
+		case addLiquidityPoolOperationType:
+			tx.orderbook.addPool(*operation.liquidityPool)
+
+		case removeLiquidityPoolOperationType:
+			tx.orderbook.removePool(*operation.liquidityPool)
+
 		default:
 			panic(errors.New("invalid operation type"))
 		}
 	}
+
+	tx.orderbook.lastLedger = ledger
 
 	return nil
 }

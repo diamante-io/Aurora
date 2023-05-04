@@ -1,31 +1,32 @@
 ---
 title: Operation
+replacement: https://developers.diamnet.org/api/resources/operations/
 ---
 
 [Operations](https://www.diamnet.org/developers/learn/concepts/operations.html) are objects that represent a desired change to the ledger: payments,
 offers to exchange currency, changes made to account options, etc.  Operations
-are submitted to the DiamNet network grouped in a [Transaction](./transaction.md).
+are submitted to the Diamnet network grouped in a [Transaction](./transaction.md).
 
-To learn more about the concept of operations in the DiamNet network, take a look at the [DiamNet operations concept guide](https://www.diamnet.org/developers/learn/concepts/operations.html).
+To learn more about the concept of operations in the Diamnet network, take a look at the [Diamnet operations concept guide](https://www.diamnet.org/developers/learn/concepts/operations.html).
 
 ## Operation Types
 
-| type                                          | type_i | description                                                                                                |
-|-----------------------------------------------|--------|------------------------------------------------------------------------------------------------------------|
-| [CREATE_ACCOUNT](#create-account)                       | 0      | Creates a new account in DiamNet network.
-| [PAYMENT](#payment)                                     | 1      | Sends a simple payment between two accounts in DiamNet network.
-| [PATH_PAYMENT](#path-payment)                           | 2      | Sends a path payment between two accounts in the DiamNet network.
-| [MANAGE_SELL_OFFER](#manage-sell-offer)                 | 3      | Creates, updates or deletes a sell offer in the DiamNet network.
-| [MANAGE_BUY_OFFER](#manage-buy-offer)                   | 12     | Creates, updates or deletes a buy offer in the DiamNet network.
-| [CREATE_PASSIVE_SELL_OFFER](#create-passive-sell-offer) | 4      | Creates an offer that won't consume a counter offer that exactly matches this offer.
-| [SET_OPTIONS](#set-options)                             | 5      | Sets account options (inflation destination, adding signers, etc.)
-| [CHANGE_TRUST](#change-trust)                           | 6      | Creates, updates or deletes a trust line.
-| [ALLOW_TRUST](#allow-trust)                             | 7      | Updates the "authorized" flag of an existing trust line this is called by the issuer of the related asset.
-| [ACCOUNT_MERGE](#account-merge)                         | 8      | Deletes account and transfers remaining balance to destination account.
-| [INFLATION](#inflation)                                 | 9      | Runs inflation.
-| [MANAGE_DATA](#manage-data)                             | 10     | Set, modify or delete a Data Entry (name/value pair) for an account.
-| [BUMP_SEQUENCE](#bump-sequence)                         | 11     | Bumps forward the sequence number of an account.
-
+| type                                                    | type_i | description                                                                                                |
+|---------------------------------------------------------|--------|------------------------------------------------------------------------------------------------------------|
+| [CREATE_ACCOUNT](#create-account)                       | 0      | Creates a new account in Diamnet network.                                                                  |
+| [PAYMENT](#payment)                                     | 1      | Sends a simple payment between two accounts in Diamnet network.                                            |
+| [PATH_PAYMENT_STRICT_RECEIVE](#path-payment)            | 2      | Sends a path payment strict receive between two accounts in the Diamnet network.                           |
+| [PATH_PAYMENT_STRICT_SEND](#path-payment-strict-send)   | 13     | Sends a path payment strict send between two accounts in the Diamnet network.                              |
+| [MANAGE_SELL_OFFER](#manage-sell-offer)                 | 3      | Creates, updates or deletes a sell offer in the Diamnet network.                                           |
+| [MANAGE_BUY_OFFER](#manage-buy-offer)                   | 12     | Creates, updates or deletes a buy offer in the Diamnet network.                                            |
+| [CREATE_PASSIVE_SELL_OFFER](#create-passive-sell-offer) | 4      | Creates an offer that won't consume a counter offer that exactly matches this offer.                       |
+| [SET_OPTIONS](#set-options)                             | 5      | Sets account options (inflation destination, adding signers, etc.)                                         |
+| [CHANGE_TRUST](#change-trust)                           | 6      | Creates, updates or deletes a trust line.                                                                  |
+| [ALLOW_TRUST](#allow-trust)                             | 7      | Updates the "authorized" flag of an existing trust line this is called by the issuer of the related asset. |
+| [ACCOUNT_MERGE](#account-merge)                         | 8      | Deletes account and transfers remaining balance to destination account.                                    |
+| [INFLATION](#inflation)                                 | 9      | Runs inflation.                                                                                            |
+| [MANAGE_DATA](#manage-data)                             | 10     | Set, modify or delete a Data Entry (name/value pair) for an account.                                       |
+| [BUMP_SEQUENCE](#bump-sequence)                         | 11     | Bumps forward the sequence number of an account.                                                           |
 
 
 Every operation type shares a set of common attributes and links, some operations also contain
@@ -35,23 +36,23 @@ additional attributes and links specific to that operation type.
 
 ## Common Attributes
 
-|              | Type   |                                                                                                                             |
-|--------------|--------|-----------------------------------------------------------------------------------------------------------------------------|
-| id           | number | The canonical id of this operation, suitable for use as the :id parameter for url templates that require an operation's ID. |
-| paging_token | any    | A [paging token](./page.md) suitable for use as a `cursor` parameter.                                                       |
-| transaction_successful | bool    | *From 0.17.0* Indicates if this operation is part of successful transaction. |
-| type         | string | A string representation of the type of operation.                                                                           |
-| type_i       | number | Specifies the type of operation, See "Types" section below for reference.                                                   |
+|                        | Type   |                                                                                                                             |
+|------------------------|--------|-----------------------------------------------------------------------------------------------------------------------------|
+| id                     | number | The canonical id of this operation, suitable for use as the :id parameter for url templates that require an operation's ID. |
+| paging_token           | any    | A [paging token](./page.md) suitable for use as a `cursor` parameter.                                                       |
+| transaction_successful | bool   | Indicates if this operation is part of successful transaction.                                                              |
+| type                   | string | A string representation of the type of operation.                                                                           |
+| type_i                 | number | Specifies the type of operation, See "Types" section below for reference.                                                   |
 
 ## Common Links
 
-|             |                  Relation                 |
-| ----------- | ----------------------------------------- |
-| self        | Relative link to the current operation    |
+|             | Relation                                                                  |
+|-------------|---------------------------------------------------------------------------|
+| self        | Relative link to the current operation                                    |
 | succeeds    | Relative link to the list of operations succeeding the current operation. |
-| precedes    | Relative link to the list of operations preceding the current operation. |
-| effects | The effects this operation triggered |
-| transaction | The transaction this operation is part of |
+| precedes    | Relative link to the list of operations preceding the current operation.  |
+| effects     | The effects this operation triggered                                      |
+| transaction | The transaction this operation is part of                                 |
 
 
 Each operation type will have a different set of attributes, in addition to the
@@ -64,11 +65,11 @@ Create Account operation represents a new account creation.
 
 #### Attributes
 
-| Field           |  Type  | Description       |
-| --------------- | ------ | ----------------- |
-| account     | string | A new account that was funded. |
-| funder     | string | Account that funded a new account. |
-| starting_balance | string | Amount the account was funded. |
+| Field            | Type   | Description                        |
+|------------------|--------|------------------------------------|
+| account          | string | A new account that was funded.     |
+| funder           | string | Account that funded a new account. |
+| starting_balance | string | Amount the account was funded.     |
 
 
 #### Example
@@ -94,7 +95,7 @@ Create Account operation represents a new account creation.
   },
   "account": "GCEZWKCA5VLDNRLN3RPRJMRZOX3Z6G5CHCGSNFHEYVXM3XOJMDS674JZ",
   "funder": "GBIA4FH6TV64KSPDAJCNUQSM7PFL4ILGUVJDPCLUOPJ7ONMKBBVUQHRO",
-  "id": 402494270214144,
+  "id": "402494270214144",
   "paging_token": "402494270214144",
   "starting_balance": "10000.0",
   "type_i": 0,
@@ -110,20 +111,20 @@ can be either a simple native asset payment or a fiat asset payment.
 
 #### Attributes
 
-| Field           |  Type  | Description       |
-| --------------- | ------ | ----------------- |
-| from          | string | Sender of a payment.  |
-| to     | string | Destination of a payment. |
-| asset_type | string | Asset type (native / alphanum4 / alphanum12) |
-| asset_code | string | Code of the destination asset. |
-| asset_issuer | string | Asset issuer. |
-| amount          | string | Amount sent. |
+| Field        | Type   | Description                                  |
+|--------------|--------|----------------------------------------------|
+| from         | string | Sender of a payment.                         |
+| to           | string | Destination of a payment.                    |
+| asset_type   | string | Asset type (native / alphanum4 / alphanum12) |
+| asset_code   | string | Code of the destination asset.               |
+| asset_issuer | string | Asset issuer.                                |
+| amount       | string | Amount sent.                                 |
 
 #### Links
 
-|          |                            Example                            |      Relation     |
-| -------- | ------------------------------------------------------------- | ----------------- |
-| sender   | /accounts/GA5WBPYA5Y4WAEHXWR2UKO2UO4BUGHUQ74EUPKON2QHV4WRHOIRNKKH2  | Sending account   |
+|          | Example                                                            | Relation          |
+|----------|--------------------------------------------------------------------|-------------------|
+| sender   | /accounts/GA5WBPYA5Y4WAEHXWR2UKO2UO4BUGHUQ74EUPKON2QHV4WRHOIRNKKH2 | Sending account   |
 | receiver | /accounts/GCEZWKCA5VLDNRLN3RPRJMRZOX3Z6G5CHCGSNFHEYVXM3XOJMDS674JZ | Receiving account |
 
 #### Example
@@ -151,7 +152,7 @@ can be either a simple native asset payment or a fiat asset payment.
   "amount": "200.0",
   "asset_type": "native",
   "from": "GAKLBGHNHFQ3BMUYG5KU4BEWO6EYQHZHAXEWC33W34PH2RBHZDSQBD75",
-  "id": 58402965295104,
+  "id": "58402965295104",
   "paging_token": "58402965295104",
   "to": "GCEZWKCA5VLDNRLN3RPRJMRZOX3Z6G5CHCGSNFHEYVXM3XOJMDS674JZ",
   "transaction_successful": true,
@@ -161,26 +162,27 @@ can be either a simple native asset payment or a fiat asset payment.
 ```
 
 <a id="path-payment"></a>
-### Path Payment
+### Path Payment Strict Receive
 
-A path payment operation represents a payment from one account to another through a path.  This type of payment starts as one type of asset and ends as another type of asset. There can be other assets that are traded into and out of along the path.
+A path payment strict receive operation represents a payment from one account to another through a path.  This type of payment starts as one type of asset and ends as another type of asset. There can be other assets that are traded into and out of along the path.
 
 
 #### Attributes
 
-| Field           |  Type  | Description       |
-| --------------- | ------ | ----------------- |
-| from          | string | Sender of a payment.  |
-| to     | string | Destination of a payment. |
-| asset_code | string | Code of the destination asset. |
-| asset_issuer | string | Destination asset issuer. |
-| asset_type | string | Destination asset type (native / alphanum4 / alphanum12) |
-| amount          | string | Amount received. |
-| source_asset_code | string | Code of the source asset. |
-| source_asset_issuer | string | Source asset issuer. |
-| source_asset_type | string | Source asset type (native / alphanum4 / alphanum12) |
-| source_max | string | Max send amount. |
-| source_amount | string | Amount sent. |
+| Field               | Type                          | Description                                                                 |
+|---------------------|-------------------------------|-----------------------------------------------------------------------------|
+| from                | string                        | Sender of a payment.                                                        |
+| to                  | string                        | Destination of a payment.                                                   |
+| asset_code          | string                        | Code of the destination asset.                                              |
+| asset_issuer        | string                        | Destination asset issuer.                                                   |
+| asset_type          | string                        | Destination asset type (native / alphanum4 / alphanum12)                    |
+| amount              | string                        | Amount received.                                                            |
+| source_asset_code   | string                        | Code of the source asset.                                                   |
+| source_asset_issuer | string                        | Source asset issuer.                                                        |
+| source_asset_type   | string                        | Source asset type (native / alphanum4 / alphanum12)                         |
+| source_max          | string                        | Max send amount.                                                            |
+| source_amount       | string                        | Amount sent.                                                                |
+| path                | array of [Assets](./asset.md) | Additional hops the operation went through to get to the destination asset. |
 
 #### Example
 
@@ -209,7 +211,7 @@ A path payment operation represents a payment from one account to another throug
   "asset_issuer": "GCQPYGH4K57XBDENKKX55KDTWOTK5WDWRQOH2LHEDX3EKVIQRLMESGBG",
   "asset_type": "credit_alphanum4",
   "from": "GCXKG6RN4ONIEPCMNFB732A436Z5PNDSRLGWK7GBLCMQLIFO4S7EYWVU",
-  "id": 25769807873,
+  "id": "25769807873",
   "paging_token": "25769807873",
   "source_asset_code": "USD",
   "source_asset_issuer": "GC23QF2HUE52AMXUFUH3AYJAXXGXXV2VHXYYR6EYXETPKDXZSAW67XO4",
@@ -219,7 +221,77 @@ A path payment operation represents a payment from one account to another throug
   "to": "GA5WBPYA5Y4WAEHXWR2UKO2UO4BUGHUQ74EUPKON2QHV4WRHOIRNKKH2",
   "transaction_successful": true,
   "type_i": 2,
-  "type": "path_payment"
+  "type": "path_payment_strict_receive"
+}
+```
+
+<a id="path-payment-strict-send"></a>
+### Path Payment Strict Send
+
+A path payment strict send operation represents a payment from one account to another through a path.  This type of payment starts as one type of asset and ends as another type of asset. There can be other assets that are traded into and out of along the path.
+
+Unlike [path payment strict receive](#path-payment), this operation sends precisely the source amount, ensuring that the destination account receives at least the minimum specified amount (the amount received will vary based on offers in the order books).
+
+
+#### Attributes
+
+| Field               | Type                          | Description                                                                 |
+|---------------------|-------------------------------|-----------------------------------------------------------------------------|
+| from                | string                        | Sender of a payment.                                                        |
+| to                  | string                        | Destination of a payment.                                                   |
+| asset_type          | string                        | Destination asset type (native / alphanum4 / alphanum12)                    |
+| asset_code          | string                        | Code of the destination asset.                                              |
+| asset_issuer        | string                        | Destination asset issuer.                                                   |
+| amount              | string                        | Amount received.                                                            |
+| source_asset_type   | string                        | Source asset type (native / alphanum4 / alphanum12)                         |
+| source_asset_code   | string                        | Source asset code.                                                          |
+| source_asset_issuer | string                        | Source asset issuer.                                                        |
+| source_amount       | string                        | Amount sent.                                                                |
+| destination_min     | string                        | The minimum amount of destination asset expected to be received.            |
+| path                | array of [Assets](./asset.md) | Additional hops the operation went through to get to the destination asset. |
+
+
+#### Example
+
+```json
+{
+  "_links": {
+    "self": {
+      "href": "/operations/120903307907612673"
+    },
+    "transaction": {
+      "href": "/transactions/f60f32eff7f1dd0649cfe2986955d12f6ff45288357fe1526600642ea1b418aa"
+    },
+    "effects": {
+      "href": "/operations/120903307907612673/effects"
+    },
+    "succeeds": {
+      "href": "/effects?order=desc&cursor=120903307907612673"
+    },
+    "precedes": {
+      "href": "/effects?order=asc&cursor=120903307907612673"
+    }
+  },
+  "id": "120903307907612673",
+  "paging_token": "120903307907612673",
+  "transaction_successful": true,
+  "source_account": "GCXVEEBWI4YMRK6AFJQSEUBYDQL4PZ24ECAPJE2ZIAPIQZLZIBAX3LIF",
+  "type": "path_payment_strict_send",
+  "type_i": 13,
+  "created_at": "2020-02-09T20:32:53Z",
+  "transaction_hash": "f60f32eff7f1dd0649cfe2986955d12f6ff45288357fe1526600642ea1b418aa",
+  "asset_type": "native",
+  "from": "GCXVEEBWI4YMRK6AFJQSEUBYDQL4PZ24ECAPJE2ZIAPIQZLZIBAX3LIF",
+  "to": "GCXVEEBWI4YMRK6AFJQSEUBYDQL4PZ24ECAPJE2ZIAPIQZLZIBAX3LIF",
+  "amount": "0.0859000",
+  "path": [
+
+  ],
+  "source_amount": "1000.0000000",
+  "destination_min": "0.0859000",
+  "source_asset_type": "credit_alphanum4",
+  "source_asset_code": "KIN",
+  "source_asset_issuer": "GBDEVU63Y6NTHJQQZIKVTC23NWLQVP3WJ2RI2OTSJTNYOIGICST6DUXR"
 }
 ```
 
@@ -227,7 +299,7 @@ A path payment operation represents a payment from one account to another throug
 ### Manage Sell Offer
 
 A "Manage Sell Offer" operation can create, update or delete a sell
-offer to trade assets in the DiamNet network.
+offer to trade assets in the Diamnet network.
 It specifies an issuer, a price and amount of a given asset to
 buy or sell.
 
@@ -248,18 +320,18 @@ Both will fill only partially (or not at all) if there are few (or no) offers th
 
 #### Attributes
 
-| Field           |  Type  | Description       |
-| --------------- | ------ | ----------------- |
-| offer_id | number | Offer ID. |
-| amount     | string | Amount of asset to be sold. |
-| buying_asset_code | string | The code of asset to buy. |
-| buying_asset_issuer | string | The issuer of asset to buy. |
-| buying_asset_type | string | Type of asset to buy (native / alphanum4 / alphanum12) |
-| price | string | Price of selling_asset in units of buying_asset |
-| price_r | Object | n: price numerator, d: price denominator |
-| selling_asset_code | string | The code of asset to sell. |
-| selling_asset_issuer | string | The issuer of asset to sell. |
-| selling_asset_type | string | Type of asset to sell (native / alphanum4 / alphanum12) |
+| Field                | Type   | Description                                             |
+|----------------------|--------|---------------------------------------------------------|
+| offer_id             | string | Offer ID.                                               |
+| amount               | string | Amount of asset to be sold.                             |
+| buying_asset_code    | string | The code of asset to buy.                               |
+| buying_asset_issuer  | string | The issuer of asset to buy.                             |
+| buying_asset_type    | string | Type of asset to buy (native / alphanum4 / alphanum12)  |
+| price                | string | Price of selling_asset in units of buying_asset         |
+| price_r              | Object | n: price numerator, d: price denominator                |
+| selling_asset_code   | string | The code of asset to sell.                              |
+| selling_asset_issuer | string | The issuer of asset to sell.                            |
+| selling_asset_type   | string | Type of asset to sell (native / alphanum4 / alphanum12) |
 
 #### Example
 
@@ -287,8 +359,8 @@ Both will fill only partially (or not at all) if there are few (or no) offers th
   "buying_asset_code": "CHP",
   "buying_asset_issuer": "GAC2ZUXVI5266NMMGDPBMXHH4BTZKJ7MMTGXRZGX2R5YLMFRYLJ7U5EA",
   "buying_asset_type": "credit_alphanum4",
-  "id": 592323234762753,
-  "offer_id": 8,
+  "id": "592323234762753",
+  "offer_id": "8",
   "paging_token": "592323234762753",
   "price": "2.0",
   "price_r": {
@@ -300,7 +372,7 @@ Both will fill only partially (or not at all) if there are few (or no) offers th
   "selling_asset_type": "credit_alphanum4",
   "transaction_successful": true,
   "type_i": 3,
-  "type": "manage_offer" // `manage_sell_offer` from v0.19.0
+  "type": "manage_sell_offer"
 }
 ```
 
@@ -308,7 +380,7 @@ Both will fill only partially (or not at all) if there are few (or no) offers th
 ### Manage Buy Offer
 
 A "Manage Buy Offer" operation can create, update or delete a buy
-offer to trade assets in the DiamNet network.
+offer to trade assets in the Diamnet network.
 It specifies an issuer, a price and amount of a given asset to
 buy or sell.
 
@@ -321,19 +393,18 @@ offers or payments, this offer can potentially be filled.
 
 #### Attributes
 
-| Field           |  Type  | Description       |
-| --------------- | ------ | ----------------- |
-| offer_id | number | Offer ID. |
-| buy_amount     | string | Amount of asset to be bought. |
-| buying_asset_code | string | The code of asset to buy. |
-| buying_asset_issuer | string | The issuer of asset to buy. |
-| buying_asset_type | string | Type of asset to buy (native / alphanum4 / alphanum12) |
-| price | string | Price of thing being bought in terms of what you are selling. |
-| price_r | Object | n: price numerator, d: price denominator |
-| selling_asset_code | string | The code of asset to sell. |
-| selling_asset_issuer | string | The issuer of asset to sell. |
-| selling_asset_type | string | Type of asset to sell (native / alphanum4 / alphanum12) |
-
+| Field                | Type   | Description                                                   |
+|----------------------|--------|---------------------------------------------------------------|
+| offer_id             | string | Offer ID.                                                     |
+| buy_amount           | string | Amount of asset to be bought.                                 |
+| buying_asset_code    | string | The code of asset to buy.                                     |
+| buying_asset_issuer  | string | The issuer of asset to buy.                                   |
+| buying_asset_type    | string | Type of asset to buy (native / alphanum4 / alphanum12)        |
+| price                | string | Price of thing being bought in terms of what you are selling. |
+| price_r              | Object | n: price numerator, d: price denominator                      |
+| selling_asset_code   | string | The code of asset to sell.                                    |
+| selling_asset_issuer | string | The issuer of asset to sell.                                  |
+| selling_asset_type   | string | Type of asset to sell (native / alphanum4 / alphanum12)       |
 #### Example
 
 ```json
@@ -360,8 +431,8 @@ offers or payments, this offer can potentially be filled.
   "buying_asset_code": "CHP",
   "buying_asset_issuer": "GAC2ZUXVI5266NMMGDPBMXHH4BTZKJ7MMTGXRZGX2R5YLMFRYLJ7U5EA",
   "buying_asset_type": "credit_alphanum4",
-  "id": 592323234762753,
-  "offer_id": 8,
+  "id": "592323234762753",
+  "offer_id": "8",
   "paging_token": "592323234762753",
   "price": "2.0",
   "price_r": {
@@ -412,8 +483,8 @@ As in [Manage Sell Offer](#manage-sell-offer) operation.
   "buying_asset_code": "USD",
   "buying_asset_issuer": "GDS5JW5E6DRSSN5XK4LW7E6VUMFKKE2HU5WCOVFTO7P2RP7OXVCBLJ3Y",
   "buying_asset_type": "credit_alphanum4",
-  "id": 1127729562914817,
-  "offer_id": 9,
+  "id": "1127729562914817",
+  "offer_id": "9",
   "paging_token": "1127729562914817",
   "price": "1.0",
   "price_r": {
@@ -423,7 +494,7 @@ As in [Manage Sell Offer](#manage-sell-offer) operation.
   "selling_asset_type": "native",
   "transaction_successful": true,
   "type_i": 4,
-  "type": "create_passive_offer" // `create_passive_sell_offer` from v0.18.0
+  "type": "create_passive_sell_offer"
 }
 ```
 
@@ -442,19 +513,19 @@ Use “Set Options” operation to set following options to your account:
 
 #### Attributes
 
-| Field           |  Type  | Description       |
-| --------------- | ------ | ----------------- |
-| signer_key | string | The public key of the new signer. |
-| signer_weight | int | The weight of the new signer (1-255). |
-| master_key_weight | int | The weight of the master key (1-255). |
-| low_threshold | int | The sum weight for the low threshold. |
-| med_threshold | int | The sum weight for the medium threshold. |
-| high_threshold | int | The sum weight for the high threshold. |
-| home_domain | string | The home domain used for reverse federation lookup |
-| set_flags | array | The array of numeric values of flags that has been set in this operation |
-| set_flags_s | array | The array of string values of flags that has been set in this operation |
-| clear_flags | array | The array of numeric values of flags that has been cleared in this operation |
-| clear_flags_s | array | The array of string values of flags that has been cleared in this operation |
+| Field             | Type   | Description                                                                  |
+|-------------------|--------|------------------------------------------------------------------------------|
+| signer_key        | string | The public key of the new signer.                                            |
+| signer_weight     | int    | The weight of the new signer (1-255).                                        |
+| master_key_weight | int    | The weight of the master key (1-255).                                        |
+| low_threshold     | int    | The sum weight for the low threshold.                                        |
+| med_threshold     | int    | The sum weight for the medium threshold.                                     |
+| high_threshold    | int    | The sum weight for the high threshold.                                       |
+| home_domain       | string | The home domain used for reverse federation lookup                           |
+| set_flags         | array  | The array of numeric values of flags that has been set in this operation     |
+| set_flags_s       | array  | The array of string values of flags that has been set in this operation      |
+| clear_flags       | array  | The array of numeric values of flags that has been cleared in this operation |
+| clear_flags_s     | array  | The array of string values of flags that has been cleared in this operation  |
 
 
 #### Example
@@ -481,7 +552,7 @@ Use “Set Options” operation to set following options to your account:
   },
   "high_threshold": 3,
   "home_domain": "diamnet.org",
-  "id": 696867033714691,
+  "id": "696867033714691",
   "low_threshold": 0,
   "med_threshold": 3,
   "paging_token": "696867033714691",
@@ -504,14 +575,14 @@ Use “Change Trust” operation to create/update/delete a trust line from the s
 
 #### Attributes
 
-| Field           |  Type  | Description       |
-| --------------- | ------ | ----------------- |
-| asset_code | string | Asset code. |
-| asset_issuer | string | Asset issuer. |
-| asset_type | string | Asset type (native / alphanum4 / alphanum12) |
-| trustee | string | Trustee account. |
-| trustor | string | Trustor account. |
-| limit | string | The limit for the asset. |
+| Field        | Type   | Description                                  |
+|--------------|--------|----------------------------------------------|
+| asset_code   | string | Asset code.                                  |
+| asset_issuer | string | Asset issuer.                                |
+| asset_type   | string | Asset type (native / alphanum4 / alphanum12) |
+| trustee      | string | Trustee account.                             |
+| trustor      | string | Trustor account.                             |
+| limit        | string | The limit for the asset.                     |
 
 #### Example
 
@@ -538,7 +609,7 @@ Use “Change Trust” operation to create/update/delete a trust line from the s
   "asset_code": "CHP",
   "asset_issuer": "GAC2ZUXVI5266NMMGDPBMXHH4BTZKJ7MMTGXRZGX2R5YLMFRYLJ7U5EA",
   "asset_type": "credit_alphanum4",
-  "id": 574731048718337,
+  "id": "574731048718337",
   "limit": "5.0",
   "paging_token": "574731048718337",
   "trustee": "GAC2ZUXVI5266NMMGDPBMXHH4BTZKJ7MMTGXRZGX2R5YLMFRYLJ7U5EA",
@@ -558,14 +629,14 @@ Heads up! Unless the issuing account has `AUTH_REVOCABLE_FLAG` set than the "aut
 
 #### Attributes
 
-| Field      |  Type  | Description       |
-| ---------- | ------ | ----------------- |
-| asset_code | string | Asset code. |
-| asset_issuer | string | Asset issuer. |
-| asset_type | string | Asset type (native / alphanum4 / alphanum12) |
-| authorize | bool | `true` when allowing trust, `false` when revoking trust |
-| trustee | string | Trustee account. |
-| trustor | string | Trustor account. |
+| Field        | Type   | Description                                             |
+|--------------|--------|---------------------------------------------------------|
+| asset_code   | string | Asset code.                                             |
+| asset_issuer | string | Asset issuer.                                           |
+| asset_type   | string | Asset type (native / alphanum4 / alphanum12)            |
+| authorize    | bool   | `true` when allowing trust, `false` when revoking trust |
+| trustee      | string | Trustee account.                                        |
+| trustor      | string | Trustor account.                                        |
 
 #### Example
 
@@ -593,7 +664,7 @@ Heads up! Unless the issuing account has `AUTH_REVOCABLE_FLAG` set than the "aut
   "asset_issuer": "GC23QF2HUE52AMXUFUH3AYJAXXGXXV2VHXYYR6EYXETPKDXZSAW67XO4",
   "asset_type": "credit_alphanum4",
   "authorize": true,
-  "id": 34359742465,
+  "id": "34359742465",
   "paging_token": "34359742465",
   "trustee": "GC23QF2HUE52AMXUFUH3AYJAXXGXXV2VHXYYR6EYXETPKDXZSAW67XO4",
   "trustor": "GBXGQJWVLWOYHFLVTKWV5FGHA3LNYY2JQKM7OAJAUEQFU6LPCSEFVXON",
@@ -610,9 +681,9 @@ Removes the account and transfers all remaining XLM to the destination account.
 
 #### Attributes
 
-| Field           |  Type  | Description       |
-| --------------- | ------ | ----------------- |
-| into | string | Account ID where funds of deleted account were transferred. |
+| Field | Type   | Description                                                 |
+|-------|--------|-------------------------------------------------------------|
+| into  | string | Account ID where funds of deleted account were transferred. |
 
 #### Example
 ```json
@@ -636,7 +707,7 @@ Removes the account and transfers all remaining XLM to the destination account.
     }
   },
   "account": "GBCR5OVQ54S2EKHLBZMK6VYMTXZHXN3T45Y6PRX4PX4FXDMJJGY4FD42",
-  "id": 799357838299137,
+  "id": "799357838299137",
   "into": "GBS43BF24ENNS3KPACUZVKK2VYPOZVBQO2CISGZ777RYGOPYC2FT6S3K",
   "paging_token": "799357838299137",
   "transaction_successful": true,
@@ -672,7 +743,7 @@ Runs inflation.
       "href": "/transactions/12884914176"
     }
   },
-  "id": 12884914177,
+  "id": "12884914177",
   "paging_token": "12884914177",
   "transaction_successful": true,
   "type_i": 9,
@@ -724,9 +795,9 @@ Bumps forward the sequence number of the source account of the operation, allowi
 
 #### Attributes
 
-| Field      |  Type  | Description                                                      |
-| ---------- | ------ | ---------------------------------------------------------------- |
-| bumpTo     | number | Desired value for the operation’s source account sequence number.|
+| Field  | Type   | Description                                                       |
+|--------|--------|-------------------------------------------------------------------|
+| bumpTo | number | Desired value for the operation’s source account sequence number. |
 
 #### Example
 ```json
@@ -760,10 +831,10 @@ Bumps forward the sequence number of the source account of the operation, allowi
 
 ## Endpoints
 
-|                   Resource                   |    Type    |            Resource URI Template            |
-| -------------------------------------------- | ---------- | ---------------------------------- |
-| [All Operations](../operations-all.md)            | Collection | `/operations`                      |
-| [Operations Details](../operations-single.md)      | Single     | `/operations/:id`                  |
-| [Ledger Operations](../operations-for-ledger.md)   | Collection | `/ledgers/{id}/operations{?cursor,limit,order}` |
-| [Account Operations](../operations-for-account.md) | Collection | `/accounts/:account_id/operations` |
-| [Account Payments](../payments-for-account.md)     | Collection | `/accounts/:account_id/payments` |
+| Resource                                           | Type       | Resource URI Template                           |
+|----------------------------------------------------|------------|-------------------------------------------------|
+| [All Operations](../endpoints/operations-all.md)             | Collection | `/operations`                                   |
+| [Operations Details](../endpoints/operations-single.md)      | Single     | `/operations/:id`                               |
+| [Ledger Operations](../endpoints/operations-for-ledger.md)   | Collection | `/ledgers/{id}/operations{?cursor,limit,order}` |
+| [Account Operations](../endpoints/operations-for-account.md) | Collection | `/accounts/:account_id/operations`              |
+| [Account Payments](../endpoints/payments-for-account.md)     | Collection | `/accounts/:account_id/payments`                |

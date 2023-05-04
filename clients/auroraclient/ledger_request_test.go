@@ -2,9 +2,7 @@ package auroraclient
 
 import (
 	"context"
-	"fmt"
 	"testing"
-	"time"
 
 	hProtocol "github.com/diamnet/go/protocols/aurora"
 	"github.com/diamnet/go/support/http/httptest"
@@ -40,74 +38,6 @@ func TestLedgerRequestBuildUrl(t *testing.T) {
 	// It should return valid ledgers endpoint, with cursor and order
 	require.NoError(t, err)
 	assert.Equal(t, "ledgers?cursor=now&order=desc", endpoint)
-}
-
-func ExampleClient_NextLedgersPage() {
-	client := DefaultPublicNetClient
-	// all ledgers
-	ledgerRequest := LedgerRequest{Limit: 20}
-	ledgers, err := client.Ledgers(ledgerRequest)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Print(ledgers)
-
-	// get next pages.
-	recordsFound := false
-	if len(ledgers.Embedded.Records) > 0 {
-		recordsFound = true
-	}
-	page := ledgers
-	// get the next page of records if recordsFound is true
-	for recordsFound {
-		// next page
-		nextPage, err := client.NextLedgersPage(page)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		page = nextPage
-		if len(nextPage.Embedded.Records) == 0 {
-			recordsFound = false
-		}
-		fmt.Println(nextPage)
-	}
-}
-
-func ExampleClient_PrevLedgersPage() {
-	client := DefaultPublicNetClient
-	// all ledgers
-	ledgerRequest := LedgerRequest{Limit: 20}
-	ledgers, err := client.Ledgers(ledgerRequest)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Print(ledgers)
-
-	// get prev pages.
-	recordsFound := false
-	if len(ledgers.Embedded.Records) > 0 {
-		recordsFound = true
-	}
-	page := ledgers
-	// get the prev page of records if recordsFound is true
-	for recordsFound {
-		// prev page
-		prevPage, err := client.PrevLedgersPage(page)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		page = prevPage
-		if len(prevPage.Embedded.Records) == 0 {
-			recordsFound = false
-		}
-		fmt.Println(prevPage)
-	}
 }
 
 func TestLedgerDetail(t *testing.T) {
@@ -175,26 +105,6 @@ func TestLedgerDetail(t *testing.T) {
 	}
 }
 
-func ExampleClient_StreamLedgers() {
-	client := DefaultTestNetClient
-	// all ledgers from now
-	ledgerRequest := LedgerRequest{}
-
-	ctx, cancel := context.WithCancel(context.Background())
-	go func() {
-		// Stop streaming after 60 seconds.
-		time.Sleep(60 * time.Second)
-		cancel()
-	}()
-
-	printHandler := func(ledger hProtocol.Ledger) {
-		fmt.Println(ledger)
-	}
-	err := client.StreamLedgers(ctx, ledgerRequest, printHandler)
-	if err != nil {
-		fmt.Println(err)
-	}
-}
 func TestLedgerRequestStreamLedgers(t *testing.T) {
 	hmock := httptest.NewClient()
 	client := &Client{

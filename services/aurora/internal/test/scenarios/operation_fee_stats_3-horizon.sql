@@ -441,7 +441,8 @@ CREATE TABLE history_transactions (
     memo character varying,
     time_bounds int8range,
     successful boolean,
-    fee_charged integer
+    fee_charged integer,
+    new_max_fee integer
 );
 
 

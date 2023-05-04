@@ -9,9 +9,9 @@ import (
 // what you want.
 const TimeoutInfinite = int64(0)
 
-// Timebounds represents the time window during which a DiamNet transaction is considered valid.
+// Timebounds represents the time window during which a Diamnet transaction is considered valid.
 //
-// MinTime and MaxTime represent DiamNet timebounds - a window of time over which the Transaction will be
+// MinTime and MaxTime represent Diamnet timebounds - a window of time over which the Transaction will be
 // considered valid. In general, almost all Transactions benefit from setting an upper timebound, because once submitted,
 // the status of a pending Transaction may remain unresolved for a long time if the network is congested.
 // With an upper timebound, the submitter has a guaranteed time at which the Transaction is known to have either

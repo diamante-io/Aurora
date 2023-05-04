@@ -1,5 +1,6 @@
 ---
 title: Before History
+replacement: https://developers.diamnet.org/api/errors/http-status-codes/aurora-specific/
 ---
 
 A aurora server may be configured to only keep a portion of the diamnet network's history stored

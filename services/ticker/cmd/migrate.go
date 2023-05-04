@@ -26,7 +26,7 @@ var cmdMigrate = &cobra.Command{
 		}
 		defer session.DB.Close()
 
-		Logger.Infoln("Upgrading the database")
+		Logger.Info("Upgrading the database")
 		n, err := tickerdb.MigrateDB(&session)
 		if err != nil {
 			Logger.Fatal("could not upgrade the database:", err)

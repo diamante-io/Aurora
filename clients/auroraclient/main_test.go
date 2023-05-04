@@ -6,301 +6,22 @@ import (
 	"testing"
 	"time"
 
-	"github.com/diamnet/go/txnbuild"
+	"github.com/jarcoal/httpmock"
 
+	"github.com/diamnet/go/keypair"
+	"github.com/diamnet/go/network"
 	hProtocol "github.com/diamnet/go/protocols/aurora"
 	"github.com/diamnet/go/protocols/aurora/effects"
 	"github.com/diamnet/go/protocols/aurora/operations"
+	"github.com/diamnet/go/support/clock"
+	"github.com/diamnet/go/support/clock/clocktest"
 	"github.com/diamnet/go/support/errors"
 	"github.com/diamnet/go/support/http/httptest"
+	"github.com/diamnet/go/txnbuild"
+	"github.com/diamnet/go/xdr"
+
 	"github.com/stretchr/testify/assert"
 )
-
-func ExampleClient_AccountDetail() {
-
-	client := DefaultPublicNetClient
-	accountRequest := AccountRequest{AccountID: "GCLWGQPMKXQSPF776IU33AH4PZNOOWNAWGGKVTBQMIC5IMKUNP3E6NVU"}
-
-	account, err := client.AccountDetail(accountRequest)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	fmt.Print(account)
-}
-
-func ExampleClient_Effects() {
-
-	client := DefaultPublicNetClient
-	// effects for an account
-	effectRequest := EffectRequest{ForAccount: "GCLWGQPMKXQSPF776IU33AH4PZNOOWNAWGGKVTBQMIC5IMKUNP3E6NVU"}
-	effect, err := client.Effects(effectRequest)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Print(effect)
-
-	// all effects
-	effectRequest = EffectRequest{}
-	effect, err = client.Effects(effectRequest)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	records := effect.Embedded.Records
-	if records[0].GetType() == "account_created" {
-		acc, ok := records[0].(effects.AccountCreated)
-		if ok {
-			fmt.Print(acc.Account)
-			fmt.Print(acc.StartingBalance)
-		}
-	}
-}
-
-func ExampleClient_Assets() {
-
-	client := DefaultPublicNetClient
-	// assets for asset issuer
-	assetRequest := AssetRequest{ForAssetIssuer: "GCLWGQPMKXQSPF776IU33AH4PZNOOWNAWGGKVTBQMIC5IMKUNP3E6NVU"}
-	asset, err := client.Assets(assetRequest)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Print(asset)
-
-	// all assets
-	assetRequest = AssetRequest{}
-	asset, err = client.Assets(assetRequest)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Print(asset)
-}
-
-func ExampleClient_LedgerDetail() {
-
-	client := DefaultPublicNetClient
-	// details for a ledger
-	sequence := uint32(12345)
-	ledger, err := client.LedgerDetail(sequence)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Print(ledger)
-
-}
-
-func ExampleClient_Metrics() {
-
-	client := DefaultPublicNetClient
-	// aurora metrics
-	metrics, err := client.Metrics()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Print(metrics)
-
-}
-
-func ExampleClient_FeeStats() {
-
-	client := DefaultPublicNetClient
-	// aurora fees
-	fees, err := client.FeeStats()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Print(fees)
-
-}
-
-func ExampleClient_Offers() {
-
-	client := DefaultPublicNetClient
-	offerRequest := OfferRequest{ForAccount: "GCLWGQPMKXQSPF776IU33AH4PZNOOWNAWGGKVTBQMIC5IMKUNP3E6NVU", Cursor: "now", Order: OrderDesc}
-	offers, err := client.Offers(offerRequest)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Print(offers)
-}
-
-func ExampleClient_Operations() {
-
-	client := DefaultPublicNetClient
-	// operations for an account
-	opRequest := OperationRequest{ForAccount: "GCLWGQPMKXQSPF776IU33AH4PZNOOWNAWGGKVTBQMIC5IMKUNP3E6NVU"}
-	ops, err := client.Operations(opRequest)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Print(ops)
-
-	// all operations
-	opRequest = OperationRequest{Cursor: "now"}
-	ops, err = client.Operations(opRequest)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Print(ops)
-	records := ops.Embedded.Records
-
-	for _, value := range records {
-		// prints the type
-		fmt.Print(value.GetType())
-		// for example if the type is change_trust
-		c, ok := value.(operations.ChangeTrust)
-		if ok {
-			// access ChangeTrust fields
-			fmt.Print(c.Trustee)
-		}
-
-	}
-}
-
-func ExampleClient_OperationDetail() {
-
-	client := DefaultPublicNetClient
-	opID := "123456"
-	// operation details for an id
-	ops, err := client.OperationDetail(opID)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Print(ops)
-}
-
-func ExampleClient_SubmitTransactionXDR() {
-
-	client := DefaultPublicNetClient
-	// https://www.diamnet.org/laboratory/#xdr-viewer?input=AAAAAOoS%2F5V%2BBiCPXRiVcz8YsnkDdODufq%2Bg7xdqTdIXN8vyAAAE4gFiW0YAAALxAAAAAQAAAAAAAAAAAAAAAFyuBUcAAAABAAAABzIyMjgyNDUAAAAAAQAAAAEAAAAALhsY%2FFdAHXllTmb025DtCVBw06WDSQjq6I9NrCQHOV8AAAABAAAAAHT8zKV7bRQzuGTpk9AO3gjWJ9jVxBXTgguFORkxHVIKAAAAAAAAAAAAOnDwAAAAAAAAAAIkBzlfAAAAQPefqlsOvni6xX1g3AqddvOp1GOM88JYzayGZodbzTfV5toyhxZvL1ZggY3prFsvrereugEpj1kyPJ67z6gcRg0XN8vyAAAAQGwmoTssW49gaze8iQkz%2FUA2E2N%2BBOo%2B6v7YdOSsvIcZnMc37KmXH920nLosKpDLqkNChVztSZFcbVUlHhjbQgA%3D&type=TransactionEnvelope&network=public
-	txXdr := `AAAAAOoS/5V+BiCPXRiVcz8YsnkDdODufq+g7xdqTdIXN8vyAAAE4gFiW0YAAALxAAAAAQAAAAAAAAAAAAAAAFyuBUcAAAABAAAABzIyMjgyNDUAAAAAAQAAAAEAAAAALhsY/FdAHXllTmb025DtCVBw06WDSQjq6I9NrCQHOV8AAAABAAAAAHT8zKV7bRQzuGTpk9AO3gjWJ9jVxBXTgguFORkxHVIKAAAAAAAAAAAAOnDwAAAAAAAAAAIkBzlfAAAAQPefqlsOvni6xX1g3AqddvOp1GOM88JYzayGZodbzTfV5toyhxZvL1ZggY3prFsvrereugEpj1kyPJ67z6gcRg0XN8vyAAAAQGwmoTssW49gaze8iQkz/UA2E2N+BOo+6v7YdOSsvIcZnMc37KmXH920nLosKpDLqkNChVztSZFcbVUlHhjbQgA=`
-
-	// submit transaction
-	resp, err := client.SubmitTransactionXDR(txXdr)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	fmt.Print(resp)
-	// Output: {{{https://aurora.diamnet.org/transactions/f8a09e8a17fc828a1b99814818ddc931876eec0fe9c203f5980d26d92641e1c2 false}} f8a09e8a17fc828a1b99814818ddc931876eec0fe9c203f5980d26d92641e1c2 23350654 AAAAAOoS/5V+BiCPXRiVcz8YsnkDdODufq+g7xdqTdIXN8vyAAAE4gFiW0YAAALxAAAAAQAAAAAAAAAAAAAAAFyuBUcAAAABAAAABzIyMjgyNDUAAAAAAQAAAAEAAAAALhsY/FdAHXllTmb025DtCVBw06WDSQjq6I9NrCQHOV8AAAABAAAAAHT8zKV7bRQzuGTpk9AO3gjWJ9jVxBXTgguFORkxHVIKAAAAAAAAAAAAOnDwAAAAAAAAAAIkBzlfAAAAQPefqlsOvni6xX1g3AqddvOp1GOM88JYzayGZodbzTfV5toyhxZvL1ZggY3prFsvrereugEpj1kyPJ67z6gcRg0XN8vyAAAAQGwmoTssW49gaze8iQkz/UA2E2N+BOo+6v7YdOSsvIcZnMc37KmXH920nLosKpDLqkNChVztSZFcbVUlHhjbQgA= AAAAAAAABOIAAAAAAAAAAQAAAAAAAAABAAAAAAAAAAA= AAAAAQAAAAIAAAADAWRNfgAAAAAAAAAA6hL/lX4GII9dGJVzPxiyeQN04O5+r6DvF2pN0hc3y/IAAAAAAuyTvgFiW0YAAALwAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAABAWRNfgAAAAAAAAAA6hL/lX4GII9dGJVzPxiyeQN04O5+r6DvF2pN0hc3y/IAAAAAAuyTvgFiW0YAAALxAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAABAAAABAAAAAMBZE0IAAAAAAAAAAB0/Myle20UM7hk6ZPQDt4I1ifY1cQV04ILhTkZMR1SCgAAAbZToYkOAToKfwAAAAEAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAEBZE1+AAAAAAAAAAB0/Myle20UM7hk6ZPQDt4I1ifY1cQV04ILhTkZMR1SCgAAAbZT2/n+AToKfwAAAAEAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAMBZE19AAAAAAAAAAAuGxj8V0AdeWVOZvTbkO0JUHDTpYNJCOroj02sJAc5XwAAAACrUfjvARGUKgAApRsAAAAAAAAAAAAAAAAAAAAObnlhbmRldi1pZC5vcmcAAAEAAAAAAAAAAAAAAAAAAAAAAAABAWRNfgAAAAAAAAAALhsY/FdAHXllTmb025DtCVBw06WDSQjq6I9NrCQHOV8AAAAAqxeH/wERlCoAAKUbAAAAAAAAAAAAAAAAAAAADm55YW5kZXYtaWQub3JnAAABAAAAAAAAAAAAAAAAAAAA}
-}
-
-func ExampleClient_SetAuroraTimeOut() {
-
-	client := DefaultTestNetClient
-
-	// https://www.diamnet.org/laboratory/#xdr-viewer?input=AAAAABB90WssODNIgi6BHveqzxTRmIpvAFRyVNM%2BHm2GVuCcAAAAZAAABD0AAuV%2FAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAyTBGxOgfSApppsTnb%2FYRr6gOR8WT0LZNrhLh4y3FCgoAAAAXSHboAAAAAAAAAAABhlbgnAAAAEAivKe977CQCxMOKTuj%2BcWTFqc2OOJU8qGr9afrgu2zDmQaX5Q0cNshc3PiBwe0qw%2F%2BD%2FqJk5QqM5dYeSUGeDQP&type=TransactionEnvelope&network=test
-	txXdr := `AAAAABB90WssODNIgi6BHveqzxTRmIpvAFRyVNM+Hm2GVuCcAAAAZAAABD0AAuV/AAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAyTBGxOgfSApppsTnb/YRr6gOR8WT0LZNrhLh4y3FCgoAAAAXSHboAAAAAAAAAAABhlbgnAAAAEAivKe977CQCxMOKTuj+cWTFqc2OOJU8qGr9afrgu2zDmQaX5Q0cNshc3PiBwe0qw/+D/qJk5QqM5dYeSUGeDQP`
-
-	// test user timeout
-	client = client.SetAuroraTimeOut(30)
-	resp, err := client.SubmitTransactionXDR(txXdr)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	fmt.Print(resp)
-}
-
-func ExampleClient_Transactions() {
-
-	client := DefaultPublicNetClient
-	// transactions for an account
-	txRequest := TransactionRequest{ForAccount: "GCLWGQPMKXQSPF776IU33AH4PZNOOWNAWGGKVTBQMIC5IMKUNP3E6NVU"}
-	txs, err := client.Transactions(txRequest)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Print(txs)
-
-	// all transactions
-	txRequest = TransactionRequest{Cursor: "now", Order: OrderDesc}
-	txs, err = client.Transactions(txRequest)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Print(txs)
-	records := txs.Embedded.Records
-
-	for _, tx := range records {
-		fmt.Print(tx)
-	}
-}
-
-func ExampleClient_OrderBook() {
-
-	client := DefaultPublicNetClient
-	// orderbook for an asset pair, e.g XLM/NGN
-	obRequest := OrderBookRequest{BuyingAssetType: AssetTypeNative, SellingAssetCode: "USD", SellingAssetType: AssetType4, SellingAssetIssuer: "GCLWGQPMKXQSPF776IU33AH4PZNOOWNAWGGKVTBQMIC5IMKUNP3E6NVU"}
-	obs, err := client.OrderBook(obRequest)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Print(obs)
-}
-
-func ExampleClient_Payments() {
-
-	client := DefaultPublicNetClient
-	// payments for an account
-	opRequest := OperationRequest{ForAccount: "GCLWGQPMKXQSPF776IU33AH4PZNOOWNAWGGKVTBQMIC5IMKUNP3E6NVU"}
-	ops, err := client.Payments(opRequest)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Print(ops)
-
-	// all payments
-	opRequest = OperationRequest{Cursor: "now"}
-	ops, err = client.Payments(opRequest)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Print(ops)
-	records := ops.Embedded.Records
-
-	for _, value := range records {
-		// prints the type
-		fmt.Print(value.GetType())
-		// for example if the type is create_account
-		c, ok := value.(operations.CreateAccount)
-		if ok {
-			// access create_account fields
-			fmt.Print(c.StartingBalance)
-		}
-
-	}
-}
-
-func ExampleClient_Fund() {
-	client := DefaultTestNetClient
-	// fund an account
-	resp, err := client.Fund("GCLWGQPMKXQSPF776IU33AH4PZNOOWNAWGGKVTBQMIC5IMKUNP3E6NVU")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Print(resp)
-}
 
 func TestFixHTTP(t *testing.T) {
 	client := &Client{
@@ -313,61 +34,228 @@ func TestFixHTTP(t *testing.T) {
 	assert.IsType(t, client.HTTP, &http.Client{})
 }
 
-func TestClientFund(t *testing.T) {
+func TestCheckMemoRequired(t *testing.T) {
+	tt := assert.New(t)
+
 	hmock := httptest.NewClient()
 	client := &Client{
 		AuroraURL: "https://localhost/",
 		HTTP:       hmock,
 	}
 
-	testAccount := "GCLWGQPMKXQSPF776IU33AH4PZNOOWNAWGGKVTBQMIC5IMKUNP3E6NVU"
+	kp := keypair.MustParseFull("SA26PHIKZM6CXDGR472SSGUQQRYXM6S437ZNHZGRM6QA4FOPLLLFRGDX")
+	sourceAccount := txnbuild.NewSimpleAccount(kp.Address(), int64(0))
 
-	// not testnet
-	hmock.On(
-		"GET",
-		"https://localhost/friendbot?addr=GCLWGQPMKXQSPF776IU33AH4PZNOOWNAWGGKVTBQMIC5IMKUNP3E6NVU",
-	).ReturnString(200, txSuccess)
-
-	_, err := client.Fund(testAccount)
-	// error case: not testnet
-	if assert.Error(t, err) {
-		assert.Contains(t, err.Error(), "can't fund account from friendbot on production network")
+	paymentMemoRequired := txnbuild.Payment{
+		Destination: "GAYHAAKPAQLMGIJYMIWPDWCGUCQ5LAWY4Q7Q3IKSP57O7GUPD3NEOSEA",
+		Amount:      "10",
+		Asset:       txnbuild.NativeAsset{},
 	}
 
-	// happy path
-	hmock.On(
-		"GET",
-		"https://localhost/friendbot?addr=GCLWGQPMKXQSPF776IU33AH4PZNOOWNAWGGKVTBQMIC5IMKUNP3E6NVU",
-	).ReturnString(200, txSuccess)
-
-	client.isTestNet = true
-	resp, err := client.Fund(testAccount)
-
-	if assert.NoError(t, err) {
-		assert.IsType(t, resp, hProtocol.TransactionSuccess{})
-		assert.Equal(t, resp.Links.Transaction.Href, "https://aurora-testnet.diamnet.org/transactions/bcc7a97264dca0a51a63f7ea971b5e7458e334489673078bb2a34eb0cce910ca")
-		assert.Equal(t, resp.Hash, "bcc7a97264dca0a51a63f7ea971b5e7458e334489673078bb2a34eb0cce910ca")
-		assert.Equal(t, resp.Ledger, int32(354811))
-		assert.Equal(t, resp.Env, `AAAAABB90WssODNIgi6BHveqzxTRmIpvAFRyVNM+Hm2GVuCcAAAAZAAABD0AAuV/AAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAyTBGxOgfSApppsTnb/YRr6gOR8WT0LZNrhLh4y3FCgoAAAAXSHboAAAAAAAAAAABhlbgnAAAAEAivKe977CQCxMOKTuj+cWTFqc2OOJU8qGr9afrgu2zDmQaX5Q0cNshc3PiBwe0qw/+D/qJk5QqM5dYeSUGeDQP`)
-		assert.Equal(t, resp.Result, "AAAAAAAAAGQAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAA=")
-		assert.Equal(t, resp.Meta, `AAAAAQAAAAIAAAADAAVp+wAAAAAAAAAAEH3Rayw4M0iCLoEe96rPFNGYim8AVHJU0z4ebYZW4JwACBP/TuycHAAABD0AAuV+AAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAABAAVp+wAAAAAAAAAAEH3Rayw4M0iCLoEe96rPFNGYim8AVHJU0z4ebYZW4JwACBP/TuycHAAABD0AAuV/AAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAABAAAAAwAAAAMABWn7AAAAAAAAAAAQfdFrLDgzSIIugR73qs8U0ZiKbwBUclTTPh5thlbgnAAIE/9O7JwcAAAEPQAC5X8AAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAEABWn7AAAAAAAAAAAQfdFrLDgzSIIugR73qs8U0ZiKbwBUclTTPh5thlbgnAAIE+gGdbQcAAAEPQAC5X8AAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAABWn7AAAAAAAAAADJMEbE6B9ICmmmxOdv9hGvqA5HxZPQtk2uEuHjLcUKCgAAABdIdugAAAVp+wAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAA==`)
+	paymentNoMemo := txnbuild.Payment{
+		Destination: "GDWIRURRED6SQSZVQVVMK46PE2MOZEKHV6ZU54JG3NPVRDIF4XCXYYW4",
+		Amount:      "10",
+		Asset:       txnbuild.NativeAsset{},
 	}
 
-	// failure response
+	asset := txnbuild.CreditAsset{"ABCD", kp.Address()}
+	pathPaymentStrictSend := txnbuild.PathPaymentStrictSend{
+		SendAsset:   asset,
+		SendAmount:  "10",
+		Destination: "GDYM6SBBGDF6ZDRM2SKGVIWM257Q4V63V3IYNDQQWPKNV4QDERS4YTLX",
+		DestAsset:   txnbuild.NativeAsset{},
+		DestMin:     "1",
+		Path:        []txnbuild.Asset{asset},
+	}
+
+	pathPaymentStrictReceive := txnbuild.PathPaymentStrictReceive{
+		SendAsset:   asset,
+		SendMax:     "10",
+		Destination: "GD2JTIDP2JJKNIDXW4L6AU2RYFXZIUH3YFIS43PJT2467AP46CWBHSCN",
+		DestAsset:   txnbuild.NativeAsset{},
+		DestAmount:  "1",
+		Path:        []txnbuild.Asset{asset},
+	}
+
+	accountMerge := txnbuild.AccountMerge{
+		Destination: "GBVZZ5XPHECNGA5SENAJP4C6ZJ7FGZ55ZZUCTFTHREZM73LKUGCQDRHR",
+	}
+
+	testCases := []struct {
+		desc         string
+		destination  string
+		expected     string
+		operations   []txnbuild.Operation
+		mockNotFound bool
+	}{
+		{
+			desc:        "payment operation",
+			destination: "GAYHAAKPAQLMGIJYMIWPDWCGUCQ5LAWY4Q7Q3IKSP57O7GUPD3NEOSEA",
+			expected:    "operation[0]: destination account requires a memo in the transaction",
+			operations: []txnbuild.Operation{
+				&paymentMemoRequired,
+				&pathPaymentStrictReceive,
+				&pathPaymentStrictSend,
+				&accountMerge,
+			},
+		},
+		{
+			desc:        "strict receive operation",
+			destination: "GD2JTIDP2JJKNIDXW4L6AU2RYFXZIUH3YFIS43PJT2467AP46CWBHSCN",
+			expected:    "operation[1]: destination account requires a memo in the transaction",
+			operations: []txnbuild.Operation{
+				&paymentNoMemo,
+				&pathPaymentStrictReceive,
+			},
+			mockNotFound: true,
+		},
+		{
+			desc:        "strict send operation",
+			destination: "GDYM6SBBGDF6ZDRM2SKGVIWM257Q4V63V3IYNDQQWPKNV4QDERS4YTLX",
+			expected:    "operation[1]: destination account requires a memo in the transaction",
+			operations: []txnbuild.Operation{
+				&paymentNoMemo,
+				&pathPaymentStrictSend,
+			},
+			mockNotFound: true,
+		},
+		{
+			desc:        "merge account operation",
+			destination: "GBVZZ5XPHECNGA5SENAJP4C6ZJ7FGZ55ZZUCTFTHREZM73LKUGCQDRHR",
+			expected:    "operation[1]: destination account requires a memo in the transaction",
+			operations: []txnbuild.Operation{
+				&paymentNoMemo,
+				&accountMerge,
+			},
+			mockNotFound: true,
+		},
+		{
+			desc: "two operations with same destination",
+			operations: []txnbuild.Operation{
+				&paymentNoMemo,
+				&paymentNoMemo,
+			},
+			mockNotFound: true,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tx, err := txnbuild.NewTransaction(
+				txnbuild.TransactionParams{
+					SourceAccount:        &sourceAccount,
+					IncrementSequenceNum: true,
+					Operations:           tc.operations,
+					BaseFee:              txnbuild.MinBaseFee,
+					Timebounds:           txnbuild.NewTimebounds(0, 10),
+				},
+			)
+			tt.NoError(err)
+
+			if len(tc.destination) > 0 {
+				hmock.On(
+					"GET",
+					fmt.Sprintf("https://localhost/accounts/%s/data/config.memo_required", tc.destination),
+				).ReturnJSON(200, memoRequiredResponse)
+			}
+
+			if tc.mockNotFound {
+				hmock.On(
+					"GET",
+					"https://localhost/accounts/GDWIRURRED6SQSZVQVVMK46PE2MOZEKHV6ZU54JG3NPVRDIF4XCXYYW4/data/config.memo_required",
+				).ReturnString(404, notFoundResponse)
+			}
+
+			err = client.checkMemoRequired(tx)
+
+			if len(tc.expected) > 0 {
+				tt.Error(err)
+				tt.Contains(err.Error(), tc.expected)
+				tt.Equal(ErrAccountRequiresMemo, errors.Cause(err))
+			} else {
+				tt.NoError(err)
+			}
+		})
+	}
+}
+
+func TestAccounts(t *testing.T) {
+	tt := assert.New(t)
+	hmock := httptest.NewClient()
+	client := &Client{
+		AuroraURL: "https://localhost/",
+		HTTP:       hmock,
+	}
+
+	accountRequest := AccountsRequest{}
+	_, err := client.Accounts(accountRequest)
+	if tt.Error(err) {
+		tt.Contains(err.Error(), "invalid request: no parameters")
+	}
+
+	accountRequest = AccountsRequest{
+		Signer: "GCLWGQPMKXQSPF776IU33AH4PZNOOWNAWGGKVTBQMIC5IMKUNP3E6NVU",
+		Asset:  "COP:GCLWGQPMKXQSPF776IU33AH4PZNOOWNAWGGKVTBQMIC5IMKUNP3E6NVU",
+	}
+	_, err = client.Accounts(accountRequest)
+	if tt.Error(err) {
+		tt.Contains(err.Error(), "invalid request: too many parameters")
+	}
+
+	var accounts hProtocol.AccountsPage
+
 	hmock.On(
 		"GET",
-		"https://localhost/friendbot?addr=GCLWGQPMKXQSPF776IU33AH4PZNOOWNAWGGKVTBQMIC5IMKUNP3E6NVU",
-	).ReturnString(400, transactionFailure)
+		"https://localhost/accounts?signer=GAI3SO3S4E67HAUZPZ2D3VBFXY4AT6N7WQI7K5WFGRXWENTZJG2B6CYP",
+	).ReturnString(200, accountsResponse)
 
-	_, err = client.Fund(testAccount)
-	if assert.Error(t, err) {
-		assert.Contains(t, err.Error(), "aurora error")
-		auroraError, ok := errors.Cause(err).(*Error)
-		assert.Equal(t, ok, true)
-		assert.Equal(t, auroraError.Problem.Title, "Transaction Failed")
-		resultString, err := auroraError.ResultString()
-		assert.Nil(t, err)
-		assert.Equal(t, resultString, "AAAAAAAAAAD////4AAAAAA==")
+	accountRequest = AccountsRequest{
+		Signer: "GAI3SO3S4E67HAUZPZ2D3VBFXY4AT6N7WQI7K5WFGRXWENTZJG2B6CYP",
+	}
+	accounts, err = client.Accounts(accountRequest)
+	tt.NoError(err)
+	tt.Len(accounts.Embedded.Records, 1)
+
+	hmock.On(
+		"GET",
+		"https://localhost/accounts?asset=COP%3AGAI3SO3S4E67HAUZPZ2D3VBFXY4AT6N7WQI7K5WFGRXWENTZJG2B6CYP",
+	).ReturnString(200, accountsResponse)
+
+	accountRequest = AccountsRequest{
+		Asset: "COP:GAI3SO3S4E67HAUZPZ2D3VBFXY4AT6N7WQI7K5WFGRXWENTZJG2B6CYP",
+	}
+	accounts, err = client.Accounts(accountRequest)
+	tt.NoError(err)
+	tt.Len(accounts.Embedded.Records, 1)
+
+	hmock.On(
+		"GET",
+		"https://localhost/accounts?signer=GAI3SO3S4E67HAUZPZ2D3VBFXY4AT6N7WQI7K5WFGRXWENTZJG2B6CYP&cursor=GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZMFSHONUCEOASW7QC7OX2H&limit=200&order=desc",
+	).ReturnString(200, accountsResponse)
+
+	accountRequest = AccountsRequest{
+		Signer: "GAI3SO3S4E67HAUZPZ2D3VBFXY4AT6N7WQI7K5WFGRXWENTZJG2B6CYP",
+		Order:  "desc",
+		Cursor: "GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZMFSHONUCEOASW7QC7OX2H",
+		Limit:  200,
+	}
+	accounts, err = client.Accounts(accountRequest)
+	tt.NoError(err)
+	tt.Len(accounts.Embedded.Records, 1)
+
+	// connection error
+	hmock.On(
+		"GET",
+		"https://localhost/accounts?signer=GAI3SO3S4E67HAUZPZ2D3VBFXY4AT6N7WQI7K5WFGRXWENTZJG2B6CYP",
+	).ReturnError("http.Client error")
+
+	accountRequest = AccountsRequest{
+		Signer: "GAI3SO3S4E67HAUZPZ2D3VBFXY4AT6N7WQI7K5WFGRXWENTZJG2B6CYP",
+	}
+	accounts, err = client.Accounts(accountRequest)
+	if tt.Error(err) {
+		tt.Contains(err.Error(), "http.Client error")
+		_, ok := err.(*Error)
+		tt.Equal(ok, false)
 	}
 }
 
@@ -419,9 +307,12 @@ func TestAccountDetail(t *testing.T) {
 		assert.Equal(t, account.Signers[0].Key, "GCLWGQPMKXQSPF776IU33AH4PZNOOWNAWGGKVTBQMIC5IMKUNP3E6NVU")
 		assert.Equal(t, account.Signers[0].Type, "ed25519_public_key")
 		assert.Equal(t, account.Data["test"], "dGVzdA==")
-		balance, err := account.GetNativeBalance()
-		assert.Nil(t, err)
+		balance, balanceErr := account.GetNativeBalance()
+		assert.Nil(t, balanceErr)
 		assert.Equal(t, balance, "9999.9999900")
+		assert.NotNil(t, account.LastModifiedTime)
+		assert.Equal(t, "2019-03-05 13:23:50 +0000 UTC", account.LastModifiedTime.String())
+		assert.Equal(t, uint32(103307), account.LastModifiedLedger)
 	}
 
 	// failure response
@@ -597,59 +488,6 @@ func TestAssetsRequest(t *testing.T) {
 
 }
 
-func TestMetrics(t *testing.T) {
-	hmock := httptest.NewClient()
-	client := &Client{
-		AuroraURL: "https://localhost/",
-		HTTP:       hmock,
-	}
-
-	// happy path
-	hmock.On(
-		"GET",
-		"https://localhost/metrics",
-	).ReturnString(200, metricsResponse)
-
-	metrics, err := client.Metrics()
-
-	if assert.NoError(t, err) {
-		assert.Equal(t, metrics.GoRoutines.Value, 1893)
-		assert.Equal(t, metrics.HistoryElderLedger.Value, 1)
-		assert.Equal(t, metrics.HistoryLatestLedger.Value, 22826153)
-		assert.Equal(t, metrics.IngesterClearLedger.Median, float64(0))
-		assert.Equal(t, metrics.IngesterIngestLedger.Percent99_9, 185115016.58600014)
-		assert.Equal(t, metrics.LoggingDebug.Count, 0)
-		assert.Equal(t, metrics.LoggingError.Rate15m, float64(0))
-		assert.Equal(t, metrics.LoggingInfo.MeanRate, 227.30356525388274)
-		assert.Equal(t, metrics.LoggingPanic.Rate1m, float64(0))
-		assert.Equal(t, metrics.LoggingWarning.Rate5m, 3.714334583072108e-10)
-		assert.Equal(t, metrics.RequestsFailed.Rate5m, 47.132925275045295)
-		assert.Equal(t, metrics.RequestsSucceeded.MeanRate, 68.31190342961553)
-		assert.Equal(t, metrics.RequestsTotal.Percent99, 55004856745.49)
-		assert.Equal(t, metrics.CoreLatestLedger.Value, 22826156)
-		assert.Equal(t, metrics.CoreOpenConnections.Value, 94)
-		assert.Equal(t, metrics.TxsubBuffered.Value, 1)
-		assert.Equal(t, metrics.TxsubFailed.Count, 13977)
-		assert.Equal(t, metrics.TxsubSucceeded.Rate15m, 0.3684477520175787)
-		assert.Equal(t, metrics.TxsubOpen.Value, 0)
-		assert.Equal(t, metrics.TxsubTotal.Rate5m, 0.3935864740456858)
-
-	}
-
-	// connection error
-	hmock.On(
-		"GET",
-		"https://localhost/metrics",
-	).ReturnError("http.Client error")
-
-	_, err = client.Metrics()
-	if assert.Error(t, err) {
-		assert.Contains(t, err.Error(), "http.Client error")
-		_, ok := err.(*Error)
-		assert.Equal(t, ok, false)
-	}
-}
-
 func TestFeeStats(t *testing.T) {
 	hmock := httptest.NewClient()
 	client := &Client{
@@ -666,35 +504,38 @@ func TestFeeStats(t *testing.T) {
 	fees, err := client.FeeStats()
 
 	if assert.NoError(t, err) {
-		assert.Equal(t, fees.LastLedger, 22606298)
-		assert.Equal(t, fees.LastLedgerBaseFee, 100)
-		assert.Equal(t, fees.LedgerCapacityUsage, 0.97)
-		assert.Equal(t, fees.MinAcceptedFee, 130)
-		assert.Equal(t, fees.ModeAcceptedFee, 250)
-		assert.Equal(t, fees.P10AcceptedFee, 150)
-		assert.Equal(t, fees.P20AcceptedFee, 200)
-		assert.Equal(t, fees.P30AcceptedFee, 300)
-		assert.Equal(t, fees.P40AcceptedFee, 400)
-		assert.Equal(t, fees.P50AcceptedFee, 500)
-		assert.Equal(t, fees.P60AcceptedFee, 1000)
-		assert.Equal(t, fees.P70AcceptedFee, 2000)
-		assert.Equal(t, fees.P80AcceptedFee, 3000)
-		assert.Equal(t, fees.P90AcceptedFee, 4000)
-		assert.Equal(t, fees.P95AcceptedFee, 5000)
-		assert.Equal(t, fees.P99AcceptedFee, 8000)
-	}
+		assert.Equal(t, uint32(22606298), fees.LastLedger)
+		assert.Equal(t, int64(100), fees.LastLedgerBaseFee)
+		assert.Equal(t, 0.97, fees.LedgerCapacityUsage)
+		assert.Equal(t, int64(130), fees.MaxFee.Min)
+		assert.Equal(t, int64(8000), fees.MaxFee.Max)
+		assert.Equal(t, int64(250), fees.MaxFee.Mode)
+		assert.Equal(t, int64(150), fees.MaxFee.P10)
+		assert.Equal(t, int64(200), fees.MaxFee.P20)
+		assert.Equal(t, int64(300), fees.MaxFee.P30)
+		assert.Equal(t, int64(400), fees.MaxFee.P40)
+		assert.Equal(t, int64(500), fees.MaxFee.P50)
+		assert.Equal(t, int64(1000), fees.MaxFee.P60)
+		assert.Equal(t, int64(2000), fees.MaxFee.P70)
+		assert.Equal(t, int64(3000), fees.MaxFee.P80)
+		assert.Equal(t, int64(4000), fees.MaxFee.P90)
+		assert.Equal(t, int64(5000), fees.MaxFee.P95)
+		assert.Equal(t, int64(8000), fees.MaxFee.P99)
 
-	// connection error
-	hmock.On(
-		"GET",
-		"https://localhost/metrics",
-	).ReturnError("http.Client error")
-
-	_, err = client.Metrics()
-	if assert.Error(t, err) {
-		assert.Contains(t, err.Error(), "http.Client error")
-		_, ok := err.(*Error)
-		assert.Equal(t, ok, false)
+		assert.Equal(t, int64(100), fees.FeeCharged.Min)
+		assert.Equal(t, int64(100), fees.FeeCharged.Max)
+		assert.Equal(t, int64(100), fees.FeeCharged.Mode)
+		assert.Equal(t, int64(100), fees.FeeCharged.P10)
+		assert.Equal(t, int64(100), fees.FeeCharged.P20)
+		assert.Equal(t, int64(100), fees.FeeCharged.P30)
+		assert.Equal(t, int64(100), fees.FeeCharged.P40)
+		assert.Equal(t, int64(100), fees.FeeCharged.P50)
+		assert.Equal(t, int64(100), fees.FeeCharged.P60)
+		assert.Equal(t, int64(100), fees.FeeCharged.P70)
+		assert.Equal(t, int64(100), fees.FeeCharged.P80)
+		assert.Equal(t, int64(100), fees.FeeCharged.P90)
+		assert.Equal(t, int64(100), fees.FeeCharged.P95)
+		assert.Equal(t, int64(100), fees.FeeCharged.P99)
 	}
 }
 
@@ -724,6 +565,115 @@ func TestOfferRequest(t *testing.T) {
 		assert.Equal(t, record.Amount, "1999979.8700000")
 		assert.Equal(t, record.LastModifiedLedger, int32(103307))
 	}
+
+	hmock.On(
+		"GET",
+		"https://localhost/offers?seller=GDOJCPYIB66RY4XNDLRRHQQXB27YLNNAGAYV5HMHEYNYY4KUNV5FDV2F",
+	).ReturnString(200, offersResponse)
+
+	offersRequest = OfferRequest{
+		Seller: "GDOJCPYIB66RY4XNDLRRHQQXB27YLNNAGAYV5HMHEYNYY4KUNV5FDV2F",
+	}
+
+	offers, err = client.Offers(offersRequest)
+	if assert.NoError(t, err) {
+		assert.Len(t, offers.Embedded.Records, 1)
+	}
+
+	hmock.On(
+		"GET",
+		"https://localhost/offers?buying=COP%3AGDOJCPYIB66RY4XNDLRRHQQXB27YLNNAGAYV5HMHEYNYY4KUNV5FDV2F",
+	).ReturnString(200, offersResponse)
+
+	offersRequest = OfferRequest{
+		Buying: "COP:GDOJCPYIB66RY4XNDLRRHQQXB27YLNNAGAYV5HMHEYNYY4KUNV5FDV2F",
+	}
+
+	offers, err = client.Offers(offersRequest)
+	if assert.NoError(t, err) {
+		assert.Len(t, offers.Embedded.Records, 1)
+	}
+
+	hmock.On(
+		"GET",
+		"https://localhost/offers?selling=EUR%3AGDOJCPYIB66RY4XNDLRRHQQXB27YLNNAGAYV5HMHEYNYY4KUNV5FDV2F",
+	).ReturnString(200, offersResponse)
+
+	offersRequest = OfferRequest{
+		Selling: "EUR:GDOJCPYIB66RY4XNDLRRHQQXB27YLNNAGAYV5HMHEYNYY4KUNV5FDV2F",
+	}
+
+	offers, err = client.Offers(offersRequest)
+	if assert.NoError(t, err) {
+		assert.Len(t, offers.Embedded.Records, 1)
+	}
+
+	hmock.On(
+		"GET",
+		"https://localhost/offers?selling=EUR%3AGDOJCPYIB66RY4XNDLRRHQQXB27YLNNAGAYV5HMHEYNYY4KUNV5FDV2F",
+	).ReturnString(200, offersResponse)
+
+	offersRequest = OfferRequest{
+		Selling: "EUR:GDOJCPYIB66RY4XNDLRRHQQXB27YLNNAGAYV5HMHEYNYY4KUNV5FDV2F",
+	}
+
+	offers, err = client.Offers(offersRequest)
+	if assert.NoError(t, err) {
+		assert.Len(t, offers.Embedded.Records, 1)
+	}
+
+	hmock.On(
+		"GET",
+		"https://localhost/offers?buying=EUR%3AGDOJCPYIB66RY4XNDLRRHQQXB27YLNNAGAYV5HMHEYNYY4KUNV5FDV2F&seller=GDOJCPYIB66RY4XNDLRRHQQXB27YLNNAGAYV5HMHEYNYY4KUNV5FDV2F&selling=EUR%3AGDOJCPYIB66RY4XNDLRRHQQXB27YLNNAGAYV5HMHEYNYY4KUNV5FDV2F&cursor=30&limit=20&order=desc",
+	).ReturnString(200, offersResponse)
+
+	offersRequest = OfferRequest{
+		Seller:  "GDOJCPYIB66RY4XNDLRRHQQXB27YLNNAGAYV5HMHEYNYY4KUNV5FDV2F",
+		Buying:  "EUR:GDOJCPYIB66RY4XNDLRRHQQXB27YLNNAGAYV5HMHEYNYY4KUNV5FDV2F",
+		Selling: "EUR:GDOJCPYIB66RY4XNDLRRHQQXB27YLNNAGAYV5HMHEYNYY4KUNV5FDV2F",
+		Order:   "desc",
+		Limit:   20,
+		Cursor:  "30",
+	}
+
+	offers, err = client.Offers(offersRequest)
+	if assert.NoError(t, err) {
+		assert.Len(t, offers.Embedded.Records, 1)
+	}
+}
+func TestOfferDetailsRequest(t *testing.T) {
+	hmock := httptest.NewClient()
+	client := &Client{
+		AuroraURL: "https://localhost/",
+		HTTP:       hmock,
+	}
+
+	// account offers
+	hmock.On(
+		"GET",
+		"https://localhost/offers/5635",
+	).ReturnString(200, offerResponse)
+
+	record, err := client.OfferDetails("5635")
+	if assert.NoError(t, err) {
+		assert.IsType(t, record, hProtocol.Offer{})
+		assert.Equal(t, record.ID, int64(5635))
+		assert.Equal(t, record.Seller, "GD6UOZ3FGFI5L2X6F52YPJ6ICSW375BNBZIQC4PCLSEOO6SMX7CUS5MB")
+		assert.Equal(t, record.PT, "5635")
+		assert.Equal(t, record.Selling.Type, "native")
+		assert.Equal(t, record.Buying.Code, "AstroDollar")
+		assert.Equal(t, record.Buying.Issuer, "GDA2EHKPDEWZTAL6B66FO77HMOZL3RHZTIJO7KJJK5RQYSDUXEYMPJYY")
+		assert.Equal(t, record.Amount, "100.0000000")
+		assert.Equal(t, record.LastModifiedLedger, int32(356183))
+	}
+
+	_, err = client.OfferDetails("S6ES")
+	assert.Error(t, err)
+	assert.EqualError(t, err, "invalid offer ID provided")
+
+	_, err = client.OfferDetails("")
+	assert.Error(t, err)
+	assert.EqualError(t, err, "no offer ID provided")
 }
 
 func TestOperationsRequest(t *testing.T) {
@@ -733,12 +683,12 @@ func TestOperationsRequest(t *testing.T) {
 		HTTP:       hmock,
 	}
 
-	operationRequest := OperationRequest{}
+	operationRequest := OperationRequest{Join: "transactions"}
 
 	// all operations
 	hmock.On(
 		"GET",
-		"https://localhost/operations",
+		"https://localhost/operations?join=transactions",
 	).ReturnString(200, multipleOpsResponse)
 
 	ops, err := client.Operations(operationRequest)
@@ -768,7 +718,7 @@ func TestOperationsRequest(t *testing.T) {
 	// all payments
 	hmock.On(
 		"GET",
-		"https://localhost/payments",
+		"https://localhost/payments?join=transactions",
 	).ReturnString(200, paymentsResponse)
 
 	ops, err = client.Payments(operationRequest)
@@ -850,7 +800,7 @@ func TestOperationsRequest(t *testing.T) {
 
 }
 
-func TestSubmitRequest(t *testing.T) {
+func TestSubmitTransactionXDRRequest(t *testing.T) {
 	hmock := httptest.NewClient()
 	client := &Client{
 		AuroraURL: "https://localhost/",
@@ -887,19 +837,493 @@ func TestSubmitRequest(t *testing.T) {
 	// successful tx
 	hmock.On(
 		"POST",
-		"https://localhost/transactions?tx=AAAAABB90WssODNIgi6BHveqzxTRmIpvAFRyVNM%2BHm2GVuCcAAAAZAAABD0AAuV%2FAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAyTBGxOgfSApppsTnb%2FYRr6gOR8WT0LZNrhLh4y3FCgoAAAAXSHboAAAAAAAAAAABhlbgnAAAAEAivKe977CQCxMOKTuj%2BcWTFqc2OOJU8qGr9afrgu2zDmQaX5Q0cNshc3PiBwe0qw%2F%2BD%2FqJk5QqM5dYeSUGeDQP",
-	).ReturnString(200, txSuccess)
+		"https://localhost/transactions",
+	).Return(func(request *http.Request) (*http.Response, error) {
+		val := request.FormValue("tx")
+		assert.Equal(t, val, txXdr)
+		return httpmock.NewStringResponse(http.StatusOK, txSuccess), nil
+	})
 
 	resp, err := client.SubmitTransactionXDR(txXdr)
 	if assert.NoError(t, err) {
-		assert.IsType(t, resp, hProtocol.TransactionSuccess{})
+		assert.IsType(t, resp, hProtocol.Transaction{})
 		assert.Equal(t, resp.Links.Transaction.Href, "https://aurora-testnet.diamnet.org/transactions/bcc7a97264dca0a51a63f7ea971b5e7458e334489673078bb2a34eb0cce910ca")
 		assert.Equal(t, resp.Hash, "bcc7a97264dca0a51a63f7ea971b5e7458e334489673078bb2a34eb0cce910ca")
 		assert.Equal(t, resp.Ledger, int32(354811))
-		assert.Equal(t, resp.Env, `AAAAABB90WssODNIgi6BHveqzxTRmIpvAFRyVNM+Hm2GVuCcAAAAZAAABD0AAuV/AAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAyTBGxOgfSApppsTnb/YRr6gOR8WT0LZNrhLh4y3FCgoAAAAXSHboAAAAAAAAAAABhlbgnAAAAEAivKe977CQCxMOKTuj+cWTFqc2OOJU8qGr9afrgu2zDmQaX5Q0cNshc3PiBwe0qw/+D/qJk5QqM5dYeSUGeDQP`)
-		assert.Equal(t, resp.Result, "AAAAAAAAAGQAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAA=")
-		assert.Equal(t, resp.Meta, `AAAAAQAAAAIAAAADAAVp+wAAAAAAAAAAEH3Rayw4M0iCLoEe96rPFNGYim8AVHJU0z4ebYZW4JwACBP/TuycHAAABD0AAuV+AAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAABAAVp+wAAAAAAAAAAEH3Rayw4M0iCLoEe96rPFNGYim8AVHJU0z4ebYZW4JwACBP/TuycHAAABD0AAuV/AAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAABAAAAAwAAAAMABWn7AAAAAAAAAAAQfdFrLDgzSIIugR73qs8U0ZiKbwBUclTTPh5thlbgnAAIE/9O7JwcAAAEPQAC5X8AAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAEABWn7AAAAAAAAAAAQfdFrLDgzSIIugR73qs8U0ZiKbwBUclTTPh5thlbgnAAIE+gGdbQcAAAEPQAC5X8AAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAABWn7AAAAAAAAAADJMEbE6B9ICmmmxOdv9hGvqA5HxZPQtk2uEuHjLcUKCgAAABdIdugAAAVp+wAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAA==`)
+		assert.Equal(t, resp.EnvelopeXdr, txXdr)
+		assert.Equal(t, resp.ResultXdr, "AAAAAAAAAGQAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAA=")
+		assert.Equal(t, resp.ResultMetaXdr, `AAAAAQAAAAIAAAADAAVp+wAAAAAAAAAAEH3Rayw4M0iCLoEe96rPFNGYim8AVHJU0z4ebYZW4JwACBP/TuycHAAABD0AAuV+AAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAABAAVp+wAAAAAAAAAAEH3Rayw4M0iCLoEe96rPFNGYim8AVHJU0z4ebYZW4JwACBP/TuycHAAABD0AAuV/AAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAABAAAAAwAAAAMABWn7AAAAAAAAAAAQfdFrLDgzSIIugR73qs8U0ZiKbwBUclTTPh5thlbgnAAIE/9O7JwcAAAEPQAC5X8AAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAEABWn7AAAAAAAAAAAQfdFrLDgzSIIugR73qs8U0ZiKbwBUclTTPh5thlbgnAAIE+gGdbQcAAAEPQAC5X8AAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAABWn7AAAAAAAAAADJMEbE6B9ICmmmxOdv9hGvqA5HxZPQtk2uEuHjLcUKCgAAABdIdugAAAVp+wAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAA==`)
 	}
+}
+
+func TestSubmitTransactionRequest(t *testing.T) {
+	hmock := httptest.NewClient()
+	client := &Client{
+		AuroraURL: "https://localhost/",
+		HTTP:       hmock,
+	}
+
+	kp := keypair.MustParseFull("SA26PHIKZM6CXDGR472SSGUQQRYXM6S437ZNHZGRM6QA4FOPLLLFRGDX")
+	sourceAccount := txnbuild.NewSimpleAccount(kp.Address(), int64(0))
+
+	payment := txnbuild.Payment{
+		Destination: kp.Address(),
+		Amount:      "10",
+		Asset:       txnbuild.NativeAsset{},
+	}
+
+	tx, err := txnbuild.NewTransaction(
+		txnbuild.TransactionParams{
+			SourceAccount:        &sourceAccount,
+			IncrementSequenceNum: true,
+			Operations:           []txnbuild.Operation{&payment},
+			BaseFee:              txnbuild.MinBaseFee,
+			Timebounds:           txnbuild.NewTimebounds(0, 10),
+		},
+	)
+	assert.NoError(t, err)
+
+	tx, err = tx.Sign(network.TestNetworkPassphrase, kp)
+	assert.NoError(t, err)
+
+	txXdr := "AAAAAgAAAAAFNPMlEPLB6oWPI/Zl1sBEXxwv93ChUnv7KQK9KxrTtgAAAGQAAAAAAAAAAQAAAAEAAAAAAAAAAAAAAAAAAAAKAAAAAAAAAAEAAAAAAAAAAQAAAAAFNPMlEPLB6oWPI/Zl1sBEXxwv93ChUnv7KQK9KxrTtgAAAAAAAAAABfXhAAAAAAAAAAABKxrTtgAAAECmVMsI0W6JmfJNeLzgH+PseZA2AgYGZl8zaHgkOvhZw65Hj9OaCdw6yssG55qu7X2sauJAwfxaoTL4gwbmH94H"
+	// successful tx with config.memo_required not found
+	hmock.On(
+		"POST",
+		"https://localhost/transactions",
+	).Return(func(request *http.Request) (*http.Response, error) {
+		val := request.FormValue("tx")
+		assert.Equal(t, val, txXdr)
+		return httpmock.NewStringResponse(http.StatusOK, txSuccess), nil
+	})
+
+	hmock.On(
+		"GET",
+		"https://localhost/accounts/GACTJ4ZFCDZMD2UFR4R7MZOWYBCF6HBP65YKCUT37MUQFPJLDLJ3N5D2/data/config.memo_required",
+	).ReturnString(404, notFoundResponse)
+
+	_, err = client.SubmitTransaction(tx)
+	assert.NoError(t, err)
+
+	// memo required - does not submit transaction
+	hmock.On(
+		"GET",
+		"https://localhost/accounts/GACTJ4ZFCDZMD2UFR4R7MZOWYBCF6HBP65YKCUT37MUQFPJLDLJ3N5D2/data/config.memo_required",
+	).ReturnJSON(200, memoRequiredResponse)
+
+	_, err = client.SubmitTransaction(tx)
+	assert.Error(t, err)
+	assert.Equal(t, ErrAccountRequiresMemo, errors.Cause(err))
+}
+
+func TestSubmitTransactionRequestMuxedAccounts(t *testing.T) {
+	hmock := httptest.NewClient()
+	client := &Client{
+		AuroraURL: "https://localhost/",
+		HTTP:       hmock,
+	}
+
+	kp := keypair.MustParseFull("SA26PHIKZM6CXDGR472SSGUQQRYXM6S437ZNHZGRM6QA4FOPLLLFRGDX")
+	accountID := xdr.MustAddress(kp.Address())
+	mx := xdr.MuxedAccount{
+		Type: xdr.CryptoKeyTypeKeyTypeMuxedEd25519,
+		Med25519: &xdr.MuxedAccountMed25519{
+			Id:      0xcafebabe,
+			Ed25519: *accountID.Ed25519,
+		},
+	}
+	sourceAccount := txnbuild.NewSimpleAccount(mx.Address(), int64(0))
+
+	payment := txnbuild.Payment{
+		Destination: kp.Address(),
+		Amount:      "10",
+		Asset:       txnbuild.NativeAsset{},
+	}
+
+	tx, err := txnbuild.NewTransaction(
+		txnbuild.TransactionParams{
+			SourceAccount:        &sourceAccount,
+			IncrementSequenceNum: true,
+			Operations:           []txnbuild.Operation{&payment},
+			BaseFee:              txnbuild.MinBaseFee,
+			Timebounds:           txnbuild.NewTimebounds(0, 10),
+			EnableMuxedAccounts:  true,
+		},
+	)
+	assert.NoError(t, err)
+
+	tx, err = tx.Sign(network.TestNetworkPassphrase, kp)
+	assert.NoError(t, err)
+
+	txXdr := "AAAAAgAAAQAAAAAAyv66vgU08yUQ8sHqhY8j9mXWwERfHC/3cKFSe/spAr0rGtO2AAAAZAAAAAAAAAABAAAAAQAAAAAAAAAAAAAAAAAAAAoAAAAAAAAAAQAAAAAAAAABAAAAAAU08yUQ8sHqhY8j9mXWwERfHC/3cKFSe/spAr0rGtO2AAAAAAAAAAAF9eEAAAAAAAAAAAErGtO2AAAAQJvQkE9UVo/mfFBl/8ZPTzSUyVO4nvW0BYfnbowoBPEdRfLOLQz28v6sBKQc2b86NUfVHN5TQVo3+jH4nK9wVgk="
+	// successful tx with config.memo_required not found
+	hmock.On(
+		"POST",
+		"https://localhost/transactions",
+	).Return(func(request *http.Request) (*http.Response, error) {
+		val := request.FormValue("tx")
+		assert.Equal(t, val, txXdr)
+		return httpmock.NewStringResponse(http.StatusOK, txSuccess), nil
+	})
+
+	hmock.On(
+		"GET",
+		"https://localhost/accounts/GACTJ4ZFCDZMD2UFR4R7MZOWYBCF6HBP65YKCUT37MUQFPJLDLJ3N5D2/data/config.memo_required",
+	).ReturnString(404, notFoundResponse)
+
+	_, err = client.SubmitTransaction(tx)
+	assert.NoError(t, err)
+
+	// memo required - does not submit transaction
+	hmock.On(
+		"GET",
+		"https://localhost/accounts/GACTJ4ZFCDZMD2UFR4R7MZOWYBCF6HBP65YKCUT37MUQFPJLDLJ3N5D2/data/config.memo_required",
+	).ReturnJSON(200, memoRequiredResponse)
+
+	_, err = client.SubmitTransaction(tx)
+	assert.Error(t, err)
+	assert.Equal(t, ErrAccountRequiresMemo, errors.Cause(err))
+}
+
+func TestSubmitFeeBumpTransaction(t *testing.T) {
+	hmock := httptest.NewClient()
+	client := &Client{
+		AuroraURL: "https://localhost/",
+		HTTP:       hmock,
+	}
+
+	kp := keypair.MustParseFull("SA26PHIKZM6CXDGR472SSGUQQRYXM6S437ZNHZGRM6QA4FOPLLLFRGDX")
+	sourceAccount := txnbuild.NewSimpleAccount(kp.Address(), int64(0))
+
+	payment := txnbuild.Payment{
+		Destination: kp.Address(),
+		Amount:      "10",
+		Asset:       txnbuild.NativeAsset{},
+	}
+
+	tx, err := txnbuild.NewTransaction(
+		txnbuild.TransactionParams{
+			SourceAccount:        &sourceAccount,
+			IncrementSequenceNum: true,
+			Operations:           []txnbuild.Operation{&payment},
+			BaseFee:              txnbuild.MinBaseFee,
+			Timebounds:           txnbuild.NewTimebounds(0, 10),
+		},
+	)
+	assert.NoError(t, err)
+
+	tx, err = tx.Sign(network.TestNetworkPassphrase, kp)
+	assert.NoError(t, err)
+
+	feeBumpKP := keypair.MustParseFull("SA5ZEFDVFZ52GRU7YUGR6EDPBNRU2WLA6IQFQ7S2IH2DG3VFV3DOMV2Q")
+	feeBumpTx, err := txnbuild.NewFeeBumpTransaction(txnbuild.FeeBumpTransactionParams{
+		Inner:      tx,
+		FeeAccount: feeBumpKP.Address(),
+		BaseFee:    txnbuild.MinBaseFee * 2,
+	})
+	feeBumpTx, err = feeBumpTx.Sign(network.TestNetworkPassphrase, feeBumpKP)
+	feeBumpTxB64, err := feeBumpTx.Base64()
+	assert.NoError(t, err)
+
+	// successful tx with config.memo_required not found
+	hmock.On(
+		"POST",
+		"https://localhost/transactions",
+	).Return(func(request *http.Request) (*http.Response, error) {
+		val := request.FormValue("tx")
+		assert.Equal(t, val, feeBumpTxB64)
+		return httpmock.NewStringResponse(http.StatusOK, txSuccess), nil
+	})
+
+	hmock.On(
+		"GET",
+		"https://localhost/accounts/GACTJ4ZFCDZMD2UFR4R7MZOWYBCF6HBP65YKCUT37MUQFPJLDLJ3N5D2/data/config.memo_required",
+	).ReturnString(404, notFoundResponse)
+
+	_, err = client.SubmitFeeBumpTransaction(feeBumpTx)
+	assert.NoError(t, err)
+
+	// memo required - does not submit transaction
+	hmock.On(
+		"GET",
+		"https://localhost/accounts/GACTJ4ZFCDZMD2UFR4R7MZOWYBCF6HBP65YKCUT37MUQFPJLDLJ3N5D2/data/config.memo_required",
+	).ReturnJSON(200, memoRequiredResponse)
+
+	_, err = client.SubmitFeeBumpTransaction(feeBumpTx)
+	assert.Error(t, err)
+	assert.Equal(t, ErrAccountRequiresMemo, errors.Cause(err))
+}
+
+func TestSubmitTransactionWithOptionsRequest(t *testing.T) {
+	hmock := httptest.NewClient()
+	client := &Client{
+		AuroraURL: "https://localhost/",
+		HTTP:       hmock,
+	}
+
+	kp := keypair.MustParseFull("SA26PHIKZM6CXDGR472SSGUQQRYXM6S437ZNHZGRM6QA4FOPLLLFRGDX")
+	sourceAccount := txnbuild.NewSimpleAccount(kp.Address(), int64(0))
+
+	payment := txnbuild.Payment{
+		Destination: kp.Address(),
+		Amount:      "10",
+		Asset:       txnbuild.NativeAsset{},
+	}
+
+	tx, err := txnbuild.NewTransaction(
+		txnbuild.TransactionParams{
+			SourceAccount:        &sourceAccount,
+			IncrementSequenceNum: true,
+			Operations:           []txnbuild.Operation{&payment},
+			BaseFee:              txnbuild.MinBaseFee,
+			Timebounds:           txnbuild.NewTimebounds(0, 10),
+		},
+	)
+	assert.NoError(t, err)
+
+	tx, err = tx.Sign(network.TestNetworkPassphrase, kp)
+	assert.NoError(t, err)
+
+	hmock.
+		On("POST", "https://localhost/transactions").
+		ReturnString(400, transactionFailure)
+
+	_, err = client.SubmitTransactionWithOptions(tx, SubmitTxOpts{SkipMemoRequiredCheck: true})
+
+	if assert.Error(t, err) {
+		assert.Contains(t, err.Error(), "aurora error")
+		auroraError, ok := errors.Cause(err).(*Error)
+		assert.Equal(t, ok, true)
+		assert.Equal(t, auroraError.Problem.Title, "Transaction Failed")
+	}
+
+	// connection error
+	hmock.
+		On("POST", "https://localhost/transactions").
+		ReturnError("http.Client error")
+
+	_, err = client.SubmitTransactionWithOptions(tx, SubmitTxOpts{SkipMemoRequiredCheck: true})
+	if assert.Error(t, err) {
+		assert.Contains(t, err.Error(), "http.Client error")
+		_, ok := err.(*Error)
+		assert.Equal(t, ok, false)
+	}
+
+	txXdr := "AAAAAgAAAAAFNPMlEPLB6oWPI/Zl1sBEXxwv93ChUnv7KQK9KxrTtgAAAGQAAAAAAAAAAQAAAAEAAAAAAAAAAAAAAAAAAAAKAAAAAAAAAAEAAAAAAAAAAQAAAAAFNPMlEPLB6oWPI/Zl1sBEXxwv93ChUnv7KQK9KxrTtgAAAAAAAAAABfXhAAAAAAAAAAABKxrTtgAAAECmVMsI0W6JmfJNeLzgH+PseZA2AgYGZl8zaHgkOvhZw65Hj9OaCdw6yssG55qu7X2sauJAwfxaoTL4gwbmH94H"
+	// successful tx
+	hmock.On(
+		"POST",
+		"https://localhost/transactions",
+	).Return(func(request *http.Request) (*http.Response, error) {
+		val := request.FormValue("tx")
+		assert.Equal(t, val, txXdr)
+		return httpmock.NewStringResponse(http.StatusOK, txSuccess), nil
+	})
+
+	_, err = client.SubmitTransactionWithOptions(tx, SubmitTxOpts{SkipMemoRequiredCheck: true})
+	assert.NoError(t, err)
+
+	// successful tx with config.memo_required not found
+	hmock.On(
+		"POST",
+		"https://localhost/transactions",
+	).Return(func(request *http.Request) (*http.Response, error) {
+		val := request.FormValue("tx")
+		assert.Equal(t, val, txXdr)
+		return httpmock.NewStringResponse(http.StatusOK, txSuccess), nil
+	})
+
+	hmock.On(
+		"GET",
+		"https://localhost/accounts/GACTJ4ZFCDZMD2UFR4R7MZOWYBCF6HBP65YKCUT37MUQFPJLDLJ3N5D2/data/config.memo_required",
+	).ReturnString(404, notFoundResponse)
+
+	_, err = client.SubmitTransactionWithOptions(tx, SubmitTxOpts{SkipMemoRequiredCheck: false})
+	assert.NoError(t, err)
+
+	// memo required - does not submit transaction
+	hmock.On(
+		"GET",
+		"https://localhost/accounts/GACTJ4ZFCDZMD2UFR4R7MZOWYBCF6HBP65YKCUT37MUQFPJLDLJ3N5D2/data/config.memo_required",
+	).ReturnJSON(200, memoRequiredResponse)
+
+	_, err = client.SubmitTransactionWithOptions(tx, SubmitTxOpts{SkipMemoRequiredCheck: false})
+	assert.Error(t, err)
+	assert.Equal(t, ErrAccountRequiresMemo, errors.Cause(err))
+
+	// skips memo check if tx includes a memo
+	txXdr = "AAAAAgAAAAAFNPMlEPLB6oWPI/Zl1sBEXxwv93ChUnv7KQK9KxrTtgAAAGQAAAAAAAAAAgAAAAEAAAAAAAAAAAAAAAAAAAAKAAAAAQAAAApIZWxsb1dvcmxkAAAAAAABAAAAAAAAAAEAAAAABTTzJRDyweqFjyP2ZdbARF8cL/dwoVJ7+ykCvSsa07YAAAAAAAAAAAX14QAAAAAAAAAAASsa07YAAABA7rDHZ+HcBIQbWByMZL3aT231WuwjOhxvb0c1i3vPzArUCE+HdCIJXq6Mk/xdhJj6QEEJrg15uAxke3P3k2vWCw=="
+	hmock.On(
+		"POST",
+		"https://localhost/transactions",
+	).Return(func(request *http.Request) (*http.Response, error) {
+		val := request.FormValue("tx")
+		assert.Equal(t, val, txXdr)
+		return httpmock.NewStringResponse(http.StatusOK, txSuccess), nil
+	})
+
+	tx, err = txnbuild.NewTransaction(
+		txnbuild.TransactionParams{
+			SourceAccount:        &sourceAccount,
+			IncrementSequenceNum: true,
+			Operations:           []txnbuild.Operation{&payment},
+			BaseFee:              txnbuild.MinBaseFee,
+			Memo:                 txnbuild.MemoText("HelloWorld"),
+			Timebounds:           txnbuild.NewTimebounds(0, 10),
+		},
+	)
+	assert.NoError(t, err)
+
+	tx, err = tx.Sign(network.TestNetworkPassphrase, kp)
+	assert.NoError(t, err)
+
+	_, err = client.SubmitTransactionWithOptions(tx, SubmitTxOpts{SkipMemoRequiredCheck: false})
+	assert.NoError(t, err)
+}
+
+func TestSubmitFeeBumpTransactionWithOptions(t *testing.T) {
+	hmock := httptest.NewClient()
+	client := &Client{
+		AuroraURL: "https://localhost/",
+		HTTP:       hmock,
+	}
+
+	kp := keypair.MustParseFull("SA26PHIKZM6CXDGR472SSGUQQRYXM6S437ZNHZGRM6QA4FOPLLLFRGDX")
+	sourceAccount := txnbuild.NewSimpleAccount(kp.Address(), int64(0))
+
+	payment := txnbuild.Payment{
+		Destination: kp.Address(),
+		Amount:      "10",
+		Asset:       txnbuild.NativeAsset{},
+	}
+
+	tx, err := txnbuild.NewTransaction(
+		txnbuild.TransactionParams{
+			SourceAccount:        &sourceAccount,
+			IncrementSequenceNum: true,
+			Operations:           []txnbuild.Operation{&payment},
+			BaseFee:              txnbuild.MinBaseFee,
+			Timebounds:           txnbuild.NewTimebounds(0, 10),
+		},
+	)
+	assert.NoError(t, err)
+
+	tx, err = tx.Sign(network.TestNetworkPassphrase, kp)
+	assert.NoError(t, err)
+
+	feeBumpKP := keypair.MustParseFull("SA5ZEFDVFZ52GRU7YUGR6EDPBNRU2WLA6IQFQ7S2IH2DG3VFV3DOMV2Q")
+	feeBumpTx, err := txnbuild.NewFeeBumpTransaction(txnbuild.FeeBumpTransactionParams{
+		Inner:      tx,
+		FeeAccount: feeBumpKP.Address(),
+		BaseFee:    txnbuild.MinBaseFee * 2,
+	})
+	feeBumpTx, err = feeBumpTx.Sign(network.TestNetworkPassphrase, feeBumpKP)
+	feeBumpTxB64, err := feeBumpTx.Base64()
+	assert.NoError(t, err)
+
+	hmock.
+		On("POST", "https://localhost/transactions").
+		ReturnString(400, transactionFailure)
+
+	_, err = client.SubmitFeeBumpTransactionWithOptions(feeBumpTx, SubmitTxOpts{SkipMemoRequiredCheck: true})
+
+	if assert.Error(t, err) {
+		assert.Contains(t, err.Error(), "aurora error")
+		auroraError, ok := errors.Cause(err).(*Error)
+		assert.Equal(t, ok, true)
+		assert.Equal(t, auroraError.Problem.Title, "Transaction Failed")
+	}
+
+	// connection error
+	hmock.
+		On("POST", "https://localhost/transactions").
+		ReturnError("http.Client error")
+
+	_, err = client.SubmitFeeBumpTransactionWithOptions(feeBumpTx, SubmitTxOpts{SkipMemoRequiredCheck: true})
+	if assert.Error(t, err) {
+		assert.Contains(t, err.Error(), "http.Client error")
+		_, ok := err.(*Error)
+		assert.Equal(t, ok, false)
+	}
+
+	// successful tx
+	hmock.On(
+		"POST",
+		"https://localhost/transactions",
+	).Return(func(request *http.Request) (*http.Response, error) {
+		val := request.FormValue("tx")
+		assert.Equal(t, val, feeBumpTxB64)
+		return httpmock.NewStringResponse(http.StatusOK, txSuccess), nil
+	})
+
+	_, err = client.SubmitFeeBumpTransactionWithOptions(feeBumpTx, SubmitTxOpts{SkipMemoRequiredCheck: true})
+	assert.NoError(t, err)
+
+	// successful tx with config.memo_required not found
+	hmock.On(
+		"POST",
+		"https://localhost/transactions",
+	).Return(func(request *http.Request) (*http.Response, error) {
+		val := request.FormValue("tx")
+		assert.Equal(t, val, feeBumpTxB64)
+		return httpmock.NewStringResponse(http.StatusOK, txSuccess), nil
+	})
+
+	hmock.On(
+		"GET",
+		"https://localhost/accounts/GACTJ4ZFCDZMD2UFR4R7MZOWYBCF6HBP65YKCUT37MUQFPJLDLJ3N5D2/data/config.memo_required",
+	).ReturnString(404, notFoundResponse)
+
+	_, err = client.SubmitFeeBumpTransactionWithOptions(feeBumpTx, SubmitTxOpts{SkipMemoRequiredCheck: false})
+	assert.NoError(t, err)
+
+	// memo required - does not submit transaction
+	hmock.On(
+		"GET",
+		"https://localhost/accounts/GACTJ4ZFCDZMD2UFR4R7MZOWYBCF6HBP65YKCUT37MUQFPJLDLJ3N5D2/data/config.memo_required",
+	).ReturnJSON(200, memoRequiredResponse)
+
+	_, err = client.SubmitFeeBumpTransactionWithOptions(feeBumpTx, SubmitTxOpts{SkipMemoRequiredCheck: false})
+	assert.Error(t, err)
+	assert.Equal(t, ErrAccountRequiresMemo, errors.Cause(err))
+
+	tx, err = txnbuild.NewTransaction(
+		txnbuild.TransactionParams{
+			SourceAccount:        &sourceAccount,
+			IncrementSequenceNum: true,
+			Operations:           []txnbuild.Operation{&payment},
+			BaseFee:              txnbuild.MinBaseFee,
+			Memo:                 txnbuild.MemoText("HelloWorld"),
+			Timebounds:           txnbuild.NewTimebounds(0, 10),
+		},
+	)
+	assert.NoError(t, err)
+
+	feeBumpKP = keypair.MustParseFull("SA5ZEFDVFZ52GRU7YUGR6EDPBNRU2WLA6IQFQ7S2IH2DG3VFV3DOMV2Q")
+	feeBumpTx, err = txnbuild.NewFeeBumpTransaction(txnbuild.FeeBumpTransactionParams{
+		Inner:      tx,
+		FeeAccount: feeBumpKP.Address(),
+		BaseFee:    txnbuild.MinBaseFee * 2,
+	})
+	feeBumpTx, err = feeBumpTx.Sign(network.TestNetworkPassphrase, feeBumpKP)
+	feeBumpTxB64, err = feeBumpTx.Base64()
+	assert.NoError(t, err)
+
+	// skips memo check if tx includes a memo
+	hmock.On(
+		"POST",
+		"https://localhost/transactions",
+	).Return(func(request *http.Request) (*http.Response, error) {
+		val := request.FormValue("tx")
+		assert.Equal(t, val, feeBumpTxB64)
+		return httpmock.NewStringResponse(http.StatusOK, txSuccess), nil
+	})
+
+	tx, err = tx.Sign(network.TestNetworkPassphrase, kp)
+	assert.NoError(t, err)
+
+	_, err = client.SubmitFeeBumpTransactionWithOptions(feeBumpTx, SubmitTxOpts{SkipMemoRequiredCheck: false})
+	assert.NoError(t, err)
 }
 
 func TestTransactionsRequest(t *testing.T) {
@@ -931,7 +1355,8 @@ func TestTransactionsRequest(t *testing.T) {
 		assert.IsType(t, tx, hProtocol.Transaction{})
 		assert.Equal(t, tx.ID, "3274f131af56ecb6d8668acf6eb0b31b5f8faeca785cbce0a911a5a81308a599")
 		assert.Equal(t, tx.Ledger, int32(438134))
-		assert.Equal(t, tx.FeePaid, int32(100))
+		assert.Equal(t, tx.FeeCharged, int64(100))
+		assert.Equal(t, tx.MaxFee, int64(100))
 		assert.Equal(t, tx.Hash, "3274f131af56ecb6d8668acf6eb0b31b5f8faeca785cbce0a911a5a81308a599")
 	}
 
@@ -1023,6 +1448,9 @@ func TestFetchTimebounds(t *testing.T) {
 	client := &Client{
 		AuroraURL: "https://localhost/",
 		HTTP:       hmock,
+		clock: &clock.Clock{
+			Source: clocktest.FixedSource(time.Unix(1560947096, 0)),
+		},
 	}
 
 	// When no saved server time, return local time
@@ -1037,9 +1465,9 @@ func TestFetchTimebounds(t *testing.T) {
 	header.Add("Date", "Wed, 19 Jun 2019 12:24:56 GMT") //unix time: 1560947096
 	hmock.On(
 		"GET",
-		"https://localhost/metrics",
+		"https://localhost/",
 	).ReturnStringWithHeader(200, metricsResponse, header)
-	_, err = client.Metrics()
+	_, err = client.Root()
 	assert.NoError(t, err)
 
 	// get saved server time
@@ -1052,8 +1480,7 @@ func TestFetchTimebounds(t *testing.T) {
 	}
 
 	// mock server time
-	newRecord := ServerTimeRecord{ServerTime: 100, LocalTimeRecorded: time.Now().UTC().Unix()}
-
+	newRecord := ServerTimeRecord{ServerTime: 100, LocalTimeRecorded: 1560947096}
 	ServerTimeMap["localhost"] = newRecord
 	st, err = client.FetchTimebounds(100)
 	assert.NoError(t, err)
@@ -1062,6 +1489,102 @@ func TestFetchTimebounds(t *testing.T) {
 	// time should be 200, serverTime + 100seconds
 	assert.Equal(t, st.MaxTime, int64(200))
 }
+
+func TestVersion(t *testing.T) {
+	hmock := httptest.NewClient()
+	client := &Client{
+		AuroraURL: "https://localhost/",
+		HTTP:       hmock,
+	}
+
+	assert.Equal(t, "2.1.0", client.Version())
+}
+
+var accountsResponse = `{
+  "_links": {
+    "self": {
+      "href": "https://aurora-testnet.diamnet.org/accounts?cursor=\u0026limit=10\u0026order=asc\u0026signer=GAI3SO3S4E67HAUZPZ2D3VBFXY4AT6N7WQI7K5WFGRXWENTZJG2B6CYP"
+    },
+    "next": {
+      "href": "https://aurora-testnet.diamnet.org/accounts?cursor=GAI3SO3S4E67HAUZPZ2D3VBFXY4AT6N7WQI7K5WFGRXWENTZJG2B6CYP\u0026limit=10\u0026order=asc\u0026signer=GAI3SO3S4E67HAUZPZ2D3VBFXY4AT6N7WQI7K5WFGRXWENTZJG2B6CYP"
+    },
+    "prev": {
+      "href": "https://aurora-testnet.diamnet.org/accounts?cursor=GAI3SO3S4E67HAUZPZ2D3VBFXY4AT6N7WQI7K5WFGRXWENTZJG2B6CYP\u0026limit=10\u0026order=desc\u0026signer=GAI3SO3S4E67HAUZPZ2D3VBFXY4AT6N7WQI7K5WFGRXWENTZJG2B6CYP"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://aurora-testnet.diamnet.org/accounts/GAI3SO3S4E67HAUZPZ2D3VBFXY4AT6N7WQI7K5WFGRXWENTZJG2B6CYP"
+          },
+          "transactions": {
+            "href": "https://aurora-testnet.diamnet.org/accounts/GAI3SO3S4E67HAUZPZ2D3VBFXY4AT6N7WQI7K5WFGRXWENTZJG2B6CYP/transactions{?cursor,limit,order}",
+            "templated": true
+          },
+          "operations": {
+            "href": "https://aurora-testnet.diamnet.org/accounts/GAI3SO3S4E67HAUZPZ2D3VBFXY4AT6N7WQI7K5WFGRXWENTZJG2B6CYP/operations{?cursor,limit,order}",
+            "templated": true
+          },
+          "payments": {
+            "href": "https://aurora-testnet.diamnet.org/accounts/GAI3SO3S4E67HAUZPZ2D3VBFXY4AT6N7WQI7K5WFGRXWENTZJG2B6CYP/payments{?cursor,limit,order}",
+            "templated": true
+          },
+          "effects": {
+            "href": "https://aurora-testnet.diamnet.org/accounts/GAI3SO3S4E67HAUZPZ2D3VBFXY4AT6N7WQI7K5WFGRXWENTZJG2B6CYP/effects{?cursor,limit,order}",
+            "templated": true
+          },
+          "offers": {
+            "href": "https://aurora-testnet.diamnet.org/accounts/GAI3SO3S4E67HAUZPZ2D3VBFXY4AT6N7WQI7K5WFGRXWENTZJG2B6CYP/offers{?cursor,limit,order}",
+            "templated": true
+          },
+          "trades": {
+            "href": "https://aurora-testnet.diamnet.org/accounts/GAI3SO3S4E67HAUZPZ2D3VBFXY4AT6N7WQI7K5WFGRXWENTZJG2B6CYP/trades{?cursor,limit,order}",
+            "templated": true
+          },
+          "data": {
+            "href": "https://aurora-testnet.diamnet.org/accounts/GAI3SO3S4E67HAUZPZ2D3VBFXY4AT6N7WQI7K5WFGRXWENTZJG2B6CYP/data/{key}",
+            "templated": true
+          }
+        },
+        "id": "GAI3SO3S4E67HAUZPZ2D3VBFXY4AT6N7WQI7K5WFGRXWENTZJG2B6CYP",
+        "account_id": "GAI3SO3S4E67HAUZPZ2D3VBFXY4AT6N7WQI7K5WFGRXWENTZJG2B6CYP",
+        "sequence": "47236050321450",
+        "subentry_count": 0,
+        "last_modified_ledger": 116787,
+        "thresholds": {
+          "low_threshold": 0,
+          "med_threshold": 0,
+          "high_threshold": 0
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false
+        },
+        "balances": [
+          {
+            "balance": "100.8182300",
+            "buying_liabilities": "0.0000000",
+            "selling_liabilities": "0.0000000",
+            "asset_type": "native"
+          }
+        ],
+        "signers": [
+          {
+            "weight": 1,
+            "key": "GAI3SO3S4E67HAUZPZ2D3VBFXY4AT6N7WQI7K5WFGRXWENTZJG2B6CYP",
+            "type": "ed25519_public_key"
+          }
+        ],
+        "data": {},
+        "paging_token": "GAI3SO3S4E67HAUZPZ2D3VBFXY4AT6N7WQI7K5WFGRXWENTZJG2B6CYP"
+      }
+    ]
+  }
+}
+`
 
 var accountResponse = `{
   "_links": {
@@ -1130,8 +1653,14 @@ var accountResponse = `{
   ],
   "data": {
     "test": "dGVzdA=="
-  }
+  },
+  "last_modified_ledger": 103307,
+  "last_modified_time": "2019-03-05T13:23:50Z"
 }`
+
+var memoRequiredResponse = map[string]string{
+	"value": "MQ==",
+}
 
 var notFoundResponse = `{
   "type": "https://diamnet.org/aurora-errors/not_found",
@@ -1318,7 +1847,7 @@ var metricsResponse = `{
   "history.open_connections": {
     "value": 27
 	},
-	 "ingester.clear_ledger": {
+  "ingest.ledger_graph_only_ingestion": {
     "15m.rate": 0,
     "1m.rate": 0,
     "5m.rate": 0,
@@ -1331,24 +1860,40 @@ var metricsResponse = `{
     "mean": 0,
     "mean.rate": 0,
     "median": 0,
-    "min": 0,
+    "min": 10,
     "stddev": 0
   },
-  "ingester.ingest_ledger": {
-    "15m.rate": 0.19938341023530404,
-    "1m.rate": 0.19999701234910322,
-    "5m.rate": 0.1995375686820368,
-    "75%": 4269214,
-    "95%": 108334280.2,
-    "99%": 127591193.57000005,
-    "99.9%": 185115016.58600014,
-    "count": 14554,
-    "max": 186210682,
-    "mean": 13162584.692607004,
-    "mean.rate": 0.19725951740668984,
-    "median": 344771,
-    "min": 15636,
-    "stddev": 32661253.395383343
+  "ingest.ledger_ingestion": {
+    "15m.rate": 4.292383845297832,
+    "1m.rate": 1.6828538278349856,
+    "5m.rate": 3.7401206537727854,
+    "75%": 0.0918039395,
+    "95%": 0.11669889484999994,
+    "99%": 0.143023258,
+    "99.9%": 0.143023258,
+    "count": 36,
+    "max": 0.143023258,
+    "mean": 0.074862138,
+    "mean.rate": 0.48723881363424204,
+    "median": 0.0706217925,
+    "min": 0.03396778,
+    "stddev": 0.023001478
+  },
+  "ingest.state_verify": {
+    "15m.rate": 0,
+    "1m.rate": 0,
+    "5m.rate": 0,
+    "75%": 0,
+    "95%": 0,
+    "99%": 0,
+    "99.9%": 230.123456,
+    "count": 0,
+    "max": 0,
+    "mean": 0,
+    "mean.rate": 0,
+    "median": 0,
+    "min": 0,
+    "stddev": 0
   },
   "logging.debug": {
     "15m.rate": 0,
@@ -1463,19 +2008,38 @@ var feesResponse = `{
   "last_ledger": "22606298",
   "last_ledger_base_fee": "100",
   "ledger_capacity_usage": "0.97",
-  "min_accepted_fee": "130",
-  "mode_accepted_fee": "250",
-  "p10_accepted_fee": "150",
-  "p20_accepted_fee": "200",
-  "p30_accepted_fee": "300",
-  "p40_accepted_fee": "400",
-  "p50_accepted_fee": "500",
-  "p60_accepted_fee": "1000",
-  "p70_accepted_fee": "2000",
-  "p80_accepted_fee": "3000",
-  "p90_accepted_fee": "4000",
-  "p95_accepted_fee": "5000",
-  "p99_accepted_fee": "8000"
+  "max_fee": {
+    "min": "130",
+    "max": "8000",
+    "mode": "250",
+    "p10": "150",
+    "p20": "200",
+    "p30": "300",
+    "p40": "400",
+    "p50": "500",
+    "p60": "1000",
+    "p70": "2000",
+    "p80": "3000",
+    "p90": "4000",
+    "p95": "5000",
+    "p99": "8000"
+  },
+  "fee_charged": {
+    "min": "100",
+    "max": "100",
+    "mode": "100",
+    "p10": "100",
+    "p20": "100",
+    "p30": "100",
+    "p40": "100",
+    "p50": "100",
+    "p60": "100",
+    "p70": "100",
+    "p80": "100",
+    "p90": "100",
+    "p95": "100",
+    "p99": "100"
+  }
 }`
 
 var offersResponse = `{
@@ -1501,7 +2065,7 @@ var offersResponse = `{
             "href": "https://aurora-testnet.diamnet.org/accounts/GDOJCPYIB66RY4XNDLRRHQQXB27YLNNAGAYV5HMHEYNYY4KUNV5FDV2F"
           }
         },
-        "id": 432323,
+        "id": "432323",
         "paging_token": "432323",
         "seller": "GDOJCPYIB66RY4XNDLRRHQQXB27YLNNAGAYV5HMHEYNYY4KUNV5FDV2F",
         "selling": {
@@ -1524,6 +2088,38 @@ var offersResponse = `{
     ]
   }
 }`
+
+var offerResponse = `
+{
+  "_links": {
+    "self": {
+      "href": "https://aurora-testnet.diamnet.org/offers/5635"
+    },
+    "offer_maker": {
+      "href": "https://aurora-testnet.diamnet.org/accounts/GD6UOZ3FGFI5L2X6F52YPJ6ICSW375BNBZIQC4PCLSEOO6SMX7CUS5MB"
+    }
+  },
+  "id": "5635",
+  "paging_token": "5635",
+  "seller": "GD6UOZ3FGFI5L2X6F52YPJ6ICSW375BNBZIQC4PCLSEOO6SMX7CUS5MB",
+  "selling": {
+    "asset_type": "native"
+  },
+  "buying": {
+    "asset_type": "credit_alphanum12",
+    "asset_code": "AstroDollar",
+    "asset_issuer": "GDA2EHKPDEWZTAL6B66FO77HMOZL3RHZTIJO7KJJK5RQYSDUXEYMPJYY"
+  },
+  "amount": "100.0000000",
+  "price_r": {
+    "n": 10,
+    "d": 1
+  },
+  "price": "10.0000000",
+  "last_modified_ledger": 356183,
+  "last_modified_time": "2020-02-20T20:44:55Z"
+}
+`
 
 var multipleOpsResponse = `{
   "_links": {
@@ -1608,7 +2204,7 @@ var multipleOpsResponse = `{
         "selling_asset_type": "credit_alphanum4",
         "selling_asset_code": "XRP",
         "selling_asset_issuer": "GBVOL67TMUQBGL4TZYNMY3ZQ5WGQYFPFD5VJRWXR72VA33VFNL225PL5",
-        "offer_id": 73938565
+        "offer_id": "73938565"
       },  
       {
         "_links": {
@@ -1679,13 +2275,47 @@ var opsResponse = `{
 }`
 
 var txSuccess = `{
-    "_links": {
-        "transaction": {
-            "href": "https://aurora-testnet.diamnet.org/transactions/bcc7a97264dca0a51a63f7ea971b5e7458e334489673078bb2a34eb0cce910ca"
-        }
-    },
+	"_links": {
+		"self": {
+		  "href": "https://aurora-testnet.diamnet.org/transactions/5131aed266a639a6eb4802a92fba310454e711ded830ed899745b9e777d7110c"
+		},
+		"account": {
+		  "href": "https://aurora-testnet.diamnet.org/accounts/GC3IMK2BSHNZZ4WAC3AXQYA7HQTZKUUDJ7UYSA2HTNCIX5S5A5NVD3FD"
+		},
+		"ledger": {
+		  "href": "https://aurora-testnet.diamnet.org/ledgers/438134"
+		},
+		"operations": {
+		  "href": "https://aurora-testnet.diamnet.org/transactions/5131aed266a639a6eb4802a92fba310454e711ded830ed899745b9e777d7110c/operations{?cursor,limit,order}",
+		  "templated": true
+		},
+		"effects": {
+		  "href": "https://aurora-testnet.diamnet.org/transactions/5131aed266a639a6eb4802a92fba310454e711ded830ed899745b9e777d7110c/effects{?cursor,limit,order}",
+		  "templated": true
+		},
+		"precedes": {
+		  "href": "https://aurora-testnet.diamnet.org/transactions?order=asc&cursor=1881771201282048"
+		},
+		"succeeds": {
+		  "href": "https://aurora-testnet.diamnet.org/transactions?order=desc&cursor=1881771201282048"
+		},
+		"transaction": {
+          "href": "https://aurora-testnet.diamnet.org/transactions/bcc7a97264dca0a51a63f7ea971b5e7458e334489673078bb2a34eb0cce910ca"
+		}
+	},
+	"id": "bcc7a97264dca0a51a63f7ea971b5e7458e334489673078bb2a34eb0cce910ca",
     "hash": "bcc7a97264dca0a51a63f7ea971b5e7458e334489673078bb2a34eb0cce910ca",
     "ledger": 354811,
+	"successful": true,
+	"created_at": "2019-03-25T10:27:53Z",
+	"source_account": "GC3IMK2BSHNZZ4WAC3AXQYA7HQTZKUUDJ7UYSA2HTNCIX5S5A5NVD3FD",
+	"source_account_sequence": "1881766906298369",
+	"fee_charged": 100,
+	"max_fee": 100,
+	"operation_count": 1,
+	"signatures": [
+	"kOZumR7L/Pxnf2kSdhDC7qyTMRcp0+ymw+dU+4A/dRqqf387ER4pUhqFUsOc7ZrSW9iz+6N20G4mcp0IiT5fAg=="
+	],
     "envelope_xdr": "AAAAABB90WssODNIgi6BHveqzxTRmIpvAFRyVNM+Hm2GVuCcAAAAZAAABD0AAuV/AAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAyTBGxOgfSApppsTnb/YRr6gOR8WT0LZNrhLh4y3FCgoAAAAXSHboAAAAAAAAAAABhlbgnAAAAEAivKe977CQCxMOKTuj+cWTFqc2OOJU8qGr9afrgu2zDmQaX5Q0cNshc3PiBwe0qw/+D/qJk5QqM5dYeSUGeDQP",
     "result_xdr": "AAAAAAAAAGQAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAA=",
     "result_meta_xdr": "AAAAAQAAAAIAAAADAAVp+wAAAAAAAAAAEH3Rayw4M0iCLoEe96rPFNGYim8AVHJU0z4ebYZW4JwACBP/TuycHAAABD0AAuV+AAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAABAAVp+wAAAAAAAAAAEH3Rayw4M0iCLoEe96rPFNGYim8AVHJU0z4ebYZW4JwACBP/TuycHAAABD0AAuV/AAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAABAAAAAwAAAAMABWn7AAAAAAAAAAAQfdFrLDgzSIIugR73qs8U0ZiKbwBUclTTPh5thlbgnAAIE/9O7JwcAAAEPQAC5X8AAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAEABWn7AAAAAAAAAAAQfdFrLDgzSIIugR73qs8U0ZiKbwBUclTTPh5thlbgnAAIE+gGdbQcAAAEPQAC5X8AAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAABWn7AAAAAAAAAADJMEbE6B9ICmmmxOdv9hGvqA5HxZPQtk2uEuHjLcUKCgAAABdIdugAAAVp+wAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAA=="
@@ -1695,7 +2325,7 @@ var transactionFailure = `{
   "type": "https://diamnet.org/aurora-errors/transaction_failed",
   "title": "Transaction Failed",
   "status": 400,
-  "detail": "The transaction failed when submitted to the diamnet network. The extras.result_codes field on this response contains further details.  Descriptions of each code can be found at: https://www.diamnet.org/developers/learn/concepts/list-of-operations.html",
+  "detail": "The transaction failed when submitted to the diamnet network. The extras.result_codes field on this response contains further details.  Descriptions of each code can be found at: https://developers.diamnet.org/docs/start/list-of-operations/",
   "instance": "aurora-testnet-001.prd.diamnet001.internal.diamnet-ops.com/4elYz2fHhC-528285",
   "extras": {
     "envelope_xdr": "AAAAAKpmDL6Z4hvZmkTBkYpHftan4ogzTaO4XTB7joLgQnYYAAAAZAAAAAAABeoyAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAABAAAAAD3sEVVGZGi/NoC3ta/8f/YZKMzyi9ZJpOi0H47x7IqYAAAAAAAAAAAF9eEAAAAAAAAAAAA=",
@@ -1754,7 +2384,8 @@ var txPageResponse = `{
         "created_at": "2019-03-25T10:27:53Z",
         "source_account": "GAIH3ULLFQ4DGSECF2AR555KZ4KNDGEKN4AFI4SU2M7B43MGK3QJZNSR",
         "source_account_sequence": "4660039787356",
-        "fee_paid": 100,
+        "fee_charged": 100,
+        "max_fee": 100,
         "operation_count": 1,
         "envelope_xdr": "AAAAABB90WssODNIgi6BHveqzxTRmIpvAFRyVNM+Hm2GVuCcAAAAZAAABD0ABCNcAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAzvbakxhsAWYE0gRDf2pfXaYUCnH8vEwyQiNOJYLmNRIAAAAXSHboAAAAAAAAAAABhlbgnAAAAEBw2qecm0C4q7xi8+43NjuExfspCtA1ki2Jq2lWuNSLArJ0qcOhz/HnszFppaCBHkFf/37557MbF4NbFZXlVv4P",
         "result_xdr": "AAAAAAAAAGQAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAA=",
@@ -1800,7 +2431,8 @@ var txPageResponse = `{
         "created_at": "2019-03-25T10:27:53Z",
         "source_account": "GC3IMK2BSHNZZ4WAC3AXQYA7HQTZKUUDJ7UYSA2HTNCIX5S5A5NVD3FD",
         "source_account_sequence": "1881766906298369",
-        "fee_paid": 100,
+        "fee_charged": 100,
+        "max_fee": 100,
         "operation_count": 1,
         "envelope_xdr": "AAAAALaGK0GR25zywBbBeGAfPCeVUoNP6YkDR5tEi/ZdB1tRAAAAZAAGr3UAAAABAAAAAAAAAAEAAAAQMkExVjZKNTcwM0c0N1hIWQAAAAEAAAABAAAAALaGK0GR25zywBbBeGAfPCeVUoNP6YkDR5tEi/ZdB1tRAAAAAQAAAADMSEvcRKXsaUNna++Hy7gWm/CfqTjEA7xoGypfrFGUHAAAAAAAAAACBo93AAAAAAAAAAABXQdbUQAAAECQ5m6ZHsv8/Gd/aRJ2EMLurJMxFynT7KbD51T7gD91Gqp/fzsRHilSGoVSw5ztmtJb2LP7o3bQbiZynQiJPl8C",
         "result_xdr": "AAAAAAAAAGQAAAAAAAAAAQAAAAAAAAABAAAAAAAAAAA=",
@@ -1850,7 +2482,8 @@ var txDetailResponse = `{
   "created_at": "2019-03-25T10:27:53Z",
   "source_account": "GC3IMK2BSHNZZ4WAC3AXQYA7HQTZKUUDJ7UYSA2HTNCIX5S5A5NVD3FD",
   "source_account_sequence": "1881766906298369",
-  "fee_paid": 100,
+  "fee_charged": 100,
+  "max_fee": 100,
   "operation_count": 1,
   "envelope_xdr": "AAAAALaGK0GR25zywBbBeGAfPCeVUoNP6YkDR5tEi/ZdB1tRAAAAZAAGr3UAAAABAAAAAAAAAAEAAAAQMkExVjZKNTcwM0c0N1hIWQAAAAEAAAABAAAAALaGK0GR25zywBbBeGAfPCeVUoNP6YkDR5tEi/ZdB1tRAAAAAQAAAADMSEvcRKXsaUNna++Hy7gWm/CfqTjEA7xoGypfrFGUHAAAAAAAAAACBo93AAAAAAAAAAABXQdbUQAAAECQ5m6ZHsv8/Gd/aRJ2EMLurJMxFynT7KbD51T7gD91Gqp/fzsRHilSGoVSw5ztmtJb2LP7o3bQbiZynQiJPl8C",
   "result_xdr": "AAAAAAAAAGQAAAAAAAAAAQAAAAAAAAABAAAAAAAAAAA=",

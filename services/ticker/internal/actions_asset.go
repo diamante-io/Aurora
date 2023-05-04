@@ -1,6 +1,7 @@
 package ticker
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 	"time"
@@ -13,12 +14,12 @@ import (
 )
 
 // RefreshAssets scrapes the most recent asset list and ingests then into the db.
-func RefreshAssets(s *tickerdb.TickerSession, c *auroraclient.Client, l *hlog.Entry) (err error) {
+func RefreshAssets(ctx context.Context, s *tickerdb.TickerSession, c *auroraclient.Client, l *hlog.Entry) (err error) {
 	sc := scraper.ScraperConfig{
 		Client: c,
 		Logger: l,
 	}
-	finalAssetList, err := sc.FetchAllAssets(0, 500)
+	finalAssetList, err := sc.FetchAllAssets(0, 10)
 	if err != nil {
 		return
 	}
@@ -28,14 +29,14 @@ func RefreshAssets(s *tickerdb.TickerSession, c *auroraclient.Client, l *hlog.En
 		if dbIssuer.PublicKey == "" {
 			dbIssuer.PublicKey = finalAsset.Issuer
 		}
-		issuerID, err := s.InsertOrUpdateIssuer(&dbIssuer, []string{"public_key"})
+		issuerID, err := s.InsertOrUpdateIssuer(ctx, &dbIssuer, []string{"public_key"})
 		if err != nil {
 			l.Error("Error inserting issuer:", dbIssuer, err)
 			continue
 		}
 
 		dbAsset := finalAssetToDBAsset(finalAsset, issuerID)
-		err = s.InsertOrUpdateAsset(&dbAsset, []string{"code", "issuer_account", "issuer_id"})
+		err = s.InsertOrUpdateAsset(ctx, &dbAsset, []string{"code", "issuer_account", "issuer_id"})
 		if err != nil {
 			l.Error("Error inserting asset:", dbAsset, err)
 		}
@@ -45,10 +46,10 @@ func RefreshAssets(s *tickerdb.TickerSession, c *auroraclient.Client, l *hlog.En
 }
 
 // GenerateAssetsFile generates a file with the info about all valid scraped Assets
-func GenerateAssetsFile(s *tickerdb.TickerSession, l *hlog.Entry, filename string) error {
-	l.Infoln("Retrieving asset data from db...")
+func GenerateAssetsFile(ctx context.Context, s *tickerdb.TickerSession, l *hlog.Entry, filename string) error {
+	l.Info("Retrieving asset data from db...")
 	var assets []Asset
-	validAssets, err := s.GetAssetsWithNestedIssuer()
+	validAssets, err := s.GetAssetsWithNestedIssuer(ctx)
 	if err != nil {
 		return err
 	}
@@ -57,7 +58,7 @@ func GenerateAssetsFile(s *tickerdb.TickerSession, l *hlog.Entry, filename strin
 		asset := dbAssetToAsset(dbAsset)
 		assets = append(assets, asset)
 	}
-	l.Infoln("Asset data successfully retrieved! Writing to: ", filename)
+	l.Info("Asset data successfully retrieved! Writing to: ", filename)
 	now := time.Now()
 	assetSummary := AssetSummary{
 		GeneratedAt:        utils.TimeToUnixEpoch(now),

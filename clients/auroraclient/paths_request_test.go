@@ -1,7 +1,6 @@
 package auroraclient
 
 import (
-	"fmt"
 	"testing"
 
 	hProtocol "github.com/diamnet/go/protocols/aurora"
@@ -26,34 +25,19 @@ func TestPathsRequestBuildUrl(t *testing.T) {
 		DestinationAssetIssuer: "GDZST3XVCDTUJ76ZAV2HA72KYQODXXZ5PTMAPZGDHZ6CS7RO7MGG3DBM",
 		DestinationAssetType:   AssetType4,
 		SourceAccount:          "GDZST3XVCDTUJ76ZAV2HA72KYQODXXZ5PTMAPZGDHZ6CS7RO7MGG3DBM",
+		SourceAssets:           "COP:GDZST3XVCDTUJ76ZAV2HA72KYQODXXZ5PTMAPZGDHZ6CS7RO7MGG3DBM",
 	}
 
 	endpoint, err = pr.BuildURL()
 
 	// It should return valid assets endpoint and no errors
 	require.NoError(t, err)
-	assert.Equal(t, "paths?destination_account=GCLWGQPMKXQSPF776IU33AH4PZNOOWNAWGGKVTBQMIC5IMKUNP3E6NVU&destination_amount=100&destination_asset_code=NGN&destination_asset_issuer=GDZST3XVCDTUJ76ZAV2HA72KYQODXXZ5PTMAPZGDHZ6CS7RO7MGG3DBM&destination_asset_type=credit_alphanum4&source_account=GDZST3XVCDTUJ76ZAV2HA72KYQODXXZ5PTMAPZGDHZ6CS7RO7MGG3DBM", endpoint)
+	assert.Equal(
+		t,
+		"paths?destination_account=GCLWGQPMKXQSPF776IU33AH4PZNOOWNAWGGKVTBQMIC5IMKUNP3E6NVU&destination_amount=100&destination_asset_code=NGN&destination_asset_issuer=GDZST3XVCDTUJ76ZAV2HA72KYQODXXZ5PTMAPZGDHZ6CS7RO7MGG3DBM&destination_asset_type=credit_alphanum4&source_account=GDZST3XVCDTUJ76ZAV2HA72KYQODXXZ5PTMAPZGDHZ6CS7RO7MGG3DBM&source_assets=COP%3AGDZST3XVCDTUJ76ZAV2HA72KYQODXXZ5PTMAPZGDHZ6CS7RO7MGG3DBM",
+		endpoint,
+	)
 
-}
-
-func ExampleClient_Paths() {
-
-	client := DefaultPublicNetClient
-	// Find paths for XLM->NGN
-	pr := PathsRequest{
-		DestinationAccount:     "GCLWGQPMKXQSPF776IU33AH4PZNOOWNAWGGKVTBQMIC5IMKUNP3E6NVU",
-		DestinationAmount:      "100",
-		DestinationAssetCode:   "NGN",
-		DestinationAssetIssuer: "GDZST3XVCDTUJ76ZAV2HA72KYQODXXZ5PTMAPZGDHZ6CS7RO7MGG3DBM",
-		DestinationAssetType:   AssetType4,
-		SourceAccount:          "GDZST3XVCDTUJ76ZAV2HA72KYQODXXZ5PTMAPZGDHZ6CS7RO7MGG3DBM",
-	}
-	paths, err := client.Paths(pr)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Print(paths)
 }
 
 func TestPathsRequest(t *testing.T) {
@@ -78,7 +62,7 @@ func TestPathsRequest(t *testing.T) {
 		"https://localhost/paths?destination_account=GCLWGQPMKXQSPF776IU33AH4PZNOOWNAWGGKVTBQMIC5IMKUNP3E6NVU&destination_amount=100&destination_asset_code=NGN&destination_asset_issuer=GDZST3XVCDTUJ76ZAV2HA72KYQODXXZ5PTMAPZGDHZ6CS7RO7MGG3DBM&destination_asset_type=credit_alphanum4&source_account=GDZST3XVCDTUJ76ZAV2HA72KYQODXXZ5PTMAPZGDHZ6CS7RO7MGG3DBM",
 	).ReturnString(200, pathsResponse)
 
-	paths, err := client.Paths(pr)
+	paths, err := client.StrictReceivePaths(pr)
 	if assert.NoError(t, err) {
 		assert.IsType(t, paths, hProtocol.PathsPage{})
 		record := paths.Embedded.Records[0]
@@ -94,7 +78,55 @@ func TestPathsRequest(t *testing.T) {
 		"https://localhost/paths",
 	).ReturnString(400, badRequestResponse)
 
-	_, err = client.Paths(pr)
+	_, err = client.StrictReceivePaths(pr)
+	if assert.Error(t, err) {
+		assert.Contains(t, err.Error(), "aurora error")
+		auroraError, ok := err.(*Error)
+		assert.Equal(t, ok, true)
+		assert.Equal(t, auroraError.Problem.Title, "Bad Request")
+	}
+
+}
+
+func TestStrictReceivePathsRequest(t *testing.T) {
+	hmock := httptest.NewClient()
+	client := &Client{
+		AuroraURL: "https://localhost/",
+		HTTP:       hmock,
+	}
+
+	pr := PathsRequest{
+		DestinationAccount:     "GCLWGQPMKXQSPF776IU33AH4PZNOOWNAWGGKVTBQMIC5IMKUNP3E6NVU",
+		DestinationAmount:      "100",
+		DestinationAssetCode:   "NGN",
+		DestinationAssetIssuer: "GDZST3XVCDTUJ76ZAV2HA72KYQODXXZ5PTMAPZGDHZ6CS7RO7MGG3DBM",
+		DestinationAssetType:   AssetType4,
+		SourceAccount:          "GDZST3XVCDTUJ76ZAV2HA72KYQODXXZ5PTMAPZGDHZ6CS7RO7MGG3DBM",
+	}
+
+	// orderbook for XLM/USD
+	hmock.On(
+		"GET",
+		"https://localhost/paths?destination_account=GCLWGQPMKXQSPF776IU33AH4PZNOOWNAWGGKVTBQMIC5IMKUNP3E6NVU&destination_amount=100&destination_asset_code=NGN&destination_asset_issuer=GDZST3XVCDTUJ76ZAV2HA72KYQODXXZ5PTMAPZGDHZ6CS7RO7MGG3DBM&destination_asset_type=credit_alphanum4&source_account=GDZST3XVCDTUJ76ZAV2HA72KYQODXXZ5PTMAPZGDHZ6CS7RO7MGG3DBM",
+	).ReturnString(200, pathsResponse)
+
+	paths, err := client.StrictReceivePaths(pr)
+	if assert.NoError(t, err) {
+		assert.IsType(t, paths, hProtocol.PathsPage{})
+		record := paths.Embedded.Records[0]
+		assert.Equal(t, record.DestinationAmount, "20.0000000")
+		assert.Equal(t, record.DestinationAssetCode, "EUR")
+		assert.Equal(t, record.SourceAmount, "30.0000000")
+	}
+
+	// failure response
+	pr = PathsRequest{}
+	hmock.On(
+		"GET",
+		"https://localhost/paths",
+	).ReturnString(400, badRequestResponse)
+
+	_, err = client.StrictReceivePaths(pr)
 	if assert.Error(t, err) {
 		assert.Contains(t, err.Error(), "aurora error")
 		auroraError, ok := err.(*Error)

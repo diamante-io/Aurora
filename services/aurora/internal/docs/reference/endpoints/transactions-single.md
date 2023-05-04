@@ -2,6 +2,7 @@
 title: Transaction Details
 clientData:
   laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=transactions&endpoint=single
+replacement: https://developers.diamnet.org/api/resources/transactions/single/
 ---
 
 The transaction details endpoint provides information on a single
@@ -10,7 +11,7 @@ specifies which transaction to load.
 
 ### Warning - failed transactions
 
-Transaction can be successful or failed (failed transactions are also included in DiamNet ledger).
+Transaction can be successful or failed (failed transactions are also included in Diamnet ledger).
 Always check it's status using `successful` field!
 
 ## Request
@@ -23,7 +24,7 @@ GET /transactions/{hash}
 
 |  name  |  notes  | description | example |
 | ------ | ------- | ----------- | ------- |
-| `hash` | required, string | A transaction hash, hex-encoded. | 264226cb06af3b86299031884175155e67a02e0a8ad0b3ab3a88b409a8c09d5c |
+| `hash` | required, string | A transaction hash, hex-encoded, lowercase. | 264226cb06af3b86299031884175155e67a02e0a8ad0b3ab3a88b409a8c09d5c |
 
 ### curl Example Request
 
@@ -34,8 +35,8 @@ curl "https://aurora-testnet.diamnet.org/transactions/264226cb06af3b862990318841
 ### JavaScript Example Request
 
 ```javascript
-var DiamNetSdk = require('diamnet-sdk');
-var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
+var DiamnetSdk = require('diamnet-sdk');
+var server = new DiamnetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.transactions()
   .transaction("264226cb06af3b86299031884175155e67a02e0a8ad0b3ab3a88b409a8c09d5c")
@@ -88,8 +89,10 @@ This endpoint responds with a single Transaction.  See [transaction resource](..
   "ledger": 697121,
   "created_at": "2019-04-09T20:14:25Z",
   "source_account": "GAIH3ULLFQ4DGSECF2AR555KZ4KNDGEKN4AFI4SU2M7B43MGK3QJZNSR",
+  "fee_account": "GAIH3ULLFQ4DGSECF2AR555KZ4KNDGEKN4AFI4SU2M7B43MGK3QJZNSR",
   "source_account_sequence": "4660039994869",
-  "fee_paid": 100,
+  "fee_charged": 100,
+  "max_fee": 100,
   "operation_count": 1,
   "envelope_xdr": "AAAAABB90WssODNIgi6BHveqzxTRmIpvAFRyVNM+Hm2GVuCcAAAAZAAABD0AB031AAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAFIMRkFZ9gZifhRSlklQpsz/9P04Earv0dzS3MkIM1cYAAAAXSHboAAAAAAAAAAABhlbgnAAAAEA+biIjrDy8yi+SvhFElIdWGBRYlDscnSSHkPchePy2JYDJn4wvJYDBumXI7/NmttUey3+cGWbBFfnnWh1H5EoD",
   "result_xdr": "AAAAAAAAAGQAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAA=",

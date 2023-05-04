@@ -1,8 +1,0 @@
-#! /bin/bash
-set -e
-
-go test -race .
-find . -maxdepth 1 -mindepth 1 -type d \
-  | egrep -v '^\.\/vendor|^.\/docs|^\.\/\..*' \
-  | sed 's/.*/&\/.../g' \
-  | xargs -I {} -P 4 go test -race {}

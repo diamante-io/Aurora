@@ -1,6 +1,7 @@
 package federation
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 	"testing"
@@ -200,7 +201,7 @@ func (fd ForwardTestDriver) LookupForwardingRecord(query url.Values) (*Record, e
 	}
 }
 
-func (fd ForwardTestDriver) LookupRecord(name string, domain string) (*Record, error) {
+func (fd ForwardTestDriver) LookupRecord(ctx context.Context, name string, domain string) (*Record, error) {
 	return nil, nil
 }
 

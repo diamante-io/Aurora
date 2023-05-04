@@ -8,6 +8,15 @@ import (
 
 // Well-known and reused problems below:
 var (
+	// ServiceUnavailable is a well-known problem type.  Use it as a shortcut
+	// in your actions.
+	ServiceUnavailable = problem.P{
+		Type:   "service_unavailable",
+		Title:  "Service Unavailable",
+		Status: http.StatusServiceUnavailable,
+		Detail: "The request cannot be serviced at this time.",
+	}
+
 	// RateLimitExceeded is a well-known problem type.  Use it as a shortcut
 	// in your actions.
 	RateLimitExceeded = problem.P{
@@ -91,8 +100,8 @@ var (
 		Status: http.StatusServiceUnavailable,
 		Detail: "This aurora instance is configured to reject client requests " +
 			"when it can determine that the history database is lagging too far " +
-			"behind the connected instance of diamnet-core.  If you operate this " +
-			"server, please ensure that the ingestion system is properly running.",
+			"behind the connected instance of Diamnet-Core or read replica. It's " +
+			"also possible that Diamnet-Core is out of sync. Please try again later.",
 	}
 
 	// StillIngesting is a well-known problem type.  Use it as a shortcut

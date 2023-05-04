@@ -21,13 +21,17 @@ func (s *Session) Begin() error {
 		return errors.New("already in transaction")
 	}
 
-	tx, err := s.DB.Beginx()
+	tx, err := s.DB.BeginTxx(context.Background(), nil)
 	if err != nil {
+		if knownErr := s.replaceWithKnownError(err); knownErr != nil {
+			return knownErr
+		}
+
 		return errors.Wrap(err, "beginx failed")
 	}
-	s.logBegin()
-
+	log.Debug("sql: begin")
 	s.tx = tx
+	s.txOptions = nil
 	return nil
 }
 
@@ -38,13 +42,18 @@ func (s *Session) BeginTx(opts *sql.TxOptions) error {
 		return errors.New("already in transaction")
 	}
 
-	tx, err := s.DB.BeginTxx(s.Ctx, opts)
+	tx, err := s.DB.BeginTxx(context.Background(), opts)
 	if err != nil {
+		if knownErr := s.replaceWithKnownError(err); knownErr != nil {
+			return knownErr
+		}
+
 		return errors.Wrap(err, "beginTx failed")
 	}
-	s.logBegin()
+	log.Debug("sql: begin")
 
 	s.tx = tx
+	s.txOptions = opts
 	return nil
 }
 
@@ -52,13 +61,16 @@ func (s *Session) GetTx() *sqlx.Tx {
 	return s.tx
 }
 
+func (s *Session) GetTxOptions() *sql.TxOptions {
+	return s.txOptions
+}
+
 // Clone clones the receiver, returning a new instance backed by the same
 // context and db. The result will not be bound to any transaction that the
 // source is currently within.
-func (s *Session) Clone() *Session {
+func (s *Session) Clone() SessionInterface {
 	return &Session{
-		DB:  s.DB,
-		Ctx: s.Ctx,
+		DB: s.DB,
 	}
 }
 
@@ -76,8 +88,9 @@ func (s *Session) Commit() error {
 	}
 
 	err := s.tx.Commit()
-	s.logCommit()
+	log.Debug("sql: commit")
 	s.tx = nil
+	s.txOptions = nil
 	return err
 }
 
@@ -89,6 +102,7 @@ func (s *Session) Dialect() string {
 // DeleteRange deletes a range of rows from a sql table between `start` and
 // `end` (exclusive).
 func (s *Session) DeleteRange(
+	ctx context.Context,
 	start, end int64,
 	table string,
 	idCol string,
@@ -98,34 +112,38 @@ func (s *Session) DeleteRange(
 		start,
 		end,
 	)
-	_, err := s.Exec(del)
+	_, err := s.Exec(ctx, del)
 	return err
 }
 
 // Get runs `query`, setting the first result found on `dest`, if
 // any.
-func (s *Session) Get(dest interface{}, query sq.Sqlizer) error {
+func (s *Session) Get(ctx context.Context, dest interface{}, query sq.Sqlizer) error {
 	sql, args, err := s.build(query)
 	if err != nil {
 		return err
 	}
-	return s.GetRaw(dest, sql, args...)
+	return s.GetRaw(ctx, dest, sql, args...)
 }
 
 // GetRaw runs `query` with `args`, setting the first result found on
 // `dest`, if any.
-func (s *Session) GetRaw(dest interface{}, query string, args ...interface{}) error {
+func (s *Session) GetRaw(ctx context.Context, dest interface{}, query string, args ...interface{}) error {
 	query, err := s.ReplacePlaceholders(query)
 	if err != nil {
 		return errors.Wrap(err, "replace placeholders failed")
 	}
 
 	start := time.Now()
-	err = s.conn().Get(dest, query, args...)
-	s.log("get", start, query, args)
+	err = s.conn().GetContext(ctx, dest, query, args...)
+	s.log(ctx, "get", start, query, args)
 
 	if err == nil {
 		return nil
+	}
+
+	if knownErr := s.replaceWithKnownError(err); knownErr != nil {
+		return knownErr
 	}
 
 	if s.NoRows(err) {
@@ -143,24 +161,24 @@ func (s *Session) GetTable(name string) *Table {
 	}
 }
 
-func (s *Session) TruncateTables(tables []string) error {
-	truncateCmd := fmt.Sprintf("truncate %s cascade", strings.Join(tables[:], ","))
-	_, err := s.ExecRaw(truncateCmd)
+func (s *Session) TruncateTables(ctx context.Context, tables []string) error {
+	truncateCmd := fmt.Sprintf("truncate %s restart identity cascade", strings.Join(tables[:], ","))
+	_, err := s.ExecRaw(ctx, truncateCmd)
 	return err
 }
 
 // Exec runs `query`
-func (s *Session) Exec(query sq.Sqlizer) (sql.Result, error) {
+func (s *Session) Exec(ctx context.Context, query sq.Sqlizer) (sql.Result, error) {
 	sql, args, err := s.build(query)
 	if err != nil {
 		return nil, err
 	}
-	return s.ExecRaw(sql, args...)
+	return s.ExecRaw(ctx, sql, args...)
 }
 
 // ExecAll runs all sql commands in `script` against `r` within a single
 // transaction.
-func (s *Session) ExecAll(script string) error {
+func (s *Session) ExecAll(ctx context.Context, script string) error {
 	err := s.Begin()
 	if err != nil {
 		return err
@@ -169,7 +187,7 @@ func (s *Session) ExecAll(script string) error {
 	defer s.Rollback()
 
 	for _, cmd := range sqlutils.AllStatements(script) {
-		_, err = s.ExecRaw(cmd)
+		_, err = s.ExecRaw(ctx, cmd)
 		if err != nil {
 			return err
 		}
@@ -179,18 +197,22 @@ func (s *Session) ExecAll(script string) error {
 }
 
 // ExecRaw runs `query` with `args`
-func (s *Session) ExecRaw(query string, args ...interface{}) (sql.Result, error) {
+func (s *Session) ExecRaw(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
 	query, err := s.ReplacePlaceholders(query)
 	if err != nil {
 		return nil, errors.Wrap(err, "replace placeholders failed")
 	}
 
 	start := time.Now()
-	result, err := s.conn().Exec(query, args...)
-	s.log("exec", start, query, args)
+	result, err := s.conn().ExecContext(ctx, query, args...)
+	s.log(ctx, "exec", start, query, args)
 
 	if err == nil {
 		return result, nil
+	}
+
+	if knownErr := s.replaceWithKnownError(err); knownErr != nil {
+		return nil, knownErr
 	}
 
 	if s.NoRows(err) {
@@ -206,28 +228,47 @@ func (s *Session) NoRows(err error) bool {
 	return err == sql.ErrNoRows
 }
 
+// replaceWithKnownError tries to replace Postgres error with package error.
+// Returns a new error if the err is known.
+func (s *Session) replaceWithKnownError(err error) error {
+	switch {
+	case strings.Contains(err.Error(), "pq: canceling statement due to user request"):
+		return ErrCancelled
+	case strings.Contains(err.Error(), "pq: canceling statement due to conflict with recovery"):
+		return ErrConflictWithRecovery
+	case strings.Contains(err.Error(), "driver: bad connection"):
+		return ErrBadConnection
+	default:
+		return nil
+	}
+}
+
 // Query runs `query`, returns a *sqlx.Rows instance
-func (s *Session) Query(query sq.Sqlizer) (*sqlx.Rows, error) {
+func (s *Session) Query(ctx context.Context, query sq.Sqlizer) (*sqlx.Rows, error) {
 	sql, args, err := s.build(query)
 	if err != nil {
 		return nil, err
 	}
-	return s.QueryRaw(sql, args...)
+	return s.QueryRaw(ctx, sql, args...)
 }
 
 // QueryRaw runs `query` with `args`
-func (s *Session) QueryRaw(query string, args ...interface{}) (*sqlx.Rows, error) {
+func (s *Session) QueryRaw(ctx context.Context, query string, args ...interface{}) (*sqlx.Rows, error) {
 	query, err := s.ReplacePlaceholders(query)
 	if err != nil {
 		return nil, errors.Wrap(err, "replace placeholders failed")
 	}
 
 	start := time.Now()
-	result, err := s.conn().Queryx(query, args...)
-	s.log("query", start, query, args)
+	result, err := s.conn().QueryxContext(ctx, query, args...)
+	s.log(ctx, "query", start, query, args)
 
 	if err == nil {
 		return result, nil
+	}
+
+	if knownErr := s.replaceWithKnownError(err); knownErr != nil {
+		return nil, knownErr
 	}
 
 	if s.NoRows(err) {
@@ -256,22 +297,32 @@ func (s *Session) Rollback() error {
 	}
 
 	err := s.tx.Rollback()
-	s.logRollback()
+	log.Debug("sql: rollback")
 	s.tx = nil
+	s.txOptions = nil
 	return err
 }
 
+// Ping verifies a connection to the database is still alive,
+// establishing a connection if necessary.
+func (s *Session) Ping(ctx context.Context, timeout time.Duration) error {
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	return s.DB.PingContext(ctx)
+}
+
 // Select runs `query`, setting the results found on `dest`.
-func (s *Session) Select(dest interface{}, query sq.Sqlizer) error {
+func (s *Session) Select(ctx context.Context, dest interface{}, query sq.Sqlizer) error {
 	sql, args, err := s.build(query)
 	if err != nil {
 		return err
 	}
-	return s.SelectRaw(dest, sql, args...)
+	return s.SelectRaw(ctx, dest, sql, args...)
 }
 
 // SelectRaw runs `query` with `args`, setting the results found on `dest`.
 func (s *Session) SelectRaw(
+	ctx context.Context,
 	dest interface{},
 	query string,
 	args ...interface{},
@@ -283,11 +334,15 @@ func (s *Session) SelectRaw(
 	}
 
 	start := time.Now()
-	err = s.conn().Select(dest, query, args...)
-	s.log("select", start, query, args)
+	err = s.conn().SelectContext(ctx, dest, query, args...)
+	s.log(ctx, "select", start, query, args)
 
 	if err == nil {
 		return nil
+	}
+
+	if knownErr := s.replaceWithKnownError(err); knownErr != nil {
+		return knownErr
 	}
 
 	if s.NoRows(err) {
@@ -337,31 +392,10 @@ func (s *Session) conn() Conn {
 	return s.DB
 }
 
-func (s *Session) log(typ string, start time.Time, query string, args []interface{}) {
+func (s *Session) log(ctx context.Context, typ string, start time.Time, query string, args []interface{}) {
 	log.
-		Ctx(s.logCtx()).
 		WithField("args", args).
 		WithField("sql", query).
 		WithField("dur", time.Since(start).String()).
 		Debugf("sql: %s", typ)
-}
-
-func (s *Session) logBegin() {
-	log.Ctx(s.logCtx()).Debug("sql: begin")
-}
-
-func (s *Session) logCommit() {
-	log.Ctx(s.logCtx()).Debug("sql: commit")
-}
-
-func (s *Session) logRollback() {
-	log.Ctx(s.logCtx()).Debug("sql: rollback")
-}
-
-func (s *Session) logCtx() context.Context {
-	if s.Ctx != nil {
-		return s.Ctx
-	}
-
-	return context.Background()
 }

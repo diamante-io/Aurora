@@ -2,17 +2,18 @@
 title: Post Transaction
 clientData:
   laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=transactions&endpoint=create
+replacement: https://developers.diamnet.org/api/resources/transactions/post/
 ---
 
-Posts a new [transaction](../resources/transaction.md) to the DiamNet Network.
+Posts a new [transaction](../resources/transaction.md) to the Diamnet Network.
 Note that creating a valid transaction and signing it properly is the
 responsibility of your client library.
 
 Transaction submission and the subsequent validation and inclusion into the
-DiamNet Network's ledger is a [complicated and asynchronous
+Diamnet Network's ledger is a [complicated and asynchronous
 process](https://www.diamnet.org/developers/learn/concepts/transactions.html#life-cycle).
 To reduce the complexity, aurora manages these asynchronous processes for the
-client and will wait to hear results from the DiamNet Network before returning
+client and will wait to hear results from the Diamnet Network before returning
 an HTTP response to a client.
 
 Transaction submission to aurora aims to be
@@ -24,7 +25,7 @@ and not attempt to submit the transaction again. Only in cases where a
 transaction's status is unknown (and thus will have a chance of being included
 into a ledger) will a resubmission to the network occur.
 
-Information about [building transactions](https://www.diamnet.org/developers/js-diamnet-base/learn/building-transactions.html) in JavaScript.
+Information about [building transactions](https://www.diamnet.org/developers/js-diamnet-base/reference/building-transactions.html) in JavaScript.
 
 ### Timeout
 
@@ -36,7 +37,7 @@ If you are encountering this error it means that either:
 The former case may happen because there was no room for your transaction in the 3 consecutive ledgers. In such case, Core server removes a transaction from a queue. To solve this you can either:
 
 * Keep resubmitting the same transaction (with the same sequence number) and wait until it finally is added to a new ledger or:
-* Increase the [fee](/developers/guides/concepts/fees.html).
+* Increase the [fee](../../../guides/concepts/fees.html).
 
 ## Request
 
@@ -69,23 +70,57 @@ If the transaction failed or errored, then an error response will be returned. P
 
 ### Attributes
 
-| Name              | Type   |                                                                       |
-|-------------------|--------|-----------------------------------------------------------------------|
-| `hash`            | string | A hex-encoded hash of the submitted transaction.                      |
-| `ledger`          | number | The ledger number that the submitted transaction was included in.     |
-| `envelope_xdr`    | string | A base64 encoded `TransactionEnvelope` [XDR](../xdr.md) object. |
-| `result_xdr`      | string | A base64 encoded `TransactionResult` [XDR](../xdr.md) object.   |
-| `result_meta_xdr` | string | A base64 encoded `TransactionMeta` [XDR](../xdr.md) object.     |
+The response will include all fields from the [transaction resource](../resources/transaction.md).
 
 ### Example Response
 
 ```json
 {
-  "hash": "c492d87c4642815dfb3c7dcce01af4effd162b031064098a0d786b6e0a00fd74",
-  "ledger": 2,
-  "envelope_xdr": "AAAAAGL8HQvQkbK2HA3WVjRrKmjX00fG8sLI7m0ERwJW/AX3AAAACgAAAAAAAAABAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAArqN6LeOagjxMaUP96Bzfs9e0corNZXzBWJkFoK7kvkwAAAAAO5rKAAAAAAAAAAABVvwF9wAAAEAKZ7IPj/46PuWU6ZOtyMosctNAkXRNX9WCAI5RnfRk+AyxDLoDZP/9l3NvsxQtWj9juQOuoBlFLnWu8intgxQA",
-  "result_xdr": "xJLYfEZCgV37PH3M4Br07/0WKwMQZAmKDXhrbgoA/XQAAAAAAAAACgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAA==",
-  "result_meta_xdr": "AAAAAAAAAAEAAAABAAAAAgAAAAAAAAAAYvwdC9CRsrYcDdZWNGsqaNfTR8bywsjubQRHAlb8BfcBY0V4XYn/9gAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAABAAAAAgAAAAAAAAACAAAAAAAAAACuo3ot45qCPExpQ/3oHN+z17Ryis1lfMFYmQWgruS+TAAAAAA7msoAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAEAAAACAAAAAAAAAABi/B0L0JGythwN1lY0aypo19NHxvLCyO5tBEcCVvwF9wFjRXgh7zX2AAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAA=="
+  "_links": {
+    "self": {
+      "href": "https://aurora-testnet.diamnet.org/transactions/264226cb06af3b86299031884175155e67a02e0a8ad0b3ab3a88b409a8c09d5c"
+    },
+    "account": {
+      "href": "https://aurora-testnet.diamnet.org/accounts/GAIH3ULLFQ4DGSECF2AR555KZ4KNDGEKN4AFI4SU2M7B43MGK3QJZNSR"
+    },
+    "ledger": {
+      "href": "https://aurora-testnet.diamnet.org/ledgers/697121"
+    },
+    "operations": {
+      "href": "https://aurora-testnet.diamnet.org/transactions/264226cb06af3b86299031884175155e67a02e0a8ad0b3ab3a88b409a8c09d5c/operations{?cursor,limit,order}",
+      "templated": true
+    },
+    "effects": {
+      "href": "https://aurora-testnet.diamnet.org/transactions/264226cb06af3b86299031884175155e67a02e0a8ad0b3ab3a88b409a8c09d5c/effects{?cursor,limit,order}",
+      "templated": true
+    },
+    "precedes": {
+      "href": "https://aurora-testnet.diamnet.org/transactions?order=asc&cursor=2994111896358912"
+    },
+    "succeeds": {
+      "href": "https://aurora-testnet.diamnet.org/transactions?order=desc&cursor=2994111896358912"
+    }
+  },
+  "id": "264226cb06af3b86299031884175155e67a02e0a8ad0b3ab3a88b409a8c09d5c",
+  "paging_token": "2994111896358912",
+  "successful": true,
+  "hash": "264226cb06af3b86299031884175155e67a02e0a8ad0b3ab3a88b409a8c09d5c",
+  "ledger": 697121,
+  "created_at": "2019-04-09T20:14:25Z",
+  "source_account": "GAIH3ULLFQ4DGSECF2AR555KZ4KNDGEKN4AFI4SU2M7B43MGK3QJZNSR",
+  "fee_account": "GAIH3ULLFQ4DGSECF2AR555KZ4KNDGEKN4AFI4SU2M7B43MGK3QJZNSR",
+  "source_account_sequence": "4660039994869",
+  "fee_charged": 100,
+  "max_fee": 100,
+  "operation_count": 1,
+  "envelope_xdr": "AAAAABB90WssODNIgi6BHveqzxTRmIpvAFRyVNM+Hm2GVuCcAAAAZAAABD0AB031AAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAFIMRkFZ9gZifhRSlklQpsz/9P04Earv0dzS3MkIM1cYAAAAXSHboAAAAAAAAAAABhlbgnAAAAEA+biIjrDy8yi+SvhFElIdWGBRYlDscnSSHkPchePy2JYDJn4wvJYDBumXI7/NmttUey3+cGWbBFfnnWh1H5EoD",
+  "result_xdr": "AAAAAAAAAGQAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAA=",
+  "result_meta_xdr": "AAAAAQAAAAIAAAADAAqjIQAAAAAAAAAAEH3Rayw4M0iCLoEe96rPFNGYim8AVHJU0z4ebYZW4JwBOLmYhGq/IAAABD0AB030AAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAABAAqjIQAAAAAAAAAAEH3Rayw4M0iCLoEe96rPFNGYim8AVHJU0z4ebYZW4JwBOLmYhGq/IAAABD0AB031AAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAABAAAAAwAAAAMACqMhAAAAAAAAAAAQfdFrLDgzSIIugR73qs8U0ZiKbwBUclTTPh5thlbgnAE4uZiEar8gAAAEPQAHTfUAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAEACqMhAAAAAAAAAAAQfdFrLDgzSIIugR73qs8U0ZiKbwBUclTTPh5thlbgnAE4uYE789cgAAAEPQAHTfUAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAACqMhAAAAAAAAAAAUgxGQVn2BmJ+FFKWSVCmzP/0/TgRqu/R3NLcyQgzVxgAAABdIdugAAAqjIQAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAA==",
+  "fee_meta_xdr": "AAAAAgAAAAMACqMgAAAAAAAAAAAQfdFrLDgzSIIugR73qs8U0ZiKbwBUclTTPh5thlbgnAE4uZiEar+EAAAEPQAHTfQAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAEACqMhAAAAAAAAAAAQfdFrLDgzSIIugR73qs8U0ZiKbwBUclTTPh5thlbgnAE4uZiEar8gAAAEPQAHTfQAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAA==",
+  "memo_type": "none",
+  "signatures": [
+    "Pm4iI6w8vMovkr4RRJSHVhgUWJQ7HJ0kh5D3IXj8tiWAyZ+MLyWAwbplyO/zZrbVHst/nBlmwRX551odR+RKAw=="
+  ]
 }
 ```
 

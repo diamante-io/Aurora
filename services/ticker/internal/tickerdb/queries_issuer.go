@@ -1,6 +1,7 @@
 package tickerdb
 
 import (
+	"context"
 	"strings"
 
 	"github.com/diamnet/go/services/ticker/internal/utils"
@@ -8,7 +9,7 @@ import (
 
 // InsertOrUpdateIssuer inserts an Issuer on the database (if new),
 // or updates an existing one
-func (s *TickerSession) InsertOrUpdateIssuer(issuer *Issuer, preserveFields []string) (id int32, err error) {
+func (s *TickerSession) InsertOrUpdateIssuer(ctx context.Context, issuer *Issuer, preserveFields []string) (id int32, err error) {
 	dbFields := getDBFieldTags(*issuer, true)
 	dbFieldsString := strings.Join(dbFields, ", ")
 	dbValues := getDBFieldValues(*issuer, true)
@@ -21,7 +22,7 @@ func (s *TickerSession) InsertOrUpdateIssuer(issuer *Issuer, preserveFields []st
 	qs += " " + createOnConflictFragment("public_key_unique", toUpdateFields)
 	qs += " RETURNING id;"
 
-	rows, err := s.QueryRaw(qs, dbValues...)
+	rows, err := s.QueryRaw(ctx, qs, dbValues...)
 	if err != nil {
 		return
 	}
@@ -33,7 +34,7 @@ func (s *TickerSession) InsertOrUpdateIssuer(issuer *Issuer, preserveFields []st
 }
 
 // GetAllIssuers returns a slice with all issuers in the database
-func (s *TickerSession) GetAllIssuers() (issuers []Issuer, err error) {
-	err = s.SelectRaw(&issuers, "SELECT * FROM issuers")
+func (s *TickerSession) GetAllIssuers(ctx context.Context) (issuers []Issuer, err error) {
+	err = s.SelectRaw(ctx, &issuers, "SELECT * FROM issuers")
 	return
 }

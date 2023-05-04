@@ -10,7 +10,7 @@ import (
 func TestEntry_StartTest(t *testing.T) {
 	var out bytes.Buffer
 	e := New()
-	e.Logger.Out = &out
+	e.SetOutput(&out)
 
 	// when in test mode, out gets no output
 	done := e.StartTest(WarnLevel)

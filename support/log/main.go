@@ -22,7 +22,7 @@ const (
 
 // Entry repre
 type Entry struct {
-	logrus.Entry
+	entry logrus.Entry
 
 	isTesting bool
 }
@@ -44,7 +44,7 @@ func New() *Entry {
 	l.Level = logrus.WarnLevel
 	l.Formatter.(*logrus.TextFormatter).FullTimestamp = true
 	l.Formatter.(*logrus.TextFormatter).TimestampFormat = "2006-01-02T15:04:05.000Z07:00"
-	return &Entry{Entry: *logrus.NewEntry(l).WithField("pid", os.Getpid())}
+	return &Entry{entry: *logrus.NewEntry(l).WithField("pid", os.Getpid())}
 }
 
 // Set establishes a new context to which the provided sub-logger is bound

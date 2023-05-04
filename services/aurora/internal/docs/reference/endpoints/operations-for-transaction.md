@@ -2,6 +2,7 @@
 title: Operations for Transaction
 clientData:
   laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=operations&endpoint=for_transaction
+replacement: https://developers.diamnet.org/api/resources/transactions/operations/
 ---
 
 This endpoint represents successful [operations](../resources/operation.md) that are part of a given [transaction](../resources/transaction.md).
@@ -22,7 +23,7 @@ GET /transactions/{hash}/operations{?cursor,limit,order}
 
 | name | notes | description | example |
 | ---- | ----- | ----------- | ------- |
-| `hash` | required, string | A transaction hash, hex-encoded | `4a3365180521e16b478d9f0c9198b97a9434fc9cb07b34f83ecc32fc54d0ca8a` |
+| `hash` | required, string | A transaction hash, hex-encoded, lowercase. | `4a3365180521e16b478d9f0c9198b97a9434fc9cb07b34f83ecc32fc54d0ca8a` |
 | `?cursor` | optional, default _null_ | A paging token, specifying where to start returning records from. | `12884905984` |
 | `?order` | optional, string, default `asc` | The order in which to return rows, "asc" or "desc". | `asc` |
 | `?limit` | optional, number, default `10` | Maximum number of records to return. | `200` |
@@ -37,8 +38,8 @@ curl "https://aurora-testnet.diamnet.org/transactions/4a3365180521e16b478d9f0c91
 ### JavaScript Example Request
 
 ```javascript
-var DiamNetSdk = require('diamnet-sdk');
-var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
+var DiamnetSdk = require('diamnet-sdk');
+var server = new DiamnetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.operations()
   .forTransaction("4a3365180521e16b478d9f0c9198b97a9434fc9cb07b34f83ecc32fc54d0ca8a")

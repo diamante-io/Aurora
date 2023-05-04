@@ -9,10 +9,3 @@ mkdir -p /opt/diamnet/bin
 mkdir -p /opt/diamnet/www
 chown -R diamnet:diamnet /opt/diamnet/www
 mkdir -p /opt/diamnet/postgresql/data
-
-export TICKER="ticker-v1.1.0"
-export TICKER_PATH="$TICKER-linux-amd64"
-wget -O ticker.tar.gz https://github.com/diamnet/go/releases/download/$TICKER/$TICKER_PATH.tar.gz
-tar -xvzf ticker.tar.gz
-mv $TICKER_PATH/ticker /opt/diamnet/bin/ticker
-chmod +x /opt/diamnet/bin/ticker

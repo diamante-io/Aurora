@@ -1,5 +1,6 @@
 ---
 title: Trade Aggregation
+replacement: https://developers.diamnet.org/api/aggregations/trade-aggregations/
 ---
 
 A Trade Aggregation represents aggregated statistics on an asset pair (`base` and `counter`) for a specific time period.

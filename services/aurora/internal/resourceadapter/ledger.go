@@ -6,8 +6,8 @@ import (
 
 	"github.com/diamnet/go/amount"
 	protocol "github.com/diamnet/go/protocols/aurora"
+	auroraContext "github.com/diamnet/go/services/aurora/internal/context"
 	"github.com/diamnet/go/services/aurora/internal/db2/history"
-	"github.com/diamnet/go/services/aurora/internal/httpx"
 	"github.com/diamnet/go/support/render/hal"
 	"github.com/diamnet/go/xdr"
 )
@@ -25,6 +25,7 @@ func PopulateLedger(ctx context.Context, dest *protocol.Ledger, row history.Ledg
 	}
 	dest.FailedTransactionCount = row.FailedTransactionCount
 	dest.OperationCount = row.OperationCount
+	dest.TxSetOperationCount = row.TxSetOperationCount
 	dest.ClosedAt = row.ClosedAt
 	dest.TotalCoins = amount.String(xdr.Int64(row.TotalCoins))
 	dest.FeePool = amount.String(xdr.Int64(row.FeePool))
@@ -40,7 +41,7 @@ func PopulateLedger(ctx context.Context, dest *protocol.Ledger, row history.Ledg
 	}
 
 	self := fmt.Sprintf("/ledgers/%d", row.Sequence)
-	lb := hal.LinkBuilder{httpx.BaseURL(ctx)}
+	lb := hal.LinkBuilder{auroraContext.BaseURL(ctx)}
 	dest.Links.Self = lb.Link(self)
 	dest.Links.Transactions = lb.PagedLink(self, "transactions")
 	dest.Links.Operations = lb.PagedLink(self, "operations")

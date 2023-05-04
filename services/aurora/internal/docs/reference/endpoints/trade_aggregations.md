@@ -1,5 +1,6 @@
 ---
 title: Trade Aggregations
+replacement: https://developers.diamnet.org/api/aggregations/trade-aggregations/
 ---
 
 Trade Aggregations are catered specifically for developers of trading clients. They facilitate
@@ -46,11 +47,11 @@ curl https://aurora.diamnet.org/trade_aggregations?base_asset_type=native&counte
 ### JavaScript Example Request
 
 ```javascript
-var DiamNetSdk = require('diamnet-sdk');
-var server = new DiamNetSdk.Server('https://aurora.diamnet.org');
+var DiamnetSdk = require('diamnet-sdk');
+var server = new DiamnetSdk.Server('https://aurora.diamnet.org');
 
-var base = new DiamNetSdk.Asset.native();
-var counter = new DiamNetSdk.Asset("SLT", "GCKA6K5PCQ6PNF5RQBF7PQDJWRHO6UOGFMRLK3DYHDOI244V47XKQ4GP");
+var base = new DiamnetSdk.Asset.native();
+var counter = new DiamnetSdk.Asset("SLT", "GCKA6K5PCQ6PNF5RQBF7PQDJWRHO6UOGFMRLK3DYHDOI244V47XKQ4GP");
 var startTime = 1517521726000;
 var endTime = 1517532526000;
 var resolution = 3600000;
@@ -151,4 +152,4 @@ Note
 
 ## Possible Errors
 
-- The [standard errors](../errors.md#Standard_Errors).
+- The [standard errors](../errors.md#standard-errors).

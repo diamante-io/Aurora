@@ -2,6 +2,7 @@
 title: Operations for Account
 clientData:
   laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=operations&endpoint=for_account
+replacement: https://developers.diamnet.org/api/resources/accounts/offers/
 ---
 
 This endpoint represents successful [operations](../resources/operation.md) that were included in valid [transactions](../resources/transaction.md) that affected a particular [account](../resources/account.md).
@@ -35,8 +36,8 @@ curl "https://aurora-testnet.diamnet.org/accounts/GA2HGBJIJKI6O4XEM7CZWY5PS6GKSX
 ### JavaScript Example Request
 
 ```js
-var DiamNetSdk = require('diamnet-sdk');
-var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
+var DiamnetSdk = require('diamnet-sdk');
+var server = new DiamnetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.operations()
   .forAccount("GAKLBGHNHFQ3BMUYG5KU4BEWO6EYQHZHAXEWC33W34PH2RBHZDSQBD75")
@@ -52,8 +53,8 @@ server.operations()
 ### JavaScript Streaming Example
 
 ```javascript
-var DiamNetSdk = require('diamnet-sdk')
-var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
+var DiamnetSdk = require('diamnet-sdk')
+var server = new DiamnetSdk.Server('https://aurora-testnet.diamnet.org');
 
 var operationHandler = function (operationResponse) {
     console.log(operationResponse);

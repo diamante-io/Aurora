@@ -11,8 +11,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/rs/cors"
 	"github.com/diamnet/go/support/errors"
 	"github.com/diamnet/go/support/log"
+	"github.com/diamnet/go/support/render/health"
 	"github.com/diamnet/go/support/render/httpjson"
 	"github.com/diamnet/go/support/render/problem"
 )
@@ -28,15 +30,15 @@ func init() {
 
 func (s *Service) wrapMiddleware(handler http.Handler) http.Handler {
 	handler = authHandler(handler, s.authenticator)
-	return recoverHandler(handler)
+	handler = recoverHandler(handler)
+	handler = corsHandler(handler)
+	return handler
 }
 
 func ServeMux(s *Service) http.Handler {
 	mux := http.NewServeMux()
 	mux.Handle("/keys", s.wrapMiddleware(s.keysHTTPMethodHandler()))
-	mux.Handle("/health", s.wrapMiddleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})))
+	mux.Handle("/health", s.wrapMiddleware(health.PassHandler{}))
 	return mux
 }
 
@@ -177,4 +179,13 @@ func recoverHandler(next http.Handler) http.Handler {
 
 		next.ServeHTTP(rw, req)
 	})
+}
+
+func corsHandler(next http.Handler) http.Handler {
+	cors := cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+		AllowedHeaders: []string{"*"},
+		AllowedMethods: []string{"GET", "PUT", "POST", "PATCH", "DELETE", "HEAD", "OPTIONS"},
+	})
+	return cors.Handler(next)
 }

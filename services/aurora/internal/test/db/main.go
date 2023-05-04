@@ -29,6 +29,7 @@ func Aurora(t *testing.T) *sqlx.DB {
 	postgres := db.Postgres(t)
 	auroraUrl = &postgres.DSN
 	auroraDB = postgres.Open()
+
 	return auroraDB
 }
 
@@ -41,8 +42,8 @@ func AuroraURL() string {
 	return *auroraUrl
 }
 
-// DiamNetCore returns a connection to the diamnet core test database
-func DiamNetCore(t *testing.T) *sqlx.DB {
+// DiamnetCore returns a connection to the diamnet core test database
+func DiamnetCore(t *testing.T) *sqlx.DB {
 	if coreDB != nil {
 		return coreDB
 	}
@@ -52,11 +53,11 @@ func DiamNetCore(t *testing.T) *sqlx.DB {
 	return coreDB
 }
 
-// DiamNetCoreURL returns the database connection the url any test
+// DiamnetCoreURL returns the database connection the url any test
 // use when connecting to the diamnet-core database
-func DiamNetCoreURL() string {
+func DiamnetCoreURL() string {
 	if coreUrl == nil {
-		log.Panic(fmt.Errorf("DiamNetCore not initialized"))
+		log.Panic(fmt.Errorf("DiamnetCore not initialized"))
 	}
 	return *coreUrl
 }

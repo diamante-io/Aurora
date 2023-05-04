@@ -1,9 +1,9 @@
 # Clients package
 
-Packages here provide client libraries for accessing the ecosystem of DiamNet services.
+Packages here provide client libraries for accessing the ecosystem of Diamnet services.
 
 * `auroraclient` - programmatic client access to Aurora (use in conjunction with [txnbuild](../txnbuild))
-* `diamnettoml` - parse DiamNet.toml files from the internet
+* `diamnettoml` - parse Diamnet.toml files from the internet
 * `federation` - resolve federation addresses into diamnet account IDs, suitable for use within a transaction
 * `aurora` (DEPRECATED) - the original Aurora client, now superceded by `auroraclient`
 

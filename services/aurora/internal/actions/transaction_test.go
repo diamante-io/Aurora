@@ -1,88 +1,223 @@
 package actions
 
 import (
-	"context"
+	"net/http/httptest"
 	"testing"
 
-	"github.com/diamnet/go/services/aurora/internal/db2"
+	"github.com/diamnet/go/protocols/aurora"
 	"github.com/diamnet/go/services/aurora/internal/db2/history"
 	"github.com/diamnet/go/services/aurora/internal/test"
+	supportProblem "github.com/diamnet/go/support/render/problem"
 )
 
-var defaultPage db2.PageQuery = db2.PageQuery{
-	Order:  db2.OrderAscending,
-	Limit:  db2.DefaultPageSize,
-	Cursor: "",
-}
-
-func TestTransactionPage(t *testing.T) {
-	tt := test.Start(t).Scenario("base")
+func TestGetTransactionsHandler(t *testing.T) {
+	tt := test.Start(t)
+	tt.Scenario("base")
 	defer tt.Finish()
 
-	ctx := context.Background()
+	q := &history.Q{tt.AuroraSession()}
+	handler := GetTransactionsHandler{}
 
 	// filter by account
-	page, err := TransactionPage(ctx, &history.Q{tt.AuroraSession()}, "GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZMFSHONUCEOASW7QC7OX2H", 0, true, defaultPage)
+	records, err := handler.GetResourcePage(
+		httptest.NewRecorder(),
+		makeRequest(
+			t, map[string]string{
+				"account_id":     "GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZMFSHONUCEOASW7QC7OX2H",
+				"include_failed": "true",
+			}, map[string]string{}, q,
+		),
+	)
 	tt.Assert.NoError(err)
-	tt.Assert.Equal(3, len(page.Embedded.Records))
+	tt.Assert.Len(records, 3)
 
-	page, err = TransactionPage(ctx, &history.Q{tt.AuroraSession()}, "GA5WBPYA5Y4WAEHXWR2UKO2UO4BUGHUQ74EUPKON2QHV4WRHOIRNKKH2", 0, true, defaultPage)
+	records, err = handler.GetResourcePage(
+		httptest.NewRecorder(),
+		makeRequest(
+			t, map[string]string{
+				"account_id":     "GA5WBPYA5Y4WAEHXWR2UKO2UO4BUGHUQ74EUPKON2QHV4WRHOIRNKKH2",
+				"include_failed": "true",
+			}, map[string]string{}, q,
+		),
+	)
 	tt.Assert.NoError(err)
-	tt.Assert.Equal(1, len(page.Embedded.Records))
+	tt.Assert.Len(records, 1)
 
-	page, err = TransactionPage(ctx, &history.Q{tt.AuroraSession()}, "GCXKG6RN4ONIEPCMNFB732A436Z5PNDSRLGWK7GBLCMQLIFO4S7EYWVU", 0, true, defaultPage)
+	records, err = handler.GetResourcePage(
+		httptest.NewRecorder(),
+		makeRequest(
+			t, map[string]string{
+				"account_id":     "GCXKG6RN4ONIEPCMNFB732A436Z5PNDSRLGWK7GBLCMQLIFO4S7EYWVU",
+				"include_failed": "true",
+			}, map[string]string{}, q,
+		),
+	)
 	tt.Assert.NoError(err)
-	tt.Assert.Equal(2, len(page.Embedded.Records))
+	tt.Assert.Len(records, 2)
 
-	// filter by ledger
-	page, err = TransactionPage(ctx, &history.Q{tt.AuroraSession()}, "", 1, true, defaultPage)
+	// // filter by ledger
+	records, err = handler.GetResourcePage(
+		httptest.NewRecorder(),
+		makeRequest(
+			t, map[string]string{
+				"ledger_id":      "1",
+				"include_failed": "true",
+			}, map[string]string{}, q,
+		),
+	)
 	tt.Assert.NoError(err)
-	tt.Assert.Equal(0, len(page.Embedded.Records))
+	tt.Assert.Len(records, 0)
 
-	page, err = TransactionPage(ctx, &history.Q{tt.AuroraSession()}, "", 2, true, defaultPage)
+	records, err = handler.GetResourcePage(
+		httptest.NewRecorder(),
+		makeRequest(
+			t, map[string]string{
+				"ledger_id":      "2",
+				"include_failed": "true",
+			}, map[string]string{}, q,
+		),
+	)
 	tt.Assert.NoError(err)
-	tt.Assert.Equal(3, len(page.Embedded.Records))
+	tt.Assert.Len(records, 3)
 
-	page, err = TransactionPage(ctx, &history.Q{tt.AuroraSession()}, "", 3, true, defaultPage)
+	records, err = handler.GetResourcePage(
+		httptest.NewRecorder(),
+		makeRequest(
+			t, map[string]string{
+				"ledger_id":      "3",
+				"include_failed": "true",
+			}, map[string]string{}, q,
+		),
+	)
 	tt.Assert.NoError(err)
-	tt.Assert.Equal(1, len(page.Embedded.Records))
+	tt.Assert.Len(records, 1)
 
-	// conflict fields
-	_, err = TransactionPage(ctx, &history.Q{tt.AuroraSession()}, "GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZMFSHONUCEOASW7QC7OX2H", 1, true, defaultPage)
-	tt.Assert.Error(err)
+	records, err = handler.GetResourcePage(
+		httptest.NewRecorder(),
+		makeRequest(
+			t, map[string]string{
+				"account_id":     "GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZMFSHONUCEOASW7QC7OX2H",
+				"ledger_id":      "3",
+				"include_failed": "true",
+			}, map[string]string{}, q,
+		),
+	)
+	tt.Assert.IsType(&supportProblem.P{}, err)
+	p := err.(*supportProblem.P)
+	tt.Assert.Equal("bad_request", p.Type)
+	tt.Assert.Equal("filters", p.Extras["invalid_field"])
+	tt.Assert.Equal(
+		"Use a single filter for transaction, you can only use one of account_id, claimable_balance_id or ledger_id",
+		p.Extras["reason"],
+	)
 }
 
-func TestLoadTransactionRecords(t *testing.T) {
-	tt := test.Start(t).Scenario("base")
+func checkOuterHashResponse(
+	tt *test.T,
+	fixture history.FeeBumpFixture,
+	transactionResponse aurora.Transaction,
+) {
+	tt.Assert.Equal(fixture.Transaction.Account, transactionResponse.Account)
+	tt.Assert.Equal(fixture.Transaction.AccountSequence, transactionResponse.AccountSequence)
+	tt.Assert.Equal(fixture.Transaction.FeeAccount.String, transactionResponse.FeeAccount)
+	tt.Assert.Equal(fixture.Transaction.FeeCharged, transactionResponse.FeeCharged)
+	tt.Assert.Equal(fixture.Transaction.TransactionHash, transactionResponse.ID)
+	tt.Assert.Equal(fixture.Transaction.MaxFee, transactionResponse.InnerTransaction.MaxFee)
+	tt.Assert.Equal(
+		[]string(fixture.Transaction.InnerSignatures),
+		transactionResponse.InnerTransaction.Signatures,
+	)
+	tt.Assert.Equal(
+		fixture.Transaction.InnerTransactionHash.String,
+		transactionResponse.InnerTransaction.Hash,
+	)
+	tt.Assert.Equal(fixture.Transaction.NewMaxFee.Int64, transactionResponse.MaxFee)
+	tt.Assert.Equal(fixture.Transaction.Memo.String, transactionResponse.Memo)
+	tt.Assert.Equal(fixture.Transaction.MemoType, transactionResponse.MemoType)
+	tt.Assert.Equal(fixture.Transaction.OperationCount, transactionResponse.OperationCount)
+	tt.Assert.Equal(
+		[]string(fixture.Transaction.Signatures),
+		transactionResponse.Signatures,
+	)
+	tt.Assert.Equal(fixture.Transaction.Successful, transactionResponse.Successful)
+	tt.Assert.Equal(fixture.Transaction.TotalOrderID.PagingToken(), transactionResponse.PT)
+	tt.Assert.Equal(fixture.Transaction.TransactionHash, transactionResponse.Hash)
+	tt.Assert.Equal(fixture.Transaction.TxEnvelope, transactionResponse.EnvelopeXdr)
+	tt.Assert.Equal(fixture.Transaction.TxFeeMeta, transactionResponse.FeeMetaXdr)
+	tt.Assert.Equal(fixture.Transaction.TxMeta, transactionResponse.ResultMetaXdr)
+	tt.Assert.Equal(fixture.Transaction.TxResult, transactionResponse.ResultXdr)
+}
+
+func TestFeeBumpTransactionPage(t *testing.T) {
+	tt := test.Start(t)
 	defer tt.Finish()
+	test.ResetAuroraDB(t, tt.AuroraDB)
+	q := &history.Q{tt.AuroraSession()}
+	fixture := history.FeeBumpScenario(tt, q, true)
+	handler := GetTransactionsHandler{}
 
-	// filter by account
-	records, err := loadTransactionRecords(&history.Q{tt.AuroraSession()}, "GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZMFSHONUCEOASW7QC7OX2H", 0, true, defaultPage)
+	records, err := handler.GetResourcePage(
+		httptest.NewRecorder(),
+		makeRequest(
+			t, map[string]string{}, map[string]string{}, q,
+		),
+	)
 	tt.Assert.NoError(err)
-	tt.Assert.Equal(3, len(records))
+	tt.Assert.Len(records, 2)
 
-	records, err = loadTransactionRecords(&history.Q{tt.AuroraSession()}, "GA5WBPYA5Y4WAEHXWR2UKO2UO4BUGHUQ74EUPKON2QHV4WRHOIRNKKH2", 0, true, defaultPage)
+	feeBumpResponse := records[0].(aurora.Transaction)
+	checkOuterHashResponse(tt, fixture, feeBumpResponse)
+
+	normalTxResponse := records[1].(aurora.Transaction)
+	tt.Assert.Equal(fixture.NormalTransaction.TransactionHash, normalTxResponse.ID)
+}
+
+func TestFeeBumpTransactionResource(t *testing.T) {
+	tt := test.Start(t)
+	defer tt.Finish()
+	test.ResetAuroraDB(t, tt.AuroraDB)
+	q := &history.Q{tt.AuroraSession()}
+	fixture := history.FeeBumpScenario(tt, q, true)
+
+	handler := GetTransactionByHashHandler{}
+	resource, err := handler.GetResource(
+		httptest.NewRecorder(),
+		makeRequest(
+			t, map[string]string{}, map[string]string{
+				"tx_id": fixture.OuterHash,
+			}, q,
+		),
+	)
 	tt.Assert.NoError(err)
-	tt.Assert.Equal(1, len(records))
+	byOuterHash := resource.(aurora.Transaction)
+	checkOuterHashResponse(tt, fixture, byOuterHash)
 
-	records, err = loadTransactionRecords(&history.Q{tt.AuroraSession()}, "GCXKG6RN4ONIEPCMNFB732A436Z5PNDSRLGWK7GBLCMQLIFO4S7EYWVU", 0, true, defaultPage)
+	resource, err = handler.GetResource(
+		httptest.NewRecorder(),
+		makeRequest(
+			t, map[string]string{}, map[string]string{
+				"tx_id": fixture.InnerHash,
+			}, q,
+		),
+	)
 	tt.Assert.NoError(err)
-	tt.Assert.Equal(2, len(records))
 
-	// filter by ledger
-	records, err = loadTransactionRecords(&history.Q{tt.AuroraSession()}, "", 1, true, defaultPage)
-	tt.Assert.NoError(err)
-	tt.Assert.Equal(0, len(records))
+	byInnerHash := resource.(aurora.Transaction)
 
-	records, err = loadTransactionRecords(&history.Q{tt.AuroraSession()}, "", 2, true, defaultPage)
-	tt.Assert.NoError(err)
-	tt.Assert.Equal(3, len(records))
+	tt.Assert.NotEqual(byOuterHash.Hash, byInnerHash.Hash)
+	tt.Assert.NotEqual(byOuterHash.ID, byInnerHash.ID)
+	tt.Assert.NotEqual(byOuterHash.Signatures, byInnerHash.Signatures)
 
-	records, err = loadTransactionRecords(&history.Q{tt.AuroraSession()}, "", 3, true, defaultPage)
-	tt.Assert.NoError(err)
-	tt.Assert.Equal(1, len(records))
+	tt.Assert.Equal(fixture.InnerHash, byInnerHash.Hash)
+	tt.Assert.Equal(fixture.InnerHash, byInnerHash.ID)
+	tt.Assert.Equal(
+		[]string(fixture.Transaction.InnerSignatures),
+		byInnerHash.Signatures,
+	)
 
-	// conflict fields
-	_, err = loadTransactionRecords(&history.Q{tt.AuroraSession()}, "GA5WBPYA5Y4WAEHXWR2UKO2UO4BUGHUQ74EUPKON2QHV4WRHOIRNKKH2", 1, true, defaultPage)
-	tt.Assert.Error(err)
+	byInnerHash.Hash = byOuterHash.Hash
+	byInnerHash.ID = byOuterHash.ID
+	byInnerHash.Signatures = byOuterHash.Signatures
+	byInnerHash.Links = byOuterHash.Links
+	tt.Assert.Equal(byOuterHash, byInnerHash)
 }

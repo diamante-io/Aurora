@@ -5,9 +5,10 @@ This tool dumps the state from history archive buckets to 4 separate files:
 * accountdata.csv
 * offers.csv
 * trustlines.csv
+* claimablebalances.csv
 
-It's primary use is to test `SingleLedgerStateReader`. To test it:
-1. Run `dump-ledger-state`.
-2. Sync diamnet-core to the same checkpoint: `diamnet-core catchup [ledger]/1`.
-3. Dump diamnet-core DB by using `dump_core_db.sh` script.
-4. Diff results by using `diff_test.sh` script.
+It's primary use is to test `SingleLedgerStateReader`. To run the test (`run_test.sh`) it:
+1. Runs `dump-ledger-state`.
+2. Syncs diamnet-core to the same checkpoint: `diamnet-core catchup [ledger]/1`.
+3. Dumps diamnet-core DB by using `dump_core_db.sh` script.
+4. Diffs results by using `diff_test.sh` script.

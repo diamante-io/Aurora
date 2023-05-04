@@ -1,223 +1,426 @@
 package history
 
 import (
+	"strconv"
 	"testing"
 
+	"github.com/guregu/null"
+	"github.com/diamnet/go/services/aurora/internal/db2"
 	"github.com/diamnet/go/services/aurora/internal/test"
 	"github.com/diamnet/go/xdr"
 )
 
 var (
-	issuer   = xdr.MustAddress("GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZMFSHONUCEOASW7QC7OX2H")
-	usdAsset = xdr.Asset{
-		Type: xdr.AssetTypeAssetTypeCreditAlphanum4,
-		AlphaNum4: &xdr.AssetAlphaNum4{
-			AssetCode: [4]byte{'u', 's', 'd', 0},
-			Issuer:    issuer,
-		},
-	}
+	issuer            = xdr.MustAddress("GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZMFSHONUCEOASW7QC7OX2H")
+	twoEurOfferSeller = xdr.MustAddress("GA5WBPYA5Y4WAEHXWR2UKO2UO4BUGHUQ74EUPKON2QHV4WRHOIRNKKH2")
 
-	nativeAsset = xdr.Asset{
-		Type: xdr.AssetTypeAssetTypeNative,
-	}
+	nativeAsset = xdr.MustNewNativeAsset()
+	eurAsset    = xdr.MustNewCreditAsset("EUR", issuer.Address())
+	usdAsset    = xdr.MustNewCreditAsset("USD", issuer.Address())
 
-	eurAsset = xdr.Asset{
-		Type: xdr.AssetTypeAssetTypeCreditAlphanum4,
-		AlphaNum4: &xdr.AssetAlphaNum4{
-			AssetCode: [4]byte{'e', 'u', 'r', 0},
-			Issuer:    issuer,
-		},
+	eurOffer = Offer{
+		SellerID: issuer.Address(),
+		OfferID:  int64(4),
+
+		BuyingAsset:  eurAsset,
+		SellingAsset: nativeAsset,
+
+		Amount:             int64(500),
+		Pricen:             int32(1),
+		Priced:             int32(1),
+		Price:              float64(1),
+		Flags:              1,
+		LastModifiedLedger: uint32(1234),
+		Sponsor:            null.StringFrom(sponsor),
 	}
-	eurOffer = xdr.OfferEntry{
-		SellerId: issuer,
-		OfferId:  xdr.Int64(4),
-		Buying:   eurAsset,
-		Selling:  nativeAsset,
-		Price: xdr.Price{
-			N: 1,
-			D: 1,
-		},
-		Flags:  1,
-		Amount: xdr.Int64(500),
+	twoEurOffer = Offer{
+		SellerID: twoEurOfferSeller.Address(),
+		OfferID:  int64(5),
+
+		BuyingAsset:  eurAsset,
+		SellingAsset: nativeAsset,
+
+		Amount:             int64(500),
+		Pricen:             int32(2),
+		Priced:             int32(1),
+		Price:              float64(2),
+		Flags:              2,
+		LastModifiedLedger: uint32(1234),
 	}
-	twoEurOffer = xdr.OfferEntry{
-		SellerId: issuer,
-		OfferId:  xdr.Int64(5),
-		Buying:   eurAsset,
-		Selling:  nativeAsset,
-		Price: xdr.Price{
-			N: 2,
-			D: 1,
-		},
-		Flags:  2,
-		Amount: xdr.Int64(500),
+	threeEurOffer = Offer{
+		SellerID: twoEurOfferSeller.Address(),
+		OfferID:  int64(50),
+
+		BuyingAsset:  eurAsset,
+		SellingAsset: nativeAsset,
+
+		Amount:             int64(500),
+		Pricen:             int32(3),
+		Priced:             int32(1),
+		Price:              float64(3),
+		Flags:              2,
+		LastModifiedLedger: uint32(1234),
 	}
 )
 
-func assertOfferEntryMatchesDBOffer(t *testing.T, offerEntry xdr.OfferEntry, offer Offer, lastModifiedLedger xdr.Uint32) {
-	if offerEntry.SellerId.Address() != offer.SellerID {
-		t.Fatalf(
-			"seller id in offer entry %v does not equal to seller id in offer from db %v",
-			offerEntry.SellerId.Address(),
-			offer.SellerID,
-		)
-	}
-	if offerEntry.OfferId != offer.OfferID {
-		t.Fatalf(
-			"offer id in offer entry %v does not equal to offer id in offer from db %v",
-			offerEntry.OfferId,
-			offer.OfferID,
-		)
-	}
-	if offerEntry.Selling.String() != offer.SellingAsset.String() {
-		t.Fatalf(
-			"selling asset in offer entry %v does not equal to selling asset in offer from db %v",
-			offerEntry.Selling.String(),
-			offer.SellingAsset.String(),
-		)
-	}
-	if offerEntry.Buying.String() != offer.BuyingAsset.String() {
-		t.Fatalf(
-			"buying asset in offer entry %v does not equal to buying asset in offer from db %v",
-			offerEntry.Buying.String(),
-			offer.BuyingAsset.String(),
-		)
-	}
-	if offerEntry.Amount != offer.Amount {
-		t.Fatalf(
-			"amount in offer entry %v does not equal to amount in offer from db %v",
-			offerEntry.Amount,
-			offer.Amount,
-		)
-	}
-	if offerEntry.Price.N != xdr.Int32(offer.Pricen) {
-		t.Fatalf(
-			"price numerator in offer entry %v does not equal to price numerator in offer from db %v",
-			offerEntry.Price.N,
-			offer.Pricen,
-		)
-	}
-	if offerEntry.Price.D != xdr.Int32(offer.Priced) {
-		t.Fatalf(
-			"price denominator in offer entry %v does not equal to price denominator in offer from db %v",
-			offerEntry.Price.D,
-			offer.Priced,
-		)
-	}
-	if offerEntry.Flags != xdr.Uint32(offer.Flags) {
-		t.Fatalf(
-			"flags in offer entry %v does not equal to flags in offer from db %v",
-			offerEntry.Flags,
-			offer.Flags,
-		)
-	}
-	if lastModifiedLedger != xdr.Uint32(offer.LastModifiedLedger) {
-		t.Fatalf(
-			"last_modified_ledger %v does not equal last_modified_ledger %v in offer from DB",
-			lastModifiedLedger,
-			offer,
-		)
-	}
+func insertOffer(tt *test.T, q *Q, offer Offer) error {
+	return q.UpsertOffers(tt.Ctx, []Offer{offer})
 }
 
 func TestGetOfferByID(t *testing.T) {
-	tt := test.Start(t).Scenario("base")
+	tt := test.Start(t)
 	defer tt.Finish()
+	test.ResetAuroraDB(t, tt.AuroraDB)
 	q := &Q{tt.AuroraSession()}
 
-	tt.Assert.NoError(q.UpsertOffer(eurOffer, 1234))
-	offer, err := q.GetOfferByID(int64(eurOffer.OfferId))
+	err := insertOffer(tt, q, eurOffer)
 	tt.Assert.NoError(err)
-	assertOfferEntryMatchesDBOffer(t, eurOffer, offer, 1234)
+	offer, err := q.GetOfferByID(tt.Ctx, eurOffer.OfferID)
+	tt.Assert.NoError(err)
+	tt.Assert.Equal(offer, eurOffer)
 }
 
 func TestGetNonExistentOfferByID(t *testing.T) {
-	tt := test.Start(t).Scenario("base")
+	tt := test.Start(t)
 	defer tt.Finish()
+	test.ResetAuroraDB(t, tt.AuroraDB)
 	q := &Q{tt.AuroraSession()}
 
-	_, err := q.GetOfferByID(12345)
+	_, err := q.GetOfferByID(tt.Ctx, 12345)
 	tt.Assert.True(q.NoRows(err))
 }
 
 func TestQueryEmptyOffers(t *testing.T) {
-	tt := test.Start(t).Scenario("base")
+	tt := test.Start(t)
 	defer tt.Finish()
+	test.ResetAuroraDB(t, tt.AuroraDB)
 	q := &Q{tt.AuroraSession()}
 
-	offers, err := q.GetAllOffers()
+	offers, err := q.GetAllOffers(tt.Ctx)
 	tt.Assert.NoError(err)
 	tt.Assert.Len(offers, 0)
+
+	updated, err := q.GetUpdatedOffers(tt.Ctx, 0)
+	tt.Assert.NoError(err)
+	tt.Assert.Len(updated, 0)
+
+	count, err := q.CountOffers(tt.Ctx)
+	tt.Assert.NoError(err)
+	tt.Assert.Equal(0, count)
+
+	numRemoved, err := q.CompactOffers(tt.Ctx, 100)
+	tt.Assert.NoError(err)
+	tt.Assert.Equal(int64(0), numRemoved)
+	seq, err := q.GetOfferCompactionSequence(tt.Ctx)
+	tt.Assert.NoError(err)
+	tt.Assert.Equal(uint32(100), seq)
 }
 
 func TestInsertOffers(t *testing.T) {
-	tt := test.Start(t).Scenario("base")
+	tt := test.Start(t)
 	defer tt.Finish()
+	test.ResetAuroraDB(t, tt.AuroraDB)
 	q := &Q{tt.AuroraSession()}
 
-	tt.Assert.NoError(q.UpsertOffer(eurOffer, 1234))
-	tt.Assert.NoError(q.UpsertOffer(twoEurOffer, 1235))
+	err := insertOffer(tt, q, eurOffer)
+	tt.Assert.NoError(err)
+	err = insertOffer(tt, q, twoEurOffer)
+	tt.Assert.NoError(err)
 
-	offers, err := q.GetAllOffers()
+	offers, err := q.GetAllOffers(tt.Ctx)
 	tt.Assert.NoError(err)
 	tt.Assert.Len(offers, 2)
 
-	offersByID := map[xdr.Int64]Offer{
+	offersByID := map[int64]Offer{
 		offers[0].OfferID: offers[0],
 		offers[1].OfferID: offers[1],
 	}
 
-	assertOfferEntryMatchesDBOffer(t, eurOffer, offersByID[eurOffer.OfferId], 1234)
-	assertOfferEntryMatchesDBOffer(t, twoEurOffer, offersByID[twoEurOffer.OfferId], 1235)
+	tt.Assert.Equal(offersByID[eurOffer.OfferID], eurOffer)
+	tt.Assert.Equal(offersByID[twoEurOffer.OfferID], twoEurOffer)
+
+	count, err := q.CountOffers(tt.Ctx)
+	tt.Assert.NoError(err)
+	tt.Assert.Equal(2, count)
+
+	numRemoved, err := q.CompactOffers(tt.Ctx, 12350)
+	tt.Assert.NoError(err)
+	tt.Assert.Equal(int64(0), numRemoved)
+	seq, err := q.GetOfferCompactionSequence(tt.Ctx)
+	tt.Assert.NoError(err)
+	tt.Assert.Equal(uint32(12350), seq)
+
+	afterCompactionCount, err := q.CountOffers(tt.Ctx)
+	tt.Assert.NoError(err)
+	tt.Assert.Equal(2, afterCompactionCount)
+
+	afterCompactionOffers, err := q.GetAllOffers(tt.Ctx)
+	tt.Assert.NoError(err)
+	tt.Assert.Len(afterCompactionOffers, 2)
 }
 
 func TestUpdateOffer(t *testing.T) {
-	tt := test.Start(t).Scenario("base")
+	tt := test.Start(t)
 	defer tt.Finish()
+	test.ResetAuroraDB(t, tt.AuroraDB)
 	q := &Q{tt.AuroraSession()}
 
-	tt.Assert.NoError(q.UpsertOffer(eurOffer, 1234))
+	err := insertOffer(tt, q, eurOffer)
+	tt.Assert.NoError(err)
 
-	offers, err := q.GetAllOffers()
+	offers, err := q.GetAllOffers(tt.Ctx)
 	tt.Assert.NoError(err)
 	tt.Assert.Len(offers, 1)
 
-	assertOfferEntryMatchesDBOffer(t, eurOffer, offers[0], 1234)
+	updatedOffers, err := q.GetUpdatedOffers(tt.Ctx, 1233)
+	tt.Assert.NoError(err)
+	tt.Assert.Equal(offers, updatedOffers)
+
+	updatedOffers, err = q.GetUpdatedOffers(tt.Ctx, 100)
+	tt.Assert.NoError(err)
+	tt.Assert.Equal(offers, updatedOffers)
+
+	updatedOffers, err = q.GetUpdatedOffers(tt.Ctx, 1234)
+	tt.Assert.NoError(err)
+	tt.Assert.Len(updatedOffers, 0)
+
+	tt.Assert.Equal(offers[0], eurOffer)
 
 	modifiedEurOffer := eurOffer
 	modifiedEurOffer.Amount -= 10
 
-	tt.Assert.NoError(q.UpsertOffer(modifiedEurOffer, 1235))
+	err = q.UpsertOffers(tt.Ctx, []Offer{modifiedEurOffer})
+	tt.Assert.NoError(err)
 
-	offers, err = q.GetAllOffers()
+	offers, err = q.GetAllOffers(tt.Ctx)
 	tt.Assert.NoError(err)
 	tt.Assert.Len(offers, 1)
 
-	assertOfferEntryMatchesDBOffer(t, modifiedEurOffer, offers[0], 1235)
-}
+	updatedOffers, err = q.GetUpdatedOffers(tt.Ctx, 1233)
+	tt.Assert.NoError(err)
+	tt.Assert.Equal(offers, updatedOffers)
 
-func TestRemoveNonExistantOffer(t *testing.T) {
-	tt := test.Start(t).Scenario("base")
-	defer tt.Finish()
-	q := &Q{tt.AuroraSession()}
+	updatedOffers, err = q.GetUpdatedOffers(tt.Ctx, 1235)
+	tt.Assert.NoError(err)
+	tt.Assert.Len(updatedOffers, 0)
 
-	tt.Assert.NoError(q.RemoveOffer(xdr.Int64(12345)))
+	tt.Assert.Equal(offers[0], modifiedEurOffer)
 }
 
 func TestRemoveOffer(t *testing.T) {
-	tt := test.Start(t).Scenario("base")
+	tt := test.Start(t)
 	defer tt.Finish()
+	test.ResetAuroraDB(t, tt.AuroraDB)
 	q := &Q{tt.AuroraSession()}
 
-	tt.Assert.NoError(q.UpsertOffer(eurOffer, 1234))
-	offers, err := q.GetAllOffers()
+	err := insertOffer(tt, q, eurOffer)
+	tt.Assert.NoError(err)
+	offers, err := q.GetAllOffers(tt.Ctx)
 	tt.Assert.NoError(err)
 	tt.Assert.Len(offers, 1)
-	assertOfferEntryMatchesDBOffer(t, eurOffer, offers[0], 1234)
+	tt.Assert.Equal(offers[0], eurOffer)
 
-	tt.Assert.NoError(q.RemoveOffer(eurOffer.OfferId))
+	deletedOffer := eurOffer
+	deletedOffer.Deleted = true
+	deletedOffer.LastModifiedLedger = 1236
+	err = q.UpsertOffers(tt.Ctx, []Offer{deletedOffer})
+	tt.Assert.NoError(err)
+	expectedUpdates := offers
+	expectedUpdates[0].LastModifiedLedger = 1236
+	expectedUpdates[0].Deleted = true
 
-	offers, err = q.GetAllOffers()
+	offers, err = q.GetAllOffers(tt.Ctx)
 	tt.Assert.NoError(err)
 	tt.Assert.Len(offers, 0)
+
+	offers, err = q.GetOffersByIDs(tt.Ctx, []int64{expectedUpdates[0].OfferID})
+	tt.Assert.NoError(err)
+	tt.Assert.Len(offers, 0)
+
+	_, err = q.GetOfferByID(tt.Ctx, int64(expectedUpdates[0].OfferID))
+	tt.Assert.True(q.NoRows(err))
+
+	updated, err := q.GetUpdatedOffers(tt.Ctx, 1234)
+	tt.Assert.NoError(err)
+	tt.Assert.Equal(expectedUpdates, updated)
+
+	count, err := q.CompactOffers(tt.Ctx, 1235)
+	tt.Assert.NoError(err)
+	tt.Assert.Equal(int64(0), count)
+
+	updated, err = q.GetUpdatedOffers(tt.Ctx, 1234)
+	tt.Assert.NoError(err)
+	tt.Assert.Equal(expectedUpdates, updated)
+
+	count, err = q.CompactOffers(tt.Ctx, 1236)
+	tt.Assert.NoError(err)
+	tt.Assert.Equal(int64(1), count)
+	seq, err := q.GetOfferCompactionSequence(tt.Ctx)
+	tt.Assert.NoError(err)
+	tt.Assert.Equal(uint32(1236), seq)
+
+	updated, err = q.GetUpdatedOffers(tt.Ctx, 1234)
+	tt.Assert.NoError(err)
+	tt.Assert.Len(updated, 0)
+}
+
+func TestGetOffers(t *testing.T) {
+	tt := test.Start(t)
+	defer tt.Finish()
+	test.ResetAuroraDB(t, tt.AuroraDB)
+	q := &Q{tt.AuroraSession()}
+
+	err := insertOffer(tt, q, eurOffer)
+	tt.Assert.NoError(err)
+	err = insertOffer(tt, q, twoEurOffer)
+	tt.Assert.NoError(err)
+
+	// check removed offers aren't included in GetOffer queries
+	err = insertOffer(tt, q, threeEurOffer)
+	tt.Assert.NoError(err)
+	deletedOffer := threeEurOffer
+	deletedOffer.Deleted = true
+	deletedOffer.LastModifiedLedger = 1235
+	err = q.UpsertOffers(tt.Ctx, []Offer{deletedOffer})
+	tt.Assert.NoError(err)
+
+	pageQuery, err := db2.NewPageQuery("", false, "", 10)
+	tt.Assert.NoError(err)
+
+	t.Run("Filter by selling asset", func(t *testing.T) {
+		query := OffersQuery{
+			PageQuery: pageQuery,
+			Selling:   &usdAsset,
+		}
+
+		offers, err := q.GetOffers(tt.Ctx, query)
+		tt.Assert.NoError(err)
+		tt.Assert.Len(offers, 0)
+
+		query = OffersQuery{
+			PageQuery: pageQuery,
+			Selling:   &nativeAsset,
+		}
+
+		offers, err = q.GetOffers(tt.Ctx, query)
+		tt.Assert.NoError(err)
+		tt.Assert.Len(offers, 2)
+
+		for _, offer := range offers {
+			tt.Assert.Equal(nativeAsset, offer.SellingAsset)
+		}
+	})
+
+	t.Run("Filter by buying asset", func(t *testing.T) {
+		query := OffersQuery{
+			PageQuery: pageQuery,
+			Buying:    &eurAsset,
+		}
+
+		offers, err := q.GetOffers(tt.Ctx, query)
+		tt.Assert.NoError(err)
+		tt.Assert.Len(offers, 2)
+
+		for _, offer := range offers {
+			tt.Assert.Equal(eurAsset, offer.BuyingAsset)
+		}
+
+		query = OffersQuery{
+			PageQuery: pageQuery,
+			Buying:    &usdAsset,
+		}
+
+		offers, err = q.GetOffers(tt.Ctx, query)
+		tt.Assert.NoError(err)
+		tt.Assert.Len(offers, 0)
+	})
+
+	t.Run("Filter by seller", func(t *testing.T) {
+		sellerID := issuer.Address()
+		query := OffersQuery{
+			PageQuery: pageQuery,
+			SellerID:  sellerID,
+		}
+
+		offers, err := q.GetOffers(tt.Ctx, query)
+		tt.Assert.NoError(err)
+		tt.Assert.Len(offers, 1)
+
+		tt.Assert.Equal(offers[0], eurOffer)
+	})
+
+	t.Run("Filter by sponsor", func(t *testing.T) {
+		query := OffersQuery{
+			PageQuery: pageQuery,
+			Sponsor:   sponsor,
+		}
+
+		offers, err := q.GetOffers(tt.Ctx, query)
+		tt.Assert.NoError(err)
+		tt.Assert.Len(offers, 1)
+
+		tt.Assert.Equal(offers[0], eurOffer)
+	})
+
+	t.Run("PageQuery", func(t *testing.T) {
+		pageQuery, err := db2.NewPageQuery("", false, "", 10)
+		tt.Assert.NoError(err)
+
+		query := OffersQuery{
+			PageQuery: pageQuery,
+		}
+
+		offers, err := q.GetOffers(tt.Ctx, query)
+		tt.Assert.NoError(err)
+		tt.Assert.Len(offers, 2)
+
+		offersByID := map[int64]Offer{
+			offers[0].OfferID: offers[0],
+			offers[1].OfferID: offers[1],
+		}
+
+		tt.Assert.Equal(offersByID[eurOffer.OfferID], eurOffer)
+		tt.Assert.Equal(offersByID[twoEurOffer.OfferID], twoEurOffer)
+
+		pageQuery, err = db2.NewPageQuery("", false, "asc", 1)
+		tt.Assert.NoError(err)
+		query = OffersQuery{
+			PageQuery: pageQuery,
+		}
+
+		offers, err = q.GetOffers(tt.Ctx, query)
+		tt.Assert.NoError(err)
+		tt.Assert.Len(offers, 1)
+
+		tt.Assert.Equal(offers[0], eurOffer)
+
+		pageQuery, err = db2.NewPageQuery("", false, "desc", 1)
+		tt.Assert.NoError(err)
+		query = OffersQuery{
+			PageQuery: pageQuery,
+		}
+
+		offers, err = q.GetOffers(tt.Ctx, query)
+		tt.Assert.NoError(err)
+		tt.Assert.Len(offers, 1)
+
+		tt.Assert.Equal(offers[0], twoEurOffer)
+
+		pageQuery, err = db2.NewPageQuery(
+			strconv.FormatInt(int64(eurOffer.OfferID), 10),
+			false,
+			"",
+			10,
+		)
+		tt.Assert.NoError(err)
+		query = OffersQuery{
+			PageQuery: pageQuery,
+		}
+
+		offers, err = q.GetOffers(tt.Ctx, query)
+		tt.Assert.NoError(err)
+		tt.Assert.Len(offers, 1)
+
+		tt.Assert.Equal(offers[0], twoEurOffer)
+	})
 }

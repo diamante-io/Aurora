@@ -2,6 +2,7 @@
 title: Operation Details
 clientData:
   laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=operations&endpoint=single
+replacement: https://developers.diamnet.org/api/resources/operations/single/
 ---
 
 The operation details endpoint provides information on a single
@@ -11,7 +12,7 @@ which operation to load.
 ### Warning - failed transactions
 
 Operations can be part of successful or failed transactions (failed transactions are also included
-in DiamNet ledger). Always check operation status using `transaction_successful` field!
+in Diamnet ledger). Always check operation status using `transaction_successful` field!
 
 ## Request
 
@@ -35,8 +36,8 @@ curl https://aurora-testnet.diamnet.org/operations/2927608622747649
 ### JavaScript Example Request
 
 ```javascript
-var DiamNetSdk = require('diamnet-sdk');
-var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
+var DiamnetSdk = require('diamnet-sdk');
+var server = new DiamnetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.operations()
   .operation('2927608622747649')

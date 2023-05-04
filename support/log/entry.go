@@ -3,6 +3,7 @@ package log
 import (
 	"context"
 	"fmt"
+	"io"
 	"io/ioutil"
 
 	gerr "github.com/go-errors/errors"
@@ -26,7 +27,7 @@ func (e *Entry) Ctx(ctx context.Context) *Entry {
 	entry := found.(*Entry)
 
 	// Copy all fields from e to entry
-	for key, value := range e.Data {
+	for key, value := range e.entry.Data {
 		entry = entry.WithField(key, value)
 	}
 
@@ -34,7 +35,15 @@ func (e *Entry) Ctx(ctx context.Context) *Entry {
 }
 
 func (e *Entry) SetLevel(level logrus.Level) {
-	e.Logger.Level = level
+	e.entry.Logger.SetLevel(level)
+}
+
+func (e *Entry) DisableColors() {
+	e.entry.Logger.Formatter.(*logrus.TextFormatter).DisableColors = true
+}
+
+func (e *Entry) DisableTimestamp() {
+	e.entry.Logger.Formatter.(*logrus.TextFormatter).DisableTimestamp = true
 }
 
 // WithField creates a child logger annotated with the provided key value pair.
@@ -43,7 +52,7 @@ func (e *Entry) SetLevel(level logrus.Level) {
 // include the provided value.
 func (e *Entry) WithField(key string, value interface{}) *Entry {
 	return &Entry{
-		Entry: *e.Entry.WithField(key, value),
+		entry: *e.entry.WithField(key, value),
 	}
 }
 
@@ -51,8 +60,18 @@ func (e *Entry) WithField(key string, value interface{}) *Entry {
 // pairs.
 func (e *Entry) WithFields(fields F) *Entry {
 	return &Entry{
-		Entry: *e.Entry.WithFields(logrus.Fields(fields)),
+		entry: *e.entry.WithFields(logrus.Fields(fields)),
 	}
+}
+
+// AddHook adds a hook to the logger hooks.
+func (e *Entry) AddHook(hook logrus.Hook) {
+	e.entry.Logger.AddHook(hook)
+}
+
+// SetOutput sets the logger output.
+func (e *Entry) SetOutput(output io.Writer) {
+	e.entry.Logger.SetOutput(output)
 }
 
 // WithStack annotates this error with a stack trace from `stackProvider`, if
@@ -70,64 +89,83 @@ func (e *Entry) WithStack(stackProvider interface{}) *Entry {
 	return e.WithField("stack", stack)
 }
 
+// Add an error as single field to the log entry.  All it does is call
+// `WithError` for the given `error`.
+func (e *Entry) WithError(err error) *Entry {
+	return &Entry{
+		entry: *e.entry.WithError(err),
+	}
+}
+
+// Add a context to the log entry.
+func (e *Entry) WithContext(ctx context.Context) *Entry {
+	return &Entry{
+		entry: *e.entry.WithContext(ctx),
+	}
+}
+
 // Debugf logs a message at the debug severity.
 func (e *Entry) Debugf(format string, args ...interface{}) {
-	e.Entry.Debugf(format, args...)
+	e.entry.Debugf(format, args...)
 }
 
 // Debug logs a message at the debug severity.
 func (e *Entry) Debug(args ...interface{}) {
-	e.Entry.Debug(args...)
+	e.entry.Debug(args...)
 }
 
 // Infof logs a message at the Info severity.
 func (e *Entry) Infof(format string, args ...interface{}) {
-	e.Entry.Infof(format, args...)
+	e.entry.Infof(format, args...)
 }
 
 // Info logs a message at the Info severity.
 func (e *Entry) Info(args ...interface{}) {
-	e.Entry.Info(args...)
+	e.entry.Info(args...)
 }
 
 // Warnf logs a message at the Warn severity.
 func (e *Entry) Warnf(format string, args ...interface{}) {
-	e.Entry.Warnf(format, args...)
+	e.entry.Warnf(format, args...)
 }
 
 // Warn logs a message at the Warn severity.
 func (e *Entry) Warn(args ...interface{}) {
-	e.Entry.Warn(args...)
+	e.entry.Warn(args...)
 }
 
 // Errorf logs a message at the Error severity.
 func (e *Entry) Errorf(format string, args ...interface{}) {
-	e.Entry.Errorf(format, args...)
+	e.entry.Errorf(format, args...)
 }
 
 // Error logs a message at the Error severity.
 func (e *Entry) Error(args ...interface{}) {
-	e.Entry.Error(args...)
+	e.entry.Error(args...)
 }
 
 // Fatalf logs a message at the Fatal severity.
 func (e *Entry) Fatalf(format string, args ...interface{}) {
-	e.Entry.Fatalf(format, args...)
+	e.entry.Fatalf(format, args...)
 }
 
 // Fatal logs a message at the Fatal severity.
 func (e *Entry) Fatal(args ...interface{}) {
-	e.Entry.Fatal(args...)
+	e.entry.Fatal(args...)
 }
 
 // Panicf logs a message at the Panic severity.
 func (e *Entry) Panicf(format string, args ...interface{}) {
-	e.Entry.Panicf(format, args...)
+	e.entry.Panicf(format, args...)
 }
 
 // Panic logs a message at the Panic severity.
 func (e *Entry) Panic(args ...interface{}) {
-	e.Entry.Panic(args...)
+	e.entry.Panic(args...)
+}
+
+func (e *Entry) Print(args ...interface{}) {
+	e.entry.Print(args...)
 }
 
 // StartTest shifts this logger into "test" mode, ensuring that log lines will
@@ -142,17 +180,17 @@ func (e *Entry) StartTest(level logrus.Level) func() []logrus.Entry {
 	e.isTesting = true
 
 	hook := &test.Hook{}
-	e.Logger.Hooks.Add(hook)
+	e.entry.Logger.AddHook(hook)
 
-	old := e.Logger.Out
-	e.Logger.Out = ioutil.Discard
+	old := e.entry.Logger.Out
+	e.entry.Logger.Out = ioutil.Discard
 
-	oldLevel := e.Logger.Level
-	e.Logger.Level = level
+	oldLevel := e.entry.Logger.GetLevel()
+	e.entry.Logger.SetLevel(level)
 
 	return func() []logrus.Entry {
-		e.Logger.Level = oldLevel
-		e.Logger.Out = old
+		e.entry.Logger.SetLevel(oldLevel)
+		e.entry.Logger.SetOutput(old)
 		e.removeHook(hook)
 		e.isTesting = false
 		return hook.Entries
@@ -161,7 +199,7 @@ func (e *Entry) StartTest(level logrus.Level) func() []logrus.Entry {
 
 // removeHook removes a hook, in the most complicated way possible.
 func (e *Entry) removeHook(target logrus.Hook) {
-	for lvl, hooks := range e.Logger.Hooks {
+	for lvl, hooks := range e.entry.Logger.Hooks {
 		kept := []logrus.Hook{}
 
 		for _, hook := range hooks {
@@ -170,6 +208,6 @@ func (e *Entry) removeHook(target logrus.Hook) {
 			}
 		}
 
-		e.Logger.Hooks[lvl] = kept
+		e.entry.Logger.Hooks[lvl] = kept
 	}
 }

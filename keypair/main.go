@@ -34,9 +34,11 @@ const (
 // KP is the main interface for this package
 type KP interface {
 	Address() string
+	FromAddress() *FromAddress
 	Hint() [4]byte
 	Verify(input []byte, signature []byte) error
 	Sign(input []byte) ([]byte, error)
+	SignBase64(input []byte) (string, error)
 	SignDecorated(input []byte) (xdr.DecoratedSignature, error)
 }
 
@@ -50,7 +52,6 @@ func Random() (*Full, error) {
 	}
 
 	kp, err := FromRawSeed(rawSeed)
-
 	if err != nil {
 		return nil, err
 	}
@@ -59,9 +60,14 @@ func Random() (*Full, error) {
 }
 
 // Master returns the master keypair for a given network passphrase
+// Deprecated: Use keypair.Root instead.
 func Master(networkPassphrase string) KP {
-	kp, err := FromRawSeed(network.ID(networkPassphrase))
+	return Root(networkPassphrase)
+}
 
+// Root returns the root account keypair for a given network passphrase.
+func Root(networkPassphrase string) *Full {
+	kp, err := FromRawSeed(network.ID(networkPassphrase))
 	if err != nil {
 		panic(err)
 	}
@@ -73,36 +79,68 @@ func Master(networkPassphrase string) KP {
 // an address, or a seed.  If the provided input is a seed, the resulting KP
 // will have signing capabilities.
 func Parse(addressOrSeed string) (KP, error) {
-	_, err := strkey.Decode(strkey.VersionByteAccountID, addressOrSeed)
+	addr, err := ParseAddress(addressOrSeed)
 	if err == nil {
-		return &FromAddress{addressOrSeed}, nil
+		return addr, nil
 	}
 
 	if err != strkey.ErrInvalidVersionByte {
 		return nil, err
 	}
 
-	_, err = strkey.Decode(strkey.VersionByteSeed, addressOrSeed)
-	if err == nil {
-		return &Full{addressOrSeed}, nil
-	}
+	return ParseFull(addressOrSeed)
+}
 
-	return nil, err
+// ParseAddress constructs a new FromAddress keypair from the provided string,
+// which should be an address.
+func ParseAddress(address string) (*FromAddress, error) {
+	return newFromAddress(address)
+}
+
+// ParseFull constructs a new Full keypair from the provided string, which should
+// be a seed.
+func ParseFull(seed string) (*Full, error) {
+	return newFull(seed)
 }
 
 // FromRawSeed creates a new keypair from the provided raw ED25519 seed
 func FromRawSeed(rawSeed [32]byte) (*Full, error) {
-	seed, err := strkey.Encode(strkey.VersionByteSeed, rawSeed[:])
-	if err != nil {
-		return nil, err
-	}
-
-	return &Full{seed}, nil
+	return newFullFromRawSeed(rawSeed)
 }
 
 // MustParse is the panic-on-fail version of Parse
 func MustParse(addressOrSeed string) KP {
 	kp, err := Parse(addressOrSeed)
+	if err != nil {
+		panic(err)
+	}
+
+	return kp
+}
+
+// MustParseAddress is the panic-on-fail version of ParseAddress
+func MustParseAddress(address string) *FromAddress {
+	kp, err := ParseAddress(address)
+	if err != nil {
+		panic(err)
+	}
+
+	return kp
+}
+
+// MustParseFull is the panic-on-fail version of ParseFull
+func MustParseFull(seed string) *Full {
+	kp, err := ParseFull(seed)
+	if err != nil {
+		panic(err)
+	}
+
+	return kp
+}
+
+// MustRandom is the panic-on-fail version of Random.
+func MustRandom() *Full {
+	kp, err := Random()
 	if err != nil {
 		panic(err)
 	}

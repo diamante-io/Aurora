@@ -2,9 +2,7 @@ package auroraclient
 
 import (
 	"context"
-	"fmt"
 	"testing"
-	"time"
 
 	hProtocol "github.com/diamnet/go/protocols/aurora"
 	"github.com/diamnet/go/support/http/httptest"
@@ -27,12 +25,26 @@ func TestTransactionRequestBuildUrl(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "accounts/GCLWGQPMKXQSPF776IU33AH4PZNOOWNAWGGKVTBQMIC5IMKUNP3E6NVU/transactions", endpoint)
 
+	tr = TransactionRequest{ForClaimableBalance: "00000000178826fbfe339e1f5c53417c6fedfe2c05e8bec14303143ec46b38981b09c3f9"}
+	endpoint, err = tr.BuildURL()
+
+	// It should return valid account transactions endpoint and no errors
+	require.NoError(t, err)
+	assert.Equal(t, "claimable_balances/00000000178826fbfe339e1f5c53417c6fedfe2c05e8bec14303143ec46b38981b09c3f9/transactions", endpoint)
+
 	tr = TransactionRequest{ForLedger: 123}
 	endpoint, err = tr.BuildURL()
 
 	// It should return valid ledger transactions endpoint and no errors
 	require.NoError(t, err)
 	assert.Equal(t, "ledgers/123/transactions", endpoint)
+
+	tr = TransactionRequest{ForLiquidityPool: "123"}
+	endpoint, err = tr.BuildURL()
+
+	// It should return valid liquidity pool transactions endpoint and no errors
+	require.NoError(t, err)
+	assert.Equal(t, "liquidity_pools/123/transactions", endpoint)
 
 	tr = TransactionRequest{forTransactionHash: "123"}
 	endpoint, err = tr.BuildURL()
@@ -55,95 +67,6 @@ func TestTransactionRequestBuildUrl(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "transactions?cursor=123456&include_failed=true&limit=30&order=asc", endpoint)
 
-}
-
-func ExampleClient_StreamTransactions() {
-	client := DefaultTestNetClient
-	// all transactions
-	transactionRequest := TransactionRequest{Cursor: "760209215489"}
-
-	ctx, cancel := context.WithCancel(context.Background())
-	go func() {
-		// Stop streaming after 60 seconds.
-		time.Sleep(60 * time.Second)
-		cancel()
-	}()
-
-	printHandler := func(tr hProtocol.Transaction) {
-		fmt.Println(tr)
-	}
-	err := client.StreamTransactions(ctx, transactionRequest, printHandler)
-	if err != nil {
-		fmt.Println(err)
-	}
-}
-
-func ExampleClient_NextTransactionsPage() {
-	client := DefaultPublicNetClient
-	// all transactions
-	transactionRequest := TransactionRequest{Limit: 20}
-	transactions, err := client.Transactions(transactionRequest)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Print(transactions)
-
-	// get next pages.
-	recordsFound := false
-	if len(transactions.Embedded.Records) > 0 {
-		recordsFound = true
-	}
-	page := transactions
-	// get the next page of records if recordsFound is true
-	for recordsFound {
-		// next page
-		nextPage, err := client.NextTransactionsPage(page)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		page = nextPage
-		if len(nextPage.Embedded.Records) == 0 {
-			recordsFound = false
-		}
-		fmt.Println(nextPage)
-	}
-}
-
-func ExampleClient_PrevTransactionsPage() {
-	client := DefaultPublicNetClient
-	// all transactions
-	transactionRequest := TransactionRequest{Limit: 20}
-	transactions, err := client.Transactions(transactionRequest)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Print(transactions)
-
-	// get prev pages.
-	recordsFound := false
-	if len(transactions.Embedded.Records) > 0 {
-		recordsFound = true
-	}
-	page := transactions
-	// get the prev page of records if recordsFound is true
-	for recordsFound {
-		// prev page
-		prevPage, err := client.PrevTransactionsPage(page)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		page = prevPage
-		if len(prevPage.Embedded.Records) == 0 {
-			recordsFound = false
-		}
-		fmt.Println(prevPage)
-	}
 }
 
 func TestNextTransactionsPage(t *testing.T) {
@@ -243,7 +166,7 @@ func TestTransactionRequestStreamTransactions(t *testing.T) {
 	}
 }
 
-var txStreamResponse = `data: {"_links":{"self":{"href":"https://aurora-testnet.diamnet.org/transactions/1534f6507420c6871b557cc2fc800c29fb1ed1e012e694993ffe7a39c824056e"},"account":{"href":"https://aurora-testnet.diamnet.org/accounts/GAIH3ULLFQ4DGSECF2AR555KZ4KNDGEKN4AFI4SU2M7B43MGK3QJZNSR"},"ledger":{"href":"https://aurora-testnet.diamnet.org/ledgers/607387"},"operations":{"href":"https://aurora-testnet.diamnet.org/transactions/1534f6507420c6871b557cc2fc800c29fb1ed1e012e694993ffe7a39c824056e/operations{?cursor,limit,order}","templated":true},"effects":{"href":"https://aurora-testnet.diamnet.org/transactions/1534f6507420c6871b557cc2fc800c29fb1ed1e012e694993ffe7a39c824056e/effects{?cursor,limit,order}","templated":true},"precedes":{"href":"https://aurora-testnet.diamnet.org/transactions?order=asc\u0026cursor=2608707301036032"},"succeeds":{"href":"https://aurora-testnet.diamnet.org/transactions?order=desc\u0026cursor=2608707301036032"}},"id":"1534f6507420c6871b557cc2fc800c29fb1ed1e012e694993ffe7a39c824056e","paging_token":"2608707301036032","successful":true,"hash":"1534f6507420c6871b557cc2fc800c29fb1ed1e012e694993ffe7a39c824056e","ledger":607387,"created_at":"2019-04-04T12:07:03Z","source_account":"GAIH3ULLFQ4DGSECF2AR555KZ4KNDGEKN4AFI4SU2M7B43MGK3QJZNSR","source_account_sequence":"4660039930473","fee_paid":100,"operation_count":1,"envelope_xdr":"AAAAABB90WssODNIgi6BHveqzxTRmIpvAFRyVNM+Hm2GVuCcAAAAZAAABD0ABlJpAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAmLuzasXDMqsqgFK4xkbLxJLzmQQzkiCF2SnKPD+b1TsAAAAXSHboAAAAAAAAAAABhlbgnAAAAECqxhXduvtzs65keKuTzMtk76cts2WeVB2pZKYdlxlOb1EIbOpFhYizDSXVfQlAvvg18qV6oNRr7ls4nnEm2YIK","result_xdr":"AAAAAAAAAGQAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAA=","result_meta_xdr":"AAAAAQAAAAIAAAADAAlEmwAAAAAAAAAAEH3Rayw4M0iCLoEe96rPFNGYim8AVHJU0z4ebYZW4JwBT3aiixBA2AAABD0ABlJoAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAABAAlEmwAAAAAAAAAAEH3Rayw4M0iCLoEe96rPFNGYim8AVHJU0z4ebYZW4JwBT3aiixBA2AAABD0ABlJpAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAABAAAAAwAAAAMACUSbAAAAAAAAAAAQfdFrLDgzSIIugR73qs8U0ZiKbwBUclTTPh5thlbgnAFPdqKLEEDYAAAEPQAGUmkAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAEACUSbAAAAAAAAAAAQfdFrLDgzSIIugR73qs8U0ZiKbwBUclTTPh5thlbgnAFPdotCmVjYAAAEPQAGUmkAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAACUSbAAAAAAAAAACYu7NqxcMyqyqAUrjGRsvEkvOZBDOSIIXZKco8P5vVOwAAABdIdugAAAlEmwAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAA==","fee_meta_xdr":"AAAAAgAAAAMACUSaAAAAAAAAAAAQfdFrLDgzSIIugR73qs8U0ZiKbwBUclTTPh5thlbgnAFPdqKLEEE8AAAEPQAGUmgAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAEACUSbAAAAAAAAAAAQfdFrLDgzSIIugR73qs8U0ZiKbwBUclTTPh5thlbgnAFPdqKLEEDYAAAEPQAGUmgAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAA==","memo_type":"none","signatures":["qsYV3br7c7OuZHirk8zLZO+nLbNlnlQdqWSmHZcZTm9RCGzqRYWIsw0l1X0JQL74NfKleqDUa+5bOJ5xJtmCCg=="]}
+var txStreamResponse = `data: {"_links":{"self":{"href":"https://aurora-testnet.diamnet.org/transactions/1534f6507420c6871b557cc2fc800c29fb1ed1e012e694993ffe7a39c824056e"},"account":{"href":"https://aurora-testnet.diamnet.org/accounts/GAIH3ULLFQ4DGSECF2AR555KZ4KNDGEKN4AFI4SU2M7B43MGK3QJZNSR"},"ledger":{"href":"https://aurora-testnet.diamnet.org/ledgers/607387"},"operations":{"href":"https://aurora-testnet.diamnet.org/transactions/1534f6507420c6871b557cc2fc800c29fb1ed1e012e694993ffe7a39c824056e/operations{?cursor,limit,order}","templated":true},"effects":{"href":"https://aurora-testnet.diamnet.org/transactions/1534f6507420c6871b557cc2fc800c29fb1ed1e012e694993ffe7a39c824056e/effects{?cursor,limit,order}","templated":true},"precedes":{"href":"https://aurora-testnet.diamnet.org/transactions?order=asc\u0026cursor=2608707301036032"},"succeeds":{"href":"https://aurora-testnet.diamnet.org/transactions?order=desc\u0026cursor=2608707301036032"}},"id":"1534f6507420c6871b557cc2fc800c29fb1ed1e012e694993ffe7a39c824056e","paging_token":"2608707301036032","successful":true,"hash":"1534f6507420c6871b557cc2fc800c29fb1ed1e012e694993ffe7a39c824056e","ledger":607387,"created_at":"2019-04-04T12:07:03Z","source_account":"GAIH3ULLFQ4DGSECF2AR555KZ4KNDGEKN4AFI4SU2M7B43MGK3QJZNSR","source_account_sequence":"4660039930473","max_fee":100,"fee_charged":100,"operation_count":1,"envelope_xdr":"AAAAABB90WssODNIgi6BHveqzxTRmIpvAFRyVNM+Hm2GVuCcAAAAZAAABD0ABlJpAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAmLuzasXDMqsqgFK4xkbLxJLzmQQzkiCF2SnKPD+b1TsAAAAXSHboAAAAAAAAAAABhlbgnAAAAECqxhXduvtzs65keKuTzMtk76cts2WeVB2pZKYdlxlOb1EIbOpFhYizDSXVfQlAvvg18qV6oNRr7ls4nnEm2YIK","result_xdr":"AAAAAAAAAGQAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAA=","result_meta_xdr":"AAAAAQAAAAIAAAADAAlEmwAAAAAAAAAAEH3Rayw4M0iCLoEe96rPFNGYim8AVHJU0z4ebYZW4JwBT3aiixBA2AAABD0ABlJoAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAABAAlEmwAAAAAAAAAAEH3Rayw4M0iCLoEe96rPFNGYim8AVHJU0z4ebYZW4JwBT3aiixBA2AAABD0ABlJpAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAABAAAAAwAAAAMACUSbAAAAAAAAAAAQfdFrLDgzSIIugR73qs8U0ZiKbwBUclTTPh5thlbgnAFPdqKLEEDYAAAEPQAGUmkAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAEACUSbAAAAAAAAAAAQfdFrLDgzSIIugR73qs8U0ZiKbwBUclTTPh5thlbgnAFPdotCmVjYAAAEPQAGUmkAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAACUSbAAAAAAAAAACYu7NqxcMyqyqAUrjGRsvEkvOZBDOSIIXZKco8P5vVOwAAABdIdugAAAlEmwAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAA==","fee_meta_xdr":"AAAAAgAAAAMACUSaAAAAAAAAAAAQfdFrLDgzSIIugR73qs8U0ZiKbwBUclTTPh5thlbgnAFPdqKLEEE8AAAEPQAGUmgAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAEACUSbAAAAAAAAAAAQfdFrLDgzSIIugR73qs8U0ZiKbwBUclTTPh5thlbgnAFPdqKLEEDYAAAEPQAGUmgAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAA==","memo_type":"none","signatures":["qsYV3br7c7OuZHirk8zLZO+nLbNlnlQdqWSmHZcZTm9RCGzqRYWIsw0l1X0JQL74NfKleqDUa+5bOJ5xJtmCCg=="]}
 `
 
 var firstTransactionsPage = `{
@@ -295,7 +218,8 @@ var firstTransactionsPage = `{
         "created_at": "2019-05-16T10:17:44Z",
         "source_account": "GDRZVYB5QI6UFR4NR4RXQ3HR5IH4KL2ECR4IUZXGHOUMPGLN2OGCSAOK",
         "source_account_sequence": "1566048155336705",
-        "fee_paid": 100,
+        "max_fee": 100,
+        "fee_charged":100,
         "operation_count": 1,
         "envelope_xdr": "AAAAAOOa4D2CPULHjY8jeGzx6g/FL0QUeIpm5juox5lt04wpAAAAZAAFkFAAAAABAAAAAAAAAAEAAAAKMzIzMjA5NjQ2NQAAAAAAAQAAAAEAAAAA45rgPYI9QseNjyN4bPHqD8UvRBR4imbmO6jHmW3TjCkAAAABAAAAAE3j7m7lhZ39noA3ToXWDjJ9QuMmmp/1UaIg0chYzRSlAAAAAAAAAAJMTD+AAAAAAAAAAAFt04wpAAAAQAxFRWcepbQoisfiZ0PG7XhPIBl2ssiD9ymMVpsDyLoHyWXboJLaqibNbiPUHk/KEToTVg7G/JCZ06Mfj0daVAc=",
         "result_xdr": "AAAAAAAAAGQAAAAAAAAAAQAAAAAAAAABAAAAAAAAAAA=",
@@ -340,7 +264,8 @@ var firstTransactionsPage = `{
         "created_at": "2019-05-16T10:17:44Z",
         "source_account": "GCYN7MI6VXVRP74KR6MKBAW2ELLCXL6QCY5H4YQ62HVWZWMCE6Y232UC",
         "source_account_sequence": "132761734108361",
-        "fee_paid": 5000,
+        "max_fee": 100,
+		"fee_charged":100,
         "operation_count": 50,
         "envelope_xdr": "AAAAALDfsR6t6xf/io...",
         "result_xdr": "AAAAALDfsR6t6xf/io...",

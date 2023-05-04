@@ -1,11 +1,12 @@
 ---
 title: Page
+replacement: https://developers.diamnet.org/api/introduction/pagination/page-arguments/
 ---
 
 Pages represent a subset of a larger collection of objects.
 As an example, it would be unfeasible to provide the
-[All Transactions](../transactions-all.md) endpoint without paging.  Over time there
-will be millions of transactions in the DiamNet network's ledger and returning
+[All Transactions](../endpoints/transactions-all.md) endpoint without paging.  Over time there
+will be millions of transactions in the Diamnet network's ledger and returning
 them all over a single request would be unfeasible.
 
 ## Attributes

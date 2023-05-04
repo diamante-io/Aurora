@@ -1,6 +1,7 @@
 package gql
 
 import (
+	"context"
 	"errors"
 
 	"github.com/graph-gophers/graphql-go"
@@ -9,7 +10,7 @@ import (
 )
 
 // Markets resolves the markets() GraphQL query.
-func (r *resolver) Markets(args struct {
+func (r *resolver) Markets(ctx context.Context, args struct {
 	BaseAssetCode      *string
 	BaseAssetIssuer    *string
 	CounterAssetCode   *string
@@ -21,7 +22,7 @@ func (r *resolver) Markets(args struct {
 		return
 	}
 
-	dbMarkets, err := r.db.RetrievePartialMarkets(
+	dbMarkets, err := r.db.RetrievePartialMarkets(ctx,
 		args.BaseAssetCode,
 		args.BaseAssetIssuer,
 		args.CounterAssetCode,
@@ -42,8 +43,9 @@ func (r *resolver) Markets(args struct {
 }
 
 // Ticker resolves the ticker() GraphQL query (TODO)
-func (r *resolver) Ticker(
+func (r *resolver) Ticker(ctx context.Context,
 	args struct {
+		Code        *string
 		PairName    *string
 		NumHoursAgo *int32
 	},
@@ -53,7 +55,7 @@ func (r *resolver) Ticker(
 		return
 	}
 
-	dbMarkets, err := r.db.RetrievePartialAggMarkets(args.PairName, numHours)
+	dbMarkets, err := r.db.RetrievePartialAggMarkets(ctx, args.PairName, numHours)
 	if err != nil {
 		// obfuscating sql errors to avoid exposing underlying
 		// implementation

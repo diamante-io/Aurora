@@ -23,10 +23,10 @@ func TestReverseAssets(t *testing.T) {
 
 	baseIsSeller := true
 
-	n := int32(10)
-	d := int32(50)
+	n := int64(10)
+	d := int64(50)
 
-	price := hProtocol.Price{
+	price := hProtocol.TradePrice{
 		N: n,
 		D: d,
 	}
@@ -43,7 +43,7 @@ func TestReverseAssets(t *testing.T) {
 		CounterAssetType:   counterAssetType,
 		CounterAssetIssuer: counterAssetIssuer,
 		BaseIsSeller:       baseIsSeller,
-		Price:              &price,
+		Price:              price,
 	}
 
 	fmt.Println(trade1)
@@ -92,10 +92,10 @@ func TestNormalizeTradeAssets(t *testing.T) {
 	baseAssetType := "BASEASSETTYPE"
 	baseAssetIssuer := "BASEASSETISSUER"
 
-	n := int32(10)
-	d := int32(50)
+	n := int64(10)
+	d := int64(50)
 
-	price := hProtocol.Price{
+	price := hProtocol.TradePrice{
 		N: n,
 		D: d,
 	}
@@ -107,7 +107,7 @@ func TestNormalizeTradeAssets(t *testing.T) {
 		BaseAssetType:    baseAssetType,
 		BaseAssetIssuer:  baseAssetIssuer,
 		CounterAssetType: "native",
-		Price:            &price,
+		Price:            price,
 	}
 
 	NormalizeTradeAssets(&trade1)
@@ -134,7 +134,7 @@ func TestNormalizeTradeAssets(t *testing.T) {
 		CounterAssetCode:   "AAA",
 		CounterAssetType:   counterAssetType,
 		CounterAssetIssuer: counterAssetIssuer,
-		Price:              &price,
+		Price:              price,
 	}
 	NormalizeTradeAssets(&trade2)
 	assert.Equal(t, baseAmount, trade2.CounterAmount)

@@ -4,7 +4,6 @@
 package test
 
 import (
-	"bytes"
 	"context"
 	"net/http"
 	"net/http/httptest"
@@ -12,7 +11,6 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
-	"github.com/diamnet/go/services/aurora/internal/logmetrics"
 	tdb "github.com/diamnet/go/services/aurora/internal/test/db"
 	"github.com/diamnet/go/support/log"
 	"github.com/stretchr/testify/assert"
@@ -27,15 +25,12 @@ type StaticMockServer struct {
 
 // T provides a common set of functionality for each test in aurora
 type T struct {
-	T          *testing.T
-	Assert     *assert.Assertions
-	Require    *require.Assertions
-	Ctx        context.Context
-	AuroraDB  *sqlx.DB
-	CoreDB     *sqlx.DB
-	Logger     *log.Entry
-	LogMetrics *logmetrics.Metrics
-	LogBuffer  *bytes.Buffer
+	T         *testing.T
+	Assert    *assert.Assertions
+	Require   *require.Assertions
+	Ctx       context.Context
+	AuroraDB *sqlx.DB
+	CoreDB    *sqlx.DB
 }
 
 // Context provides a context suitable for testing in tests that do not create
@@ -60,41 +55,28 @@ func DatabaseURL() string {
 	return tdb.AuroraURL()
 }
 
-// LoadScenario populates the test databases with pre-created scenarios.  Each
-// scenario is in the scenarios subfolder of this package and are a pair of
-// sql files, one per database.
-func LoadScenario(scenarioName string) {
-	loadScenario(scenarioName, true)
-}
-
-// LoadScenarioWithoutAurora populates the test DiamNet core database a with
-// pre-created scenario.  Unlike `LoadScenario`, this
-func LoadScenarioWithoutAurora(scenarioName string) {
-	loadScenario(scenarioName, false)
-}
-
-// OverrideLogger sets the default logger used by aurora to `l`.  This is used
+// OverrideLogger calls StartTest on default logger. This is used
 // by the testing system so that we can collect output from logs during test
 // runs.  Panics if the logger is already overridden.
-func OverrideLogger(l *log.Entry) {
-	if oldDefault != nil {
+func OverrideLogger() {
+	if endLogTest != nil {
 		panic("logger already overridden")
 	}
 
-	oldDefault = log.DefaultLogger
-	log.DefaultLogger = l
+	endLogTest = log.StartTest(log.DebugLevel)
 }
 
 // RestoreLogger restores the default aurora logger after it is overridden
 // using a call to `OverrideLogger`.  Panics if the default logger is not
 // presently overridden.
-func RestoreLogger() {
-	if oldDefault == nil {
+func RestoreLogger() []logrus.Entry {
+	if endLogTest == nil {
 		panic("logger not overridden, cannot restore")
 	}
 
-	log.DefaultLogger = oldDefault
-	oldDefault = nil
+	entries := endLogTest()
+	endLogTest = nil
+	return entries
 }
 
 // Start initializes a new test helper object and conceptually "starts" a new
@@ -103,36 +85,31 @@ func Start(t *testing.T) *T {
 	result := &T{}
 
 	result.T = t
-	result.LogBuffer = new(bytes.Buffer)
-	result.Logger, result.LogMetrics = logmetrics.New()
-	result.Logger.Logger.Out = result.LogBuffer
-	result.Logger.Logger.Formatter.(*logrus.TextFormatter).DisableColors = true
-	result.Logger.Logger.Level = logrus.DebugLevel
 
-	OverrideLogger(result.Logger)
+	OverrideLogger()
 
-	result.Ctx = log.Set(context.Background(), result.Logger)
+	result.Ctx = log.Set(context.Background(), log.DefaultLogger)
 	result.AuroraDB = Database(t)
-	result.CoreDB = DiamNetCoreDatabase(t)
+	result.CoreDB = DiamnetCoreDatabase(t)
 	result.Assert = assert.New(t)
 	result.Require = require.New(t)
 
 	return result
 }
 
-// DiamNetCoreDatabase returns a connection to the diamnet core test database
+// DiamnetCoreDatabase returns a connection to the diamnet core test database
 //
-// DEPRECATED:  use `DiamNetCore()` from test/db package
-func DiamNetCoreDatabase(t *testing.T) *sqlx.DB {
-	return tdb.DiamNetCore(t)
+// DEPRECATED:  use `DiamnetCore()` from test/db package
+func DiamnetCoreDatabase(t *testing.T) *sqlx.DB {
+	return tdb.DiamnetCore(t)
 }
 
-// DiamNetCoreDatabaseURL returns the database connection the url any test
+// DiamnetCoreDatabaseURL returns the database connection the url any test
 // use when connecting to the diamnet-core database
 //
-// DEPRECATED:  use `DiamNetCoreURL()` from test/db package
-func DiamNetCoreDatabaseURL() string {
-	return tdb.DiamNetCoreURL()
+// DEPRECATED:  use `DiamnetCoreURL()` from test/db package
+func DiamnetCoreDatabaseURL() string {
+	return tdb.DiamnetCoreURL()
 }
 
-var oldDefault *log.Entry = nil
+var endLogTest func() []logrus.Entry = nil

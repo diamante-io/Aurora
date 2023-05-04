@@ -3,10 +3,10 @@ schema {
 }
 
 type Query {
-	# retrieve all validated assets on the DiamNet network.
+	# retrieve all validated assets on the Diamnet network.
 	assets: [Asset!]!
 
-	# retrieve all validated issuers on the DiamNet network.
+	# retrieve all validated issuers on the Diamnet network.
 	issuers: [Issuer!]!
 
 	# retrieve trade stats from the last <numHoursAgo> hours
@@ -21,8 +21,8 @@ type Query {
 	): [Market]!
 
 	# retrieve aggregated trade stats for the last <numHoursAgo>
-	# hours. optionally provide the name of the trade pair (e.g.
-	# XLM_BTC) for filtering results.
+	# hours. optionally provide a pairName (e.g. "XLM_BTC" or a 
+	# single currency (e.g. "XLM") for filtering results.
 	ticker(
 		pairName: String
 		numHoursAgo: Int

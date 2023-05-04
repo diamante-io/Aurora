@@ -71,7 +71,7 @@ is funded it does not truly exist!
 
 ## Funding your account
 
-The DiamNet test network provides the Friendbot, a tool that developers
+The Diamnet test network provides the Friendbot, a tool that developers
 can use to get testnet lumens for testing purposes. To fund your account, simply
 execute the following curl command:
 
@@ -90,14 +90,14 @@ succeeds, you should see a response like:
 }
 ```
 
-After a few seconds, the DiamNet network will perform consensus, close the
+After a few seconds, the Diamnet network will perform consensus, close the
 ledger, and your account will have been created.  Next up we will write a command
 that watches for new payments to your account and outputs a message to the
 terminal.
 
 ## Following payments using `curl`
 
-To follow new payments connected to your account you simply need to send `Accept: text/event-stream` header to the [/payments](../../reference/payments-all.md) endpoint.
+To follow new payments connected to your account you simply need to send `Accept: text/event-stream` header to the [/payments](../../reference/endpoints/payments-all.md) endpoint.
 
 ```bash
 $ curl -H "Accept: text/event-stream" "https://aurora-testnet.diamnet.org/accounts/GB7JFK56QXQ4DVJRNPDBXABNG3IVKIXWWJJRJICHRU22Z5R5PI65GAK3/payments"
@@ -125,7 +125,7 @@ data: {"_links":{"effects":{"href":"/operations/713226564145153/effects/{?cursor
        "type":"create_account"}
 ```
 
-Every time you receive a new payment you will get a new row of data. Payments is not the only endpoint that supports streaming. You can also stream transactions [/transactions](../../reference/transactions-all.md) and operations [/operations](../../reference/operations-all.md).
+Every time you receive a new payment you will get a new row of data. Payments is not the only endpoint that supports streaming. You can also stream transactions [/transactions](../../reference/endpoints/transactions-all.md) and operations [/operations](../../reference/endpoints/operations-all.md).
 
 ## Following payments using `EventStream`
 
@@ -143,7 +143,7 @@ es.onmessage = function(message) {
 	console.log(result);
 };
 es.onerror = function(error) {
-	console.log('An error occured!');
+	console.log('An error occurred!');
 }
 ```
 Now, run our script: `node stream_payments.js`. You should see following output:
@@ -168,9 +168,9 @@ New payment:
 
 ## Testing it out
 
-We now know how to get a stream of transactions to an account. Let's check if our solution actually works and if new payments appear. Let's watch as we send a payment ([`create_account` operation](/developers/guides/concepts/list-of-operations.html#create-account)) from our account to another account.
+We now know how to get a stream of transactions to an account. Let's check if our solution actually works and if new payments appear. Let's watch as we send a payment ([`create_account` operation](../../../guides/concepts/list-of-operations.html#create-account)) from our account to another account.
 
-We use the `create_account` operation because we are sending payment to a new, unfunded account. If we were sending payment to an account that is already funded, we would use the [`payment` operation](/developers/guides/concepts/list-of-operations.html#payment).
+We use the `create_account` operation because we are sending payment to a new, unfunded account. If we were sending payment to an account that is already funded, we would use the [`payment` operation](../../../guides/concepts/list-of-operations.html#payment).
 
 First, let's check our account sequence number so we can create a payment transaction. To do this we send a request to aurora:
 
@@ -183,16 +183,16 @@ Sequence number can be found under the `sequence` field. The current sequence nu
 Now, create `make_payment.js` file and paste the following code into it:
 
 ```js
-var DiamNetBase = require("diamnet-base");
-DiamNetBase.Network.useTestNetwork();
+var DiamnetBase = require("diamnet-base");
+DiamnetBase.Network.useTestNetwork();
 
-var keypair = DiamNetBase.Keypair.fromSecret('SCU36VV2OYTUMDSSU4EIVX4UUHY3XC7N44VL4IJ26IOG6HVNC7DY5UJO');
-var account = new DiamNetBase.Account(keypair.publicKey(), "713226564141056");
+var keypair = DiamnetBase.Keypair.fromSecret('SCU36VV2OYTUMDSSU4EIVX4UUHY3XC7N44VL4IJ26IOG6HVNC7DY5UJO');
+var account = new DiamnetBase.Account(keypair.publicKey(), "713226564141056");
 
 var amount = "100";
-var transaction = new DiamNetBase.TransactionBuilder(account)
-  .addOperation(DiamNetBase.Operation.createAccount({
-    destination: DiamNetBase.Keypair.random().publicKey(),
+var transaction = new DiamnetBase.TransactionBuilder(account)
+  .addOperation(DiamnetBase.Operation.createAccount({
+    destination: DiamnetBase.Keypair.random().publicKey(),
     startingBalance: amount
   }))
   .build();

@@ -25,4 +25,4 @@ ALTER TABLE ONLY public.assets
 
 -- +migrate Down
 
-DROP TABLE public.assets
+DROP TABLE public.assets;

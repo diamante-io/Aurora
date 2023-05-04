@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"runtime"
 
 	"github.com/spf13/cobra"
 	apkg "github.com/diamnet/go/support/app"
@@ -9,13 +10,15 @@ import (
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "print aurora version",
+	Short: "print aurora and Golang runtime version",
 	Long:  "",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		fmt.Println(apkg.Version())
+		fmt.Println(runtime.Version())
+		return nil
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(versionCmd)
+	RootCmd.AddCommand(versionCmd)
 }

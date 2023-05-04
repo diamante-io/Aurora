@@ -1,5 +1,6 @@
 ---
 title: Rate Limiting
+replacement: https://developers.diamnet.org/api/introduction/rate-limiting/
 ---
 
 In order to provide service stability, Aurora limits the number of requests a

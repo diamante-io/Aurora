@@ -2,13 +2,11 @@
 title: All Assets
 clientData:
   laboratoryUrl:
+replacement: https://developers.diamnet.org/api/resources/assets/
 ---
 
 This endpoint represents all [assets](../resources/asset.md).
 It will give you all the assets in the system along with various statistics about each.
-
-Note: When running this in `catchup_recent` mode you will only get a subset of all the assets in the system.
-This is because we only register assets when they are encountered during ingestion.
 
 ## Request
 
@@ -29,15 +27,15 @@ GET /assets{?asset_code,asset_issuer,cursor,limit,order}
 ### curl Example Request
 
 ```sh
-# Retrieve the 200 newest assets, ordered chronologically:
-curl "https://aurora-testnet.diamnet.org/assets?limit=200&order=desc"
+# Retrieve the 200 assets, ordered alphabetically:
+curl "https://aurora-testnet.diamnet.org/assets?limit=200"
 ```
 
 ### JavaScript Example Request
 
 ```javascript
-var DiamNetSdk = require('diamnet-sdk');
-var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
+var DiamnetSdk = require('diamnet-sdk');
+var server = new DiamnetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.assets()
   .call()
@@ -80,8 +78,18 @@ If called normally this endpoint responds with a [page](../resources/page.md) of
         "asset_code": "BANANA",
         "asset_issuer": "GDSBCQO34HWPGUGQSP3QBFEXVTSR2PW46UIGTHVWGWJGQKH3AFNHXHXN",
         "paging_token": "BANANA_GDSBCQO34HWPGUGQSP3QBFEXVTSR2PW46UIGTHVWGWJGQKH3AFNHXHXN_credit_alphanum4",
-        "amount": "10000.0000000",
-        "num_accounts": 2126,
+        "accounts": {
+          "authorized": 2126,
+          "authorized_to_maintain_liabilities": 32,
+          "unauthorized": 5,
+          "claimable_balances": 18
+        },
+        "balances": {
+          "authorized": "10000.0000000",
+          "authorized_to_maintain_liabilities": "3000.0000000",
+          "unauthorized": "4000.0000000",
+          "claimable_balances": "2380.0000000"
+        },
         "flags": {
           "auth_required": true,
           "auth_revocable": false
@@ -97,8 +105,18 @@ If called normally this endpoint responds with a [page](../resources/page.md) of
         "asset_code": "BTC",
         "asset_issuer": "GBAUUA74H4XOQYRSOW2RZUA4QL5PB37U3JS5NE3RTB2ELJVMIF5RLMAG",
         "paging_token": "BTC_GBAUUA74H4XOQYRSOW2RZUA4QL5PB37U3JS5NE3RTB2ELJVMIF5RLMAG_credit_alphanum4",
-        "amount": "5000.0000000",
-        "num_accounts": 32,
+        "accounts": {
+          "authorized": 32,
+          "authorized_to_maintain_liabilities": 124,
+          "unauthorized": 6,
+          "claimable_balances": 18
+        },
+        "balances": {
+          "authorized": "5000.0000000",
+          "authorized_to_maintain_liabilities": "8000.0000000",
+          "unauthorized": "2000.0000000",
+          "claimable_balances": "1200.0000000"
+        },
         "flags": {
           "auth_required": false,
           "auth_revocable": false
@@ -114,8 +132,18 @@ If called normally this endpoint responds with a [page](../resources/page.md) of
         "asset_code": "USD",
         "asset_issuer": "GBAUUA74H4XOQYRSOW2RZUA4QL5PB37U3JS5NE3RTB2ELJVMIF5RLMAG",
         "paging_token": "USD_GBAUUA74H4XOQYRSOW2RZUA4QL5PB37U3JS5NE3RTB2ELJVMIF5RLMAG_credit_alphanum4",
-        "amount": "1000000000.0000000",
-        "num_accounts": 91547871,
+        "accounts": {
+          "authorized": 91547871,
+          "authorized_to_maintain_liabilities": 45773935,
+          "unauthorized": 22886967,
+          "claimable_balances": 11443483
+        },
+        "balances": {
+          "authorized": "1000000000.0000000",
+          "authorized_to_maintain_liabilities": "500000000.0000000",
+          "unauthorized": "250000000.0000000",
+          "claimable_balances": "12500000.0000000"
+        },
         "flags": {
           "auth_required": false,
           "auth_revocable": false
@@ -128,4 +156,4 @@ If called normally this endpoint responds with a [page](../resources/page.md) of
 
 ## Possible Errors
 
-- The [standard errors](../errors.md#Standard_Errors).
+- The [standard errors](../errors.md#standard-errors).

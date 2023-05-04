@@ -7,7 +7,8 @@ import (
 )
 
 func TestLedgerCache(t *testing.T) {
-	tt := test.Start(t).Scenario("base")
+	tt := test.Start(t)
+	tt.Scenario("base")
 	defer tt.Finish()
 	q := &Q{tt.AuroraSession()}
 
@@ -15,7 +16,7 @@ func TestLedgerCache(t *testing.T) {
 	lc.Queue(2)
 	lc.Queue(3)
 
-	err := lc.Load(q)
+	err := lc.Load(tt.Ctx, q)
 
 	if tt.Assert.NoError(err) {
 		tt.Assert.Contains(lc.Records, int32(2))

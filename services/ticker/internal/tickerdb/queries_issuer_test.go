@@ -1,6 +1,7 @@
 package tickerdb
 
 import (
+	"context"
 	"testing"
 
 	_ "github.com/lib/pq"
@@ -16,6 +17,7 @@ func TestInsertOrUpdateIssuer(t *testing.T) {
 
 	var session TickerSession
 	session.DB = db.Open()
+	ctx := context.Background()
 	defer session.DB.Close()
 
 	// Run migrations to make sure the tests are run
@@ -34,11 +36,11 @@ func TestInsertOrUpdateIssuer(t *testing.T) {
 		PublicKey: publicKey,
 		Name:      name,
 	}
-	id, err := session.InsertOrUpdateIssuer(&issuer, []string{"public_key"})
+	id, err := session.InsertOrUpdateIssuer(ctx, &issuer, []string{"public_key"})
 
 	require.NoError(t, err)
 	var dbIssuer Issuer
-	err = session.GetRaw(&dbIssuer, `
+	err = session.GetRaw(ctx, &dbIssuer, `
 		SELECT *
 		FROM issuers
 		ORDER BY id DESC
@@ -54,11 +56,11 @@ func TestInsertOrUpdateIssuer(t *testing.T) {
 		PublicKey: "ANOTHERKEY",
 		Name:      "Hello from the other side",
 	}
-	id2, err := session.InsertOrUpdateIssuer(&issuer2, []string{"public_key"})
+	id2, err := session.InsertOrUpdateIssuer(ctx, &issuer2, []string{"public_key"})
 
 	require.NoError(t, err)
 	var dbIssuer2 Issuer
-	err = session.GetRaw(&dbIssuer2, `
+	err = session.GetRaw(ctx, &dbIssuer2, `
 		SELECT *
 		FROM issuers
 		ORDER BY id DESC
@@ -76,11 +78,11 @@ func TestInsertOrUpdateIssuer(t *testing.T) {
 		PublicKey: publicKey,
 		Name:      name3,
 	}
-	id, err = session.InsertOrUpdateIssuer(&issuer3, []string{"public_key"})
+	id, err = session.InsertOrUpdateIssuer(ctx, &issuer3, []string{"public_key"})
 	require.NoError(t, err)
 
 	var dbIssuer3 Issuer
-	err = session.GetRaw(
+	err = session.GetRaw(ctx,
 		&dbIssuer3,
 		"SELECT * FROM issuers WHERE id=?",
 		id,

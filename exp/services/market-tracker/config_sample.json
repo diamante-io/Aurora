@@ -1,0 +1,19 @@
+{
+    "tradePairs": [
+        {
+            "buyingAsset": {
+                "code": "USD",
+                "issuerAddress": "GDUKMGUGDZQK6YHYA5Z6AY2G4XDSZPSZ3SW5UN3ARVMO6QSRDWP5YLEX",
+                "issuerName": "AnchorUSD",
+                "type": "AssetType4",
+                "currency": "USD"
+            },
+            "sellingAsset": {
+                "code": "XLM",
+                "issuerAddress": "native",
+                "type": "AssetTypeNative"
+            }
+        }
+    ],
+    "checkIntervalSeconds": 10
+}

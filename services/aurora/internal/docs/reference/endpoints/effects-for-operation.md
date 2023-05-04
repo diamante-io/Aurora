@@ -2,6 +2,7 @@
 title: Effects for Operation
 clientData:
   laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=effects&endpoint=for_operation
+replacement: https://developers.diamnet.org/api/resources/operations/effects/
 ---
 
 This endpoint represents all [effects](../resources/effect.md) that occurred as a result of a given [operation](../resources/operation.md).
@@ -30,8 +31,8 @@ curl "https://aurora-testnet.diamnet.org/operations/1919197546291201/effects"
 ### JavaScript Example Request
 
 ```javascript
-var DiamNetSdk = require('diamnet-sdk');
-var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
+var DiamnetSdk = require('diamnet-sdk');
+var server = new DiamnetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.effects()
   .forOperation("1919197546291201")

@@ -7,7 +7,7 @@ clientData:
 This endpoint represents all payment-related [operations](../resources/operation.md) that are part
 of validated [transactions](../resources/transaction.md). This endpoint can also be used in
 [streaming](../streaming.md) mode so it is possible to use it to listen for new payments as they
-get made in the DiamNet network.
+get made in the Diamnet network.
 
 If called in streaming mode Aurora will start at the earliest known payment unless a `cursor` is
 set. In that case it will start from the `cursor`. You can also set `cursor` value to `now` to only
@@ -51,8 +51,8 @@ curl "https://aurora-testnet.diamnet.org/payments?cursor=1234&order=desc"
 ### JavaScript Example Request
 
 ```javascript
-var DiamNetSdk = require('diamnet-sdk');
-var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
+var DiamnetSdk = require('diamnet-sdk');
+var server = new DiamnetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.payments()
   .call()
@@ -67,8 +67,8 @@ server.payments()
 ### JavaScript Streaming Example
 
 ```javascript
-var DiamNetSdk = require('diamnet-sdk')
-var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
+var DiamnetSdk = require('diamnet-sdk')
+var server = new DiamnetSdk.Server('https://aurora-testnet.diamnet.org');
 
 var paymentHandler = function (paymentResponse) {
   console.log(paymentResponse);
@@ -195,4 +195,4 @@ This endpoint responds with a list of payments. See [operation resource](../reso
 
 ## Possible Errors
 
-- The [standard errors](../errors.md#Standard_Errors).
+- The [standard errors](../errors.md#standard-errors).

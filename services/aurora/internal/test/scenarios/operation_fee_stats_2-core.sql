@@ -1,5 +1,3 @@
-running recipe
-recipe finished
 --
 -- PostgreSQL database dump
 --

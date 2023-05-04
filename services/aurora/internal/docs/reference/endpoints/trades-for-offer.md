@@ -6,7 +6,7 @@ clientData:
 
 This endpoint represents all [trades](../resources/trade.md) for a given [offer](../resources/offer.md).
 
-This endpoint can also be used in [streaming](../streaming.md) mode, making it possible to listen for new trades for the given offer as they occur on the DiamNet network.
+This endpoint can also be used in [streaming](../streaming.md) mode, making it possible to listen for new trades for the given offer as they occur on the Diamnet network.
 If called in streaming mode Aurora will start at the earliest known trade unless a `cursor` is set. In that case it will start from the `cursor`. You can also set `cursor` value to `now` to only stream trades created since your request time.
 ## Request
 
@@ -32,8 +32,8 @@ curl "https://aurora-testnet.diamnet.org/offers/323223/trades"
 ### JavaScript Example Request
 
 ```js
-var DiamNetSdk = require('diamnet-sdk');
-var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
+var DiamnetSdk = require('diamnet-sdk');
+var server = new DiamnetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.trades()
     .forOffer(323223)

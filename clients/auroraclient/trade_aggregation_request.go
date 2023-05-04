@@ -2,6 +2,7 @@ package auroraclient
 
 import (
 	"fmt"
+	"net/http"
 	"net/url"
 	"strconv"
 
@@ -35,4 +36,14 @@ func (ta TradeAggregationRequest) BuildURL() (endpoint string, err error) {
 	}
 
 	return endpoint, err
+}
+
+// HTTPRequest returns the http request for the trade aggregations endpoint
+func (ta TradeAggregationRequest) HTTPRequest(auroraURL string) (*http.Request, error) {
+	endpoint, err := ta.BuildURL()
+	if err != nil {
+		return nil, err
+	}
+
+	return http.NewRequest("GET", auroraURL+endpoint, nil)
 }

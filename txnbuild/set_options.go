@@ -20,6 +20,9 @@ const AuthRevocable = AccountFlag(xdr.AccountFlagsAuthRevocableFlag)
 // set, and prevents the account from ever being merged (deleted).
 const AuthImmutable = AccountFlag(xdr.AccountFlagsAuthImmutableFlag)
 
+// AuthClawbackEnabled is a flag that if set allows clawing back assets.
+const AuthClawbackEnabled = AccountFlag(xdr.AccountFlagsAuthClawbackEnabledFlag)
+
 // Threshold is the datatype for MasterWeight, Signer.Weight, and Thresholds. Each is a number
 // between 0-255 inclusive.
 type Threshold uint8
@@ -47,8 +50,8 @@ func NewInflationDestination(ai string) *string {
 	return &ai
 }
 
-// SetOptions represents the DiamNet set options operation. See
-// https://www.diamnet.org/developers/guides/concepts/list-of-operations.html
+// SetOptions represents the Diamnet set options operation. See
+// https://developers.diamnet.org/docs/start/list-of-operations/
 type SetOptions struct {
 	InflationDestination *string
 	SetFlags             []AccountFlag
@@ -60,11 +63,11 @@ type SetOptions struct {
 	HomeDomain           *string
 	Signer               *Signer
 	xdrOp                xdr.SetOptionsOp
-	SourceAccount        Account
+	SourceAccount        string
 }
 
 // BuildXDR for SetOptions returns a fully configured XDR Operation.
-func (so *SetOptions) BuildXDR() (xdr.Operation, error) {
+func (so *SetOptions) BuildXDR(withMuxedAccounts bool) (xdr.Operation, error) {
 	err := so.handleInflation()
 	if err != nil {
 		return xdr.Operation{}, errors.Wrap(err, "failed to set inflation destination address")
@@ -92,7 +95,11 @@ func (so *SetOptions) BuildXDR() (xdr.Operation, error) {
 	}
 
 	op := xdr.Operation{Body: body}
-	SetOpSourceAccount(&op, so.SourceAccount)
+	if withMuxedAccounts {
+		SetOpSourceMuxedAccount(&op, so.SourceAccount)
+	} else {
+		SetOpSourceAccount(&op, so.SourceAccount)
+	}
 	return op, nil
 }
 
@@ -110,8 +117,16 @@ func (so *SetOptions) handleInflation() (err error) {
 	return
 }
 
+// handleInflationXDR for SetOptions sets the inflation destination from a XDR object.
+func (so *SetOptions) handleInflationXDR(account *xdr.AccountId) {
+	if account != nil {
+		address := account.Address()
+		so.InflationDestination = &address
+	}
+}
+
 // handleSetFlags for SetOptions sets XDR account flags (represented as a bitmask).
-// See https://www.diamnet.org/developers/guides/concepts/accounts.html
+// See https://developers.diamnet.org/docs/glossary/accounts/#flags
 func (so *SetOptions) handleSetFlags() {
 	var flags xdr.Uint32
 	for _, flag := range so.SetFlags {
@@ -122,8 +137,20 @@ func (so *SetOptions) handleSetFlags() {
 	}
 }
 
+// handleSetFlagsXDR for SetOptions sets account flags from XDR object (represented as a bitmask).
+// See https://developers.diamnet.org/docs/glossary/accounts/#flags
+func (so *SetOptions) handleSetFlagsXDR(flags *xdr.Uint32) {
+	if flags != nil {
+		for _, f := range []AccountFlag{AuthRequired, AuthRevocable, AuthImmutable, AuthClawbackEnabled} {
+			if f&AccountFlag(*flags) != 0 {
+				so.SetFlags = append(so.SetFlags, f)
+			}
+		}
+	}
+}
+
 // handleClearFlags for SetOptions unsets XDR account flags (represented as a bitmask).
-// See https://www.diamnet.org/developers/guides/concepts/accounts.html
+// See https://developers.diamnet.org/docs/glossary/accounts/#flags
 func (so *SetOptions) handleClearFlags() {
 	var flags xdr.Uint32
 	for _, flag := range so.ClearFlags {
@@ -134,8 +161,20 @@ func (so *SetOptions) handleClearFlags() {
 	}
 }
 
+// handleClearFlagsXDR for SetOptions unsets account flags (represented as a bitmask).
+// See https://developers.diamnet.org/docs/glossary/accounts/#flags
+func (so *SetOptions) handleClearFlagsXDR(flags *xdr.Uint32) {
+	if flags != nil {
+		for _, f := range []AccountFlag{AuthRequired, AuthRevocable, AuthImmutable, AuthClawbackEnabled} {
+			if f&AccountFlag(*flags) != 0 {
+				so.ClearFlags = append(so.ClearFlags, f)
+			}
+		}
+	}
+}
+
 // handleMasterWeight for SetOptions sets the XDR weight of the master signing key.
-// See https://www.diamnet.org/developers/guides/concepts/multi-sig.html
+// See https://developers.diamnet.org/docs/glossary/multisig/
 func (so *SetOptions) handleMasterWeight() {
 	if so.MasterWeight != nil {
 		xdrWeight := xdr.Uint32(*so.MasterWeight)
@@ -143,8 +182,17 @@ func (so *SetOptions) handleMasterWeight() {
 	}
 }
 
+// handleMasterWeightXDR for SetOptions sets the weight of the master signing key.
+// See https://developers.diamnet.org/docs/glossary/multisig/
+func (so *SetOptions) handleMasterWeightXDR(weight *xdr.Uint32) {
+	if weight != nil {
+		mw := Threshold(uint32(*weight))
+		so.MasterWeight = &mw
+	}
+}
+
 // handleLowThreshold for SetOptions sets the XDR value of the account's "low" threshold.
-// See https://www.diamnet.org/developers/guides/concepts/multi-sig.html
+// See https://developers.diamnet.org/docs/glossary/multisig/
 func (so *SetOptions) handleLowThreshold() {
 	if so.LowThreshold != nil {
 		xdrThreshold := xdr.Uint32(*so.LowThreshold)
@@ -152,8 +200,17 @@ func (so *SetOptions) handleLowThreshold() {
 	}
 }
 
+// handleLowThresholdXDR for SetOptions sets value of the account's "low" threshold.
+// See https://developers.diamnet.org/docs/glossary/multisig/
+func (so *SetOptions) handleLowThresholdXDR(weight *xdr.Uint32) {
+	if weight != nil {
+		lt := Threshold(uint32(*weight))
+		so.LowThreshold = &lt
+	}
+}
+
 // handleMediumThreshold for SetOptions sets the XDR value of the account's "medium" threshold.
-// See https://www.diamnet.org/developers/guides/concepts/multi-sig.html
+// See https://developers.diamnet.org/docs/glossary/multisig/
 func (so *SetOptions) handleMediumThreshold() {
 	if so.MediumThreshold != nil {
 		xdrThreshold := xdr.Uint32(*so.MediumThreshold)
@@ -161,8 +218,17 @@ func (so *SetOptions) handleMediumThreshold() {
 	}
 }
 
+// handleLowMediumXDR for SetOptions sets value of the account's "medium" threshold.
+// See https://developers.diamnet.org/docs/glossary/multisig/
+func (so *SetOptions) handleMediumThresholdXDR(weight *xdr.Uint32) {
+	if weight != nil {
+		mt := Threshold(uint32(*weight))
+		so.MediumThreshold = &mt
+	}
+}
+
 // handleHighThreshold for SetOptions sets the XDR value of the account's "high" threshold.
-// See https://www.diamnet.org/developers/guides/concepts/multi-sig.html
+// See https://developers.diamnet.org/docs/glossary/multisig/
 func (so *SetOptions) handleHighThreshold() {
 	if so.HighThreshold != nil {
 		xdrThreshold := xdr.Uint32(*so.HighThreshold)
@@ -170,8 +236,17 @@ func (so *SetOptions) handleHighThreshold() {
 	}
 }
 
+// handleHighThresholdXDR for SetOptions sets value of the account's "high" threshold.
+// See https://developers.diamnet.org/docs/glossary/multisig/
+func (so *SetOptions) handleHighThresholdXDR(weight *xdr.Uint32) {
+	if weight != nil {
+		ht := Threshold(uint32(*weight))
+		so.HighThreshold = &ht
+	}
+}
+
 // handleHomeDomain for SetOptions sets the XDR value of the account's home domain.
-// https://www.diamnet.org/developers/guides/concepts/federation.html
+// https://developers.diamnet.org/docs/glossary/federation/
 func (so *SetOptions) handleHomeDomain() error {
 	if so.HomeDomain != nil {
 		if len(*so.HomeDomain) > 32 {
@@ -184,8 +259,17 @@ func (so *SetOptions) handleHomeDomain() error {
 	return nil
 }
 
+// handleHomeDomainXDR for SetOptions sets the value of the account's home domain.
+// https://developers.diamnet.org/docs/glossary/federation/
+func (so *SetOptions) handleHomeDomainXDR(xDomain *xdr.String32) {
+	if xDomain != nil {
+		domain := string(*xDomain)
+		so.HomeDomain = &domain
+	}
+}
+
 // handleSigner for SetOptions sets the XDR value of a signer for the account.
-// See https://www.diamnet.org/developers/guides/concepts/multi-sig.html
+// See https://developers.diamnet.org/docs/glossary/multisig/
 func (so *SetOptions) handleSigner() (err error) {
 	if so.Signer != nil {
 		var xdrSigner xdr.Signer
@@ -199,4 +283,50 @@ func (so *SetOptions) handleSigner() (err error) {
 		so.xdrOp.Signer = &xdrSigner
 	}
 	return nil
+}
+
+// handleSignerXDR for SetOptions sets the value of a signer for the account.
+// See https://developers.diamnet.org/docs/glossary/multisig/
+func (so *SetOptions) handleSignerXDR(xSigner *xdr.Signer) {
+	if xSigner != nil {
+		newSigner := Signer{}
+		newSigner.Address = xSigner.Key.Address()
+		newSigner.Weight = Threshold(uint32(xSigner.Weight))
+		so.Signer = &newSigner
+	}
+}
+
+// FromXDR for SetOptions initialises the txnbuild struct from the corresponding xdr Operation.
+func (so *SetOptions) FromXDR(xdrOp xdr.Operation, withMuxedAccounts bool) error {
+	result, ok := xdrOp.Body.GetSetOptionsOp()
+	if !ok {
+		return errors.New("error parsing set_options operation from xdr")
+	}
+
+	so.SourceAccount = accountFromXDR(xdrOp.SourceAccount, withMuxedAccounts)
+	so.handleInflationXDR(result.InflationDest)
+	so.handleClearFlagsXDR(result.ClearFlags)
+	so.handleSetFlagsXDR(result.SetFlags)
+	so.handleMasterWeightXDR(result.MasterWeight)
+	so.handleLowThresholdXDR(result.LowThreshold)
+	so.handleMediumThresholdXDR(result.MedThreshold)
+	so.handleHighThresholdXDR(result.HighThreshold)
+	so.handleHomeDomainXDR(result.HomeDomain)
+	so.handleSignerXDR(result.Signer)
+
+	return nil
+}
+
+// Validate for SetOptions validates the required struct fields. It returns an error if any
+// of the fields are invalid. Otherwise, it returns nil.
+func (so *SetOptions) Validate(withMuxedAccounts bool) error {
+	// skipping checks here because the individual methods above already check for required fields.
+	// Refactoring is out of the scope of this issue(https://github.com/diamnet/go/issues/1041) so will leave as is for now.
+	return nil
+}
+
+// GetSourceAccount returns the source account of the operation, or the empty string if not
+// set.
+func (so *SetOptions) GetSourceAccount() string {
+	return so.SourceAccount
 }

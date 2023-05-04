@@ -19,19 +19,22 @@ const (
 	// OpUnderfunded is the string code used to specify the operation failed
 	// due to a lack of funds.
 	OpUnderfunded = "op_underfunded"
-
 	// OpLowReserve is the string code used to specify the operation failed
 	// because the account in question does not have enough balance to satisfy
 	// what their new minimum balance would be.
 	OpLowReserve = "op_low_reserve"
-
 	// OpLineFull occurs when a payment would cause a destination account to
 	// exceed their declared trust limit for the asset being sent.
 	OpLineFull = "op_line_full"
-
 	// OpNoIssuer occurs when a operation does not correctly specify an issuing
 	// asset
 	OpNoIssuer = "op_no_issuer"
+	// OpNoTrust occurs when there is no trust line to a given asset
+	OpNoTrust = "op_no_trust"
+	// OpNotAuthorized occurs when a trust line is not authorized
+	OpNotAuthorized = "op_not_authorized"
+	// OpDoesNotExist occurs when claimable balance or sponsorship does not exist
+	OpDoesNotExist = "op_does_not_exist"
 )
 
 //String returns the appropriate string representation of the provided result code
@@ -39,6 +42,12 @@ func String(code interface{}) (string, error) {
 	switch code := code.(type) {
 	case xdr.TransactionResultCode:
 		switch code {
+		case xdr.TransactionResultCodeTxFeeBumpInnerSuccess:
+			return "tx_fee_bump_inner_success", nil
+		case xdr.TransactionResultCodeTxFeeBumpInnerFailed:
+			return "tx_fee_bump_inner_failed", nil
+		case xdr.TransactionResultCodeTxNotSupported:
+			return "tx_not_supported", nil
 		case xdr.TransactionResultCodeTxSuccess:
 			return "tx_success", nil
 		case xdr.TransactionResultCodeTxFailed:
@@ -63,6 +72,8 @@ func String(code interface{}) (string, error) {
 			return "tx_bad_auth_extra", nil
 		case xdr.TransactionResultCodeTxInternalError:
 			return "tx_internal_error", nil
+		case xdr.TransactionResultCodeTxBadSponsorship:
+			return "tx_bad_sponsorship", nil
 		}
 	case xdr.OperationResultCode:
 		switch code {
@@ -107,41 +118,41 @@ func String(code interface{}) (string, error) {
 		case xdr.PaymentResultCodePaymentNoDestination:
 			return "op_no_destination", nil
 		case xdr.PaymentResultCodePaymentNoTrust:
-			return "op_no_trust", nil
+			return OpNoTrust, nil
 		case xdr.PaymentResultCodePaymentNotAuthorized:
-			return "op_not_authorized", nil
+			return OpNotAuthorized, nil
 		case xdr.PaymentResultCodePaymentLineFull:
 			return OpLineFull, nil
 		case xdr.PaymentResultCodePaymentNoIssuer:
 			return OpNoIssuer, nil
 		}
-	case xdr.PathPaymentResultCode:
+	case xdr.PathPaymentStrictReceiveResultCode:
 		switch code {
-		case xdr.PathPaymentResultCodePathPaymentSuccess:
+		case xdr.PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveSuccess:
 			return OpSuccess, nil
-		case xdr.PathPaymentResultCodePathPaymentMalformed:
+		case xdr.PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveMalformed:
 			return OpMalformed, nil
-		case xdr.PathPaymentResultCodePathPaymentUnderfunded:
+		case xdr.PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveUnderfunded:
 			return OpUnderfunded, nil
-		case xdr.PathPaymentResultCodePathPaymentSrcNoTrust:
+		case xdr.PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveSrcNoTrust:
 			return "op_src_no_trust", nil
-		case xdr.PathPaymentResultCodePathPaymentSrcNotAuthorized:
+		case xdr.PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveSrcNotAuthorized:
 			return "op_src_not_authorized", nil
-		case xdr.PathPaymentResultCodePathPaymentNoDestination:
+		case xdr.PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveNoDestination:
 			return "op_no_destination", nil
-		case xdr.PathPaymentResultCodePathPaymentNoTrust:
-			return "op_no_trust", nil
-		case xdr.PathPaymentResultCodePathPaymentNotAuthorized:
-			return "op_not_authorized", nil
-		case xdr.PathPaymentResultCodePathPaymentLineFull:
+		case xdr.PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveNoTrust:
+			return OpNoTrust, nil
+		case xdr.PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveNotAuthorized:
+			return OpNotAuthorized, nil
+		case xdr.PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveLineFull:
 			return OpLineFull, nil
-		case xdr.PathPaymentResultCodePathPaymentNoIssuer:
+		case xdr.PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveNoIssuer:
 			return OpNoIssuer, nil
-		case xdr.PathPaymentResultCodePathPaymentTooFewOffers:
+		case xdr.PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveTooFewOffers:
 			return "op_too_few_offers", nil
-		case xdr.PathPaymentResultCodePathPaymentOfferCrossSelf:
+		case xdr.PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveOfferCrossSelf:
 			return "op_cross_self", nil
-		case xdr.PathPaymentResultCodePathPaymentOverSendmax:
+		case xdr.PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveOverSendmax:
 			return "op_over_source_max", nil
 		}
 	case xdr.ManageBuyOfferResultCode:
@@ -224,6 +235,8 @@ func String(code interface{}) (string, error) {
 			return "op_bad_signer", nil
 		case xdr.SetOptionsResultCodeSetOptionsInvalidHomeDomain:
 			return "op_invalid_home_domain", nil
+		case xdr.SetOptionsResultCodeSetOptionsAuthRevocableRequired:
+			return "op_auth_revocable_required", nil
 		}
 	case xdr.ChangeTrustResultCode:
 		switch code {
@@ -239,6 +252,12 @@ func String(code interface{}) (string, error) {
 			return OpLowReserve, nil
 		case xdr.ChangeTrustResultCodeChangeTrustSelfNotAllowed:
 			return "op_self_not_allowed", nil
+		case xdr.ChangeTrustResultCodeChangeTrustTrustLineMissing:
+			return "op_trust_line_missing", nil
+		case xdr.ChangeTrustResultCodeChangeTrustCannotDelete:
+			return "op_cannot_delete", nil
+		case xdr.ChangeTrustResultCodeChangeTrustNotAuthMaintainLiabilities:
+			return "op_not_aut_maintain_liabilities", nil
 		}
 	case xdr.AllowTrustResultCode:
 		switch code {
@@ -247,11 +266,15 @@ func String(code interface{}) (string, error) {
 		case xdr.AllowTrustResultCodeAllowTrustMalformed:
 			return OpMalformed, nil
 		case xdr.AllowTrustResultCodeAllowTrustNoTrustLine:
-			return "op_no_trustline", nil
+			return OpNoTrust, nil
 		case xdr.AllowTrustResultCodeAllowTrustTrustNotRequired:
 			return "op_not_required", nil
 		case xdr.AllowTrustResultCodeAllowTrustCantRevoke:
 			return "op_cant_revoke", nil
+		case xdr.AllowTrustResultCodeAllowTrustSelfNotAllowed:
+			return "op_self_not_allowed", nil
+		case xdr.AllowTrustResultCodeAllowTrustLowReserve:
+			return OpLowReserve, nil
 		}
 	case xdr.AccountMergeResultCode:
 		switch code {
@@ -269,6 +292,8 @@ func String(code interface{}) (string, error) {
 			return "op_seq_num_too_far", nil
 		case xdr.AccountMergeResultCodeAccountMergeDestFull:
 			return "op_dest_full", nil
+		case xdr.AccountMergeResultCodeAccountMergeIsSponsor:
+			return "op_is_sponsor", nil
 		}
 	case xdr.InflationResultCode:
 		switch code {
@@ -286,7 +311,7 @@ func String(code interface{}) (string, error) {
 		case xdr.ManageDataResultCodeManageDataNameNotFound:
 			return "op_data_name_not_found", nil
 		case xdr.ManageDataResultCodeManageDataLowReserve:
-			return "op_low_reserve", nil
+			return OpLowReserve, nil
 		case xdr.ManageDataResultCodeManageDataInvalidName:
 			return "op_data_invalid_name", nil
 		}
@@ -297,12 +322,177 @@ func String(code interface{}) (string, error) {
 		case xdr.BumpSequenceResultCodeBumpSequenceBadSeq:
 			return "op_bad_seq", nil
 		}
+	case xdr.PathPaymentStrictSendResultCode:
+		switch code {
+		case xdr.PathPaymentStrictSendResultCodePathPaymentStrictSendSuccess:
+			return OpSuccess, nil
+		case xdr.PathPaymentStrictSendResultCodePathPaymentStrictSendMalformed:
+			return OpMalformed, nil
+		case xdr.PathPaymentStrictSendResultCodePathPaymentStrictSendUnderfunded:
+			return OpUnderfunded, nil
+		case xdr.PathPaymentStrictSendResultCodePathPaymentStrictSendSrcNoTrust:
+			return "op_src_no_trust", nil
+		case xdr.PathPaymentStrictSendResultCodePathPaymentStrictSendSrcNotAuthorized:
+			return "op_src_not_authorized", nil
+		case xdr.PathPaymentStrictSendResultCodePathPaymentStrictSendNoDestination:
+			return "op_no_destination", nil
+		case xdr.PathPaymentStrictSendResultCodePathPaymentStrictSendNoTrust:
+			return OpNoTrust, nil
+		case xdr.PathPaymentStrictSendResultCodePathPaymentStrictSendNotAuthorized:
+			return OpNotAuthorized, nil
+		case xdr.PathPaymentStrictSendResultCodePathPaymentStrictSendLineFull:
+			return OpLineFull, nil
+		case xdr.PathPaymentStrictSendResultCodePathPaymentStrictSendNoIssuer:
+			return OpNoIssuer, nil
+		case xdr.PathPaymentStrictSendResultCodePathPaymentStrictSendTooFewOffers:
+			return "op_too_few_offers", nil
+		case xdr.PathPaymentStrictSendResultCodePathPaymentStrictSendOfferCrossSelf:
+			return "op_cross_self", nil
+		case xdr.PathPaymentStrictSendResultCodePathPaymentStrictSendUnderDestmin:
+			return "op_under_dest_min", nil
+		}
+	case xdr.CreateClaimableBalanceResultCode:
+		switch code {
+		case xdr.CreateClaimableBalanceResultCodeCreateClaimableBalanceSuccess:
+			return OpSuccess, nil
+		case xdr.CreateClaimableBalanceResultCodeCreateClaimableBalanceMalformed:
+			return OpMalformed, nil
+		case xdr.CreateClaimableBalanceResultCodeCreateClaimableBalanceLowReserve:
+			return OpLowReserve, nil
+		case xdr.CreateClaimableBalanceResultCodeCreateClaimableBalanceNoTrust:
+			return OpNoTrust, nil
+		case xdr.CreateClaimableBalanceResultCodeCreateClaimableBalanceNotAuthorized:
+			return OpNotAuthorized, nil
+		case xdr.CreateClaimableBalanceResultCodeCreateClaimableBalanceUnderfunded:
+			return "op_underfunded", nil
+		}
+	case xdr.ClaimClaimableBalanceResultCode:
+		switch code {
+		case xdr.ClaimClaimableBalanceResultCodeClaimClaimableBalanceSuccess:
+			return OpSuccess, nil
+		case xdr.ClaimClaimableBalanceResultCodeClaimClaimableBalanceDoesNotExist:
+			return OpDoesNotExist, nil
+		case xdr.ClaimClaimableBalanceResultCodeClaimClaimableBalanceCannotClaim:
+			return "op_cannot_claim", nil
+		case xdr.ClaimClaimableBalanceResultCodeClaimClaimableBalanceLineFull:
+			return OpLineFull, nil
+		case xdr.ClaimClaimableBalanceResultCodeClaimClaimableBalanceNoTrust:
+			return OpNoTrust, nil
+		case xdr.ClaimClaimableBalanceResultCodeClaimClaimableBalanceNotAuthorized:
+			return OpNotAuthorized, nil
+		}
+	case xdr.BeginSponsoringFutureReservesResultCode:
+		switch code {
+		case xdr.BeginSponsoringFutureReservesResultCodeBeginSponsoringFutureReservesSuccess:
+			return OpSuccess, nil
+		case xdr.BeginSponsoringFutureReservesResultCodeBeginSponsoringFutureReservesMalformed:
+			return OpMalformed, nil
+		case xdr.BeginSponsoringFutureReservesResultCodeBeginSponsoringFutureReservesAlreadySponsored:
+			return "op_already_sponsored", nil
+		case xdr.BeginSponsoringFutureReservesResultCodeBeginSponsoringFutureReservesRecursive:
+			return "op_recursive", nil
+		}
+	case xdr.EndSponsoringFutureReservesResultCode:
+		switch code {
+		case xdr.EndSponsoringFutureReservesResultCodeEndSponsoringFutureReservesSuccess:
+			return OpSuccess, nil
+		case xdr.EndSponsoringFutureReservesResultCodeEndSponsoringFutureReservesNotSponsored:
+			return "op_not_sponsored", nil
+		}
+	case xdr.RevokeSponsorshipResultCode:
+		switch code {
+		case xdr.RevokeSponsorshipResultCodeRevokeSponsorshipSuccess:
+			return OpSuccess, nil
+		case xdr.RevokeSponsorshipResultCodeRevokeSponsorshipDoesNotExist:
+			return OpDoesNotExist, nil
+		case xdr.RevokeSponsorshipResultCodeRevokeSponsorshipNotSponsor:
+			return "op_not_sponsor", nil
+		case xdr.RevokeSponsorshipResultCodeRevokeSponsorshipLowReserve:
+			return OpLowReserve, nil
+		case xdr.RevokeSponsorshipResultCodeRevokeSponsorshipOnlyTransferable:
+			return "op_only_transferable", nil
+		case xdr.RevokeSponsorshipResultCodeRevokeSponsorshipMalformed:
+			return OpMalformed, nil
+		}
+	case xdr.ClawbackResultCode:
+		switch code {
+		case xdr.ClawbackResultCodeClawbackSuccess:
+			return OpSuccess, nil
+		case xdr.ClawbackResultCodeClawbackMalformed:
+			return OpMalformed, nil
+		case xdr.ClawbackResultCodeClawbackNotClawbackEnabled:
+			return "op_not_clawback_enabled", nil
+		case xdr.ClawbackResultCodeClawbackNoTrust:
+			return OpNoTrust, nil
+		case xdr.ClawbackResultCodeClawbackUnderfunded:
+			return OpUnderfunded, nil
+		}
+	case xdr.ClawbackClaimableBalanceResultCode:
+		switch code {
+		case xdr.ClawbackClaimableBalanceResultCodeClawbackClaimableBalanceSuccess:
+			return OpSuccess, nil
+		case xdr.ClawbackClaimableBalanceResultCodeClawbackClaimableBalanceDoesNotExist:
+			return OpDoesNotExist, nil
+		case xdr.ClawbackClaimableBalanceResultCodeClawbackClaimableBalanceNotIssuer:
+			return OpNoIssuer, nil
+		case xdr.ClawbackClaimableBalanceResultCodeClawbackClaimableBalanceNotClawbackEnabled:
+			return "op_not_clawback_enabled", nil
+		}
+	case xdr.SetTrustLineFlagsResultCode:
+		switch code {
+		case xdr.SetTrustLineFlagsResultCodeSetTrustLineFlagsSuccess:
+			return OpSuccess, nil
+		case xdr.SetTrustLineFlagsResultCodeSetTrustLineFlagsMalformed:
+			return OpMalformed, nil
+		case xdr.SetTrustLineFlagsResultCodeSetTrustLineFlagsNoTrustLine:
+			return OpNoTrust, nil
+		case xdr.SetTrustLineFlagsResultCodeSetTrustLineFlagsCantRevoke:
+			return "op_cant_revoke", nil
+		case xdr.SetTrustLineFlagsResultCodeSetTrustLineFlagsInvalidState:
+			return "op_invalid_state", nil
+		case xdr.SetTrustLineFlagsResultCodeSetTrustLineFlagsLowReserve:
+			return OpLowReserve, nil
+		}
+	case xdr.LiquidityPoolDepositResultCode:
+		switch code {
+		case xdr.LiquidityPoolDepositResultCodeLiquidityPoolDepositSuccess:
+			return OpSuccess, nil
+		case xdr.LiquidityPoolDepositResultCodeLiquidityPoolDepositMalformed:
+			return OpMalformed, nil
+		case xdr.LiquidityPoolDepositResultCodeLiquidityPoolDepositNoTrust:
+			return OpNoTrust, nil
+		case xdr.LiquidityPoolDepositResultCodeLiquidityPoolDepositNotAuthorized:
+			return OpNotAuthorized, nil
+		case xdr.LiquidityPoolDepositResultCodeLiquidityPoolDepositUnderfunded:
+			return OpUnderfunded, nil
+		case xdr.LiquidityPoolDepositResultCodeLiquidityPoolDepositLineFull:
+			return OpLineFull, nil
+		case xdr.LiquidityPoolDepositResultCodeLiquidityPoolDepositBadPrice:
+			return "op_bad_price", nil
+		case xdr.LiquidityPoolDepositResultCodeLiquidityPoolDepositPoolFull:
+			return "op_pool_full", nil
+		}
+	case xdr.LiquidityPoolWithdrawResultCode:
+		switch code {
+		case xdr.LiquidityPoolWithdrawResultCodeLiquidityPoolWithdrawSuccess:
+			return OpSuccess, nil
+		case xdr.LiquidityPoolWithdrawResultCodeLiquidityPoolWithdrawMalformed:
+			return OpMalformed, nil
+		case xdr.LiquidityPoolWithdrawResultCodeLiquidityPoolWithdrawNoTrust:
+			return OpNoTrust, nil
+		case xdr.LiquidityPoolWithdrawResultCodeLiquidityPoolWithdrawUnderfunded:
+			return OpUnderfunded, nil
+		case xdr.LiquidityPoolWithdrawResultCodeLiquidityPoolWithdrawLineFull:
+			return OpLineFull, nil
+		case xdr.LiquidityPoolWithdrawResultCodeLiquidityPoolWithdrawUnderMinimum:
+			return "op_under_minimum", nil
+		}
 	}
 
 	return "", errors.New(ErrUnknownCode)
 }
 
-// ForOperationResult returns the strong represtation used by aurora for the
+// ForOperationResult returns the strong representation used by aurora for the
 // error code `opr`
 func ForOperationResult(opr xdr.OperationResult) (string, error) {
 	if opr.Code != xdr.OperationResultCodeOpInner {
@@ -317,8 +507,8 @@ func ForOperationResult(opr xdr.OperationResult) (string, error) {
 		ic = ir.MustCreateAccountResult().Code
 	case xdr.OperationTypePayment:
 		ic = ir.MustPaymentResult().Code
-	case xdr.OperationTypePathPayment:
-		ic = ir.MustPathPaymentResult().Code
+	case xdr.OperationTypePathPaymentStrictReceive:
+		ic = ir.MustPathPaymentStrictReceiveResult().Code
 	case xdr.OperationTypeManageBuyOffer:
 		ic = ir.MustManageBuyOfferResult().Code
 	case xdr.OperationTypeManageSellOffer:
@@ -339,6 +529,28 @@ func ForOperationResult(opr xdr.OperationResult) (string, error) {
 		ic = ir.MustManageDataResult().Code
 	case xdr.OperationTypeBumpSequence:
 		ic = ir.MustBumpSeqResult().Code
+	case xdr.OperationTypePathPaymentStrictSend:
+		ic = ir.MustPathPaymentStrictSendResult().Code
+	case xdr.OperationTypeCreateClaimableBalance:
+		ic = ir.MustCreateClaimableBalanceResult().Code
+	case xdr.OperationTypeClaimClaimableBalance:
+		ic = ir.MustClaimClaimableBalanceResult().Code
+	case xdr.OperationTypeBeginSponsoringFutureReserves:
+		ic = ir.MustBeginSponsoringFutureReservesResult().Code
+	case xdr.OperationTypeEndSponsoringFutureReserves:
+		ic = ir.MustEndSponsoringFutureReservesResult().Code
+	case xdr.OperationTypeRevokeSponsorship:
+		ic = ir.MustRevokeSponsorshipResult().Code
+	case xdr.OperationTypeClawback:
+		ic = ir.MustClawbackResult().Code
+	case xdr.OperationTypeClawbackClaimableBalance:
+		ic = ir.MustClawbackClaimableBalanceResult().Code
+	case xdr.OperationTypeSetTrustLineFlags:
+		ic = ir.MustSetTrustLineFlagsResult().Code
+	case xdr.OperationTypeLiquidityPoolDeposit:
+		ic = ir.MustLiquidityPoolDepositResult().Code
+	case xdr.OperationTypeLiquidityPoolWithdraw:
+		ic = ir.MustLiquidityPoolWithdrawResult().Code
 	}
 
 	return String(ic)

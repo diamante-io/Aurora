@@ -1,14 +1,15 @@
 package db
 
 import (
+	"context"
 	"github.com/diamnet/go/support/errors"
 )
 
 // Exec executes the query represented by the builder, populating the
 // destination with the results returned by running the query against the
 // current database session.
-func (gb *GetBuilder) Exec() error {
-	err := gb.Table.Session.Get(gb.dest, gb.sql)
+func (gb *GetBuilder) Exec(ctx context.Context) error {
+	err := gb.Table.Session.Get(ctx, gb.dest, gb.sql)
 	if err != nil {
 		return errors.Wrap(err, "get failed")
 	}

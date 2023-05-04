@@ -1,5 +1,6 @@
 ---
 title: Not Acceptable
+replacement: https://developers.diamnet.org/api/errors/http-status-codes/standard/
 ---
 
 When your client only accepts certain formats of data from Aurora and Aurora cannot fulfill that

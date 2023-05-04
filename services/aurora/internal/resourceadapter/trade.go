@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/diamnet/go/xdr"
+
 	"github.com/diamnet/go/amount"
 	protocol "github.com/diamnet/go/protocols/aurora"
+	auroraContext "github.com/diamnet/go/services/aurora/internal/context"
 	"github.com/diamnet/go/services/aurora/internal/db2/history"
-	"github.com/diamnet/go/services/aurora/internal/httpx"
 	"github.com/diamnet/go/support/render/hal"
 )
 
@@ -20,32 +22,54 @@ func PopulateTrade(
 ) {
 	dest.ID = row.PagingToken()
 	dest.PT = row.PagingToken()
-	dest.OfferID = fmt.Sprintf("%d", row.OfferID)
 	dest.BaseOfferID = ""
-	if row.BaseOfferID != nil {
-		dest.BaseOfferID = fmt.Sprintf("%d", *row.BaseOfferID)
+	if row.BaseOfferID.Valid {
+		dest.BaseOfferID = fmt.Sprintf("%d", row.BaseOfferID.Int64)
 	}
-	dest.BaseAccount = row.BaseAccount
+	if row.BaseAccount.Valid {
+		dest.BaseAccount = row.BaseAccount.String
+	}
+	var isLiquidityPoolTrade bool
+	if row.BaseLiquidityPoolID.Valid {
+		dest.BaseLiquidityPoolID = row.BaseLiquidityPoolID.String
+		isLiquidityPoolTrade = true
+	}
 	dest.BaseAssetType = row.BaseAssetType
 	dest.BaseAssetCode = row.BaseAssetCode
 	dest.BaseAssetIssuer = row.BaseAssetIssuer
-	dest.BaseAmount = amount.String(row.BaseAmount)
+	dest.BaseAmount = amount.String(xdr.Int64(row.BaseAmount))
 	dest.CounterOfferID = ""
-	if row.CounterOfferID != nil {
-		dest.CounterOfferID = fmt.Sprintf("%d", *row.CounterOfferID)
+	if row.CounterOfferID.Valid {
+		dest.CounterOfferID = fmt.Sprintf("%d", row.CounterOfferID.Int64)
 	}
-	dest.CounterAccount = row.CounterAccount
+	if row.CounterAccount.Valid {
+		dest.CounterAccount = row.CounterAccount.String
+	}
+	if row.CounterLiquidityPoolID.Valid {
+		dest.CounterLiquidityPoolID = row.CounterLiquidityPoolID.String
+		isLiquidityPoolTrade = true
+	}
 	dest.CounterAssetType = row.CounterAssetType
 	dest.CounterAssetCode = row.CounterAssetCode
 	dest.CounterAssetIssuer = row.CounterAssetIssuer
-	dest.CounterAmount = amount.String(row.CounterAmount)
+	dest.CounterAmount = amount.String(xdr.Int64(row.CounterAmount))
 	dest.LedgerCloseTime = row.LedgerCloseTime
 	dest.BaseIsSeller = row.BaseIsSeller
 
+	if row.LiquidityPoolFee.Valid {
+		dest.LiquidityPoolFeeBP = uint32(row.LiquidityPoolFee.Int64)
+	}
+
+	if isLiquidityPoolTrade {
+		dest.TradeType = "liquidity_pool"
+	} else {
+		dest.TradeType = "orderbook"
+	}
+
 	if row.HasPrice() {
-		dest.Price = &protocol.Price{
-			N: int32(row.PriceN.Int64),
-			D: int32(row.PriceD.Int64),
+		dest.Price = protocol.TradePrice{
+			N: row.PriceN.Int64,
+			D: row.PriceD.Int64,
 		}
 	}
 
@@ -57,9 +81,19 @@ func populateTradeLinks(
 	dest *protocol.Trade,
 	opid int64,
 ) {
-	lb := hal.LinkBuilder{httpx.BaseURL(ctx)}
-	dest.Links.Base = lb.Link("/accounts", dest.BaseAccount)
-	dest.Links.Counter = lb.Link("/accounts", dest.CounterAccount)
+	lb := hal.LinkBuilder{auroraContext.BaseURL(ctx)}
+	switch {
+	case dest.BaseOfferID != "":
+		dest.Links.Base = lb.Link("/accounts", dest.BaseAccount)
+	case dest.BaseLiquidityPoolID != "":
+		dest.Links.Base = lb.Link("/liquidity_pools", dest.BaseLiquidityPoolID)
+	}
+	switch {
+	case dest.CounterOfferID != "":
+		dest.Links.Counter = lb.Link("/accounts", dest.CounterAccount)
+	case dest.CounterLiquidityPoolID != "":
+		dest.Links.Counter = lb.Link("/liquidity_pools", dest.CounterLiquidityPoolID)
+	}
 	dest.Links.Operation = lb.Link(
 		"/operations",
 		fmt.Sprintf("%d", opid),

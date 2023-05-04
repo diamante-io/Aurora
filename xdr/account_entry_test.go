@@ -1,8 +1,11 @@
 package xdr_test
 
 import (
+	"testing"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/assert"
 
 	. "github.com/diamnet/go/xdr"
 )
@@ -47,4 +50,66 @@ func signer(address string, weight int) (ret Signer) {
 	ret.Key.SetAddress(address)
 	ret.Weight = Uint32(weight)
 	return
+}
+
+func TestAccountEntryLiabilities(t *testing.T) {
+	account := AccountEntry{}
+	liabilities := account.Liabilities()
+	assert.Equal(t, Int64(0), liabilities.Buying)
+	assert.Equal(t, Int64(0), liabilities.Selling)
+
+	account = AccountEntry{
+		Ext: AccountEntryExt{
+			V1: &AccountEntryExtensionV1{
+				Liabilities: Liabilities{
+					Buying:  100,
+					Selling: 101,
+				},
+			},
+		},
+	}
+	liabilities = account.Liabilities()
+	assert.Equal(t, Int64(100), liabilities.Buying)
+	assert.Equal(t, Int64(101), liabilities.Selling)
+}
+
+func TestAccountEntrySponsorships(t *testing.T) {
+	account := AccountEntry{}
+	sponsored := account.NumSponsored()
+	sponsoring := account.NumSponsoring()
+	signerIDs := account.SignerSponsoringIDs()
+	assert.Equal(t, Uint32(0), sponsored)
+	assert.Equal(t, Uint32(0), sponsoring)
+	assert.Empty(t, signerIDs)
+
+	signer := MustSigner("GCA4M7QXVBVEVRBU53PJZPXANRNPESGKGOT7UZ4RR4CBVBMQHMFKLZ4W")
+	sponsor := MustAddress("GCO26ZSBD63TKYX45H2C7D2WOFWOUSG5BMTNC3BG4QMXM3PAYI6WHKVZ")
+	desc := SponsorshipDescriptor(&sponsor)
+	account = AccountEntry{
+		Signers: []Signer{
+			{Key: signer},
+		},
+		Ext: AccountEntryExt{
+			V1: &AccountEntryExtensionV1{
+				Ext: AccountEntryExtensionV1Ext{
+					V2: &AccountEntryExtensionV2{
+						NumSponsored:        1,
+						NumSponsoring:       2,
+						SignerSponsoringIDs: []SponsorshipDescriptor{desc},
+					},
+				},
+			},
+		},
+	}
+	sponsored = account.NumSponsored()
+	sponsoring = account.NumSponsoring()
+	signerIDs = account.SignerSponsoringIDs()
+	expectedSponsorsForSigners := map[string]AccountId{
+		signer.Address(): sponsor,
+	}
+	assert.Equal(t, Uint32(1), sponsored)
+	assert.Equal(t, Uint32(2), sponsoring)
+	assert.Len(t, signerIDs, 1)
+	assert.Equal(t, desc, signerIDs[0])
+	assert.Equal(t, expectedSponsorsForSigners, account.SponsorPerSigner())
 }

@@ -1,7 +1,6 @@
 package auroraclient
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -29,28 +28,6 @@ func TestTradeAggregationRequestBuildUrl(t *testing.T) {
 	// It should return valid trade aggregation endpoint and no errors
 	require.NoError(t, err)
 	assert.Equal(t, "trade_aggregations?base_asset_type=native&counter_asset_code=SLT&counter_asset_issuer=GCKA6K5PCQ6PNF5RQBF7PQDJWRHO6UOGFMRLK3DYHDOI244V47XKQ4GP&counter_asset_type=credit_alphanum4&end_time=1517521726000&offset=0&order=desc&resolution=3600000&start_time=1517521726000", endpoint)
-}
-
-func ExampleClient_TradeAggregations() {
-
-	client := DefaultPublicNetClient
-	// Find trade aggregations
-	ta := TradeAggregationRequest{
-		StartTime:          testTime,
-		EndTime:            testTime,
-		Resolution:         FiveMinuteResolution,
-		BaseAssetType:      AssetTypeNative,
-		CounterAssetType:   AssetType4,
-		CounterAssetCode:   "SLT",
-		CounterAssetIssuer: "GCKA6K5PCQ6PNF5RQBF7PQDJWRHO6UOGFMRLK3DYHDOI244V47XKQ4GP",
-		Order:              OrderDesc,
-	}
-	tradeAggs, err := client.TradeAggregations(ta)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Print(tradeAggs)
 }
 
 func TestTradeAggregationsRequest(t *testing.T) {
@@ -117,6 +94,119 @@ func TestTradeAggregationsRequest(t *testing.T) {
 	}
 }
 
+func TestNextTradeAggregationsPage(t *testing.T) {
+	hmock := httptest.NewClient()
+	client := &Client{
+		AuroraURL: "https://localhost/",
+		HTTP:       hmock,
+	}
+
+	taRequest := TradeAggregationRequest{
+		StartTime:          testTime,
+		EndTime:            testTime,
+		Resolution:         DayResolution,
+		BaseAssetType:      AssetTypeNative,
+		CounterAssetType:   AssetType4,
+		CounterAssetCode:   "SLT",
+		CounterAssetIssuer: "GCKA6K5PCQ6PNF5RQBF7PQDJWRHO6UOGFMRLK3DYHDOI244V47XKQ4GP",
+		Order:              OrderDesc,
+	}
+
+	hmock.On(
+		"GET",
+		"https://localhost/trade_aggregations?base_asset_type=native&counter_asset_code=SLT&counter_asset_issuer=GCKA6K5PCQ6PNF5RQBF7PQDJWRHO6UOGFMRLK3DYHDOI244V47XKQ4GP&counter_asset_type=credit_alphanum4&end_time=1517521726000&offset=0&order=desc&resolution=86400000&start_time=1517521726000",
+	).ReturnString(200, firstTradeAggsPage)
+	tradeAggs, err := client.TradeAggregations(taRequest)
+
+	if assert.NoError(t, err) {
+		assert.Len(t, tradeAggs.Embedded.Records, 2)
+	}
+
+	assert.Equal(t, int64(1565026860000), tradeAggs.Embedded.Records[0].Timestamp)
+	assert.Equal(t, int64(3), tradeAggs.Embedded.Records[0].TradeCount)
+
+	hmock.On(
+		"GET",
+		"https://aurora-testnet.diamnet.org/trade_aggregations?base_asset_code=USD&base_asset_issuer=GDLEUZYDSFMWA5ZLQIOCYS7DMLYDKFS2KWJ5M3RQ3P3WS4L75ZTWKELP&base_asset_type=credit_alphanum4&counter_asset_code=BTC&counter_asset_issuer=GDLEUZYDSFMWA5ZLQIOCYS7DMLYDKFS2KWJ5M3RQ3P3WS4L75ZTWKELP&counter_asset_type=credit_alphanum4&limit=2&resolution=60000&start_time=0",
+	).ReturnString(200, emptyTradeAggsPage)
+
+	nextPage, err := client.NextTradeAggregationsPage(tradeAggs)
+	if assert.NoError(t, err) {
+		assert.Equal(t, len(nextPage.Embedded.Records), 0)
+	}
+}
+
+func TestPrevTradeAggregationsPage(t *testing.T) {
+	hmock := httptest.NewClient()
+	client := &Client{
+		AuroraURL: "https://localhost/",
+		HTTP:       hmock,
+	}
+
+	taRequest := TradeAggregationRequest{
+		StartTime:          testTime,
+		EndTime:            testTime,
+		Resolution:         DayResolution,
+		BaseAssetType:      AssetTypeNative,
+		CounterAssetType:   AssetType4,
+		CounterAssetCode:   "SLT",
+		CounterAssetIssuer: "GCKA6K5PCQ6PNF5RQBF7PQDJWRHO6UOGFMRLK3DYHDOI244V47XKQ4GP",
+		Order:              OrderDesc,
+	}
+
+	hmock.On(
+		"GET",
+		"https://localhost/trade_aggregations?base_asset_type=native&counter_asset_code=SLT&counter_asset_issuer=GCKA6K5PCQ6PNF5RQBF7PQDJWRHO6UOGFMRLK3DYHDOI244V47XKQ4GP&counter_asset_type=credit_alphanum4&end_time=1517521726000&offset=0&order=desc&resolution=86400000&start_time=1517521726000",
+	).ReturnString(200, emptyTradeAggsPage)
+	tradeAggs, err := client.TradeAggregations(taRequest)
+
+	if assert.NoError(t, err) {
+		assert.Equal(t, len(tradeAggs.Embedded.Records), 0)
+	}
+
+	hmock.On(
+		"GET",
+		"https://aurora-testnet.diamnet.org/trade_aggregations?base_asset_type=credit_alphanum4&base_asset_code=USD&base_asset_issuer=GDLEUZYDSFMWA5ZLQIOCYS7DMLYDKFS2KWJ5M3RQ3P3WS4L75ZTWKELP&counter_asset_type=credit_alphanum4&counter_asset_code=BTC&counter_asset_issuer=GDLEUZYDSFMWA5ZLQIOCYS7DMLYDKFS2KWJ5M3RQ3P3WS4L75ZTWKELP&start_time=1565132904&resolution=60000&limit=2",
+	).ReturnString(200, firstTradeAggsPage)
+
+	prevPage, err := client.PrevTradeAggregationsPage(tradeAggs)
+	if assert.NoError(t, err) {
+		assert.Equal(t, len(prevPage.Embedded.Records), 2)
+	}
+}
+
+func TestTradeAggregationsPageStringPayload(t *testing.T) {
+	hmock := httptest.NewClient()
+	client := &Client{
+		AuroraURL: "https://localhost/",
+		HTTP:       hmock,
+	}
+
+	taRequest := TradeAggregationRequest{
+		StartTime:          testTime,
+		EndTime:            testTime,
+		Resolution:         DayResolution,
+		BaseAssetType:      AssetTypeNative,
+		CounterAssetType:   AssetType4,
+		CounterAssetCode:   "SLT",
+		CounterAssetIssuer: "GCKA6K5PCQ6PNF5RQBF7PQDJWRHO6UOGFMRLK3DYHDOI244V47XKQ4GP",
+		Order:              OrderDesc,
+	}
+
+	hmock.On(
+		"GET",
+		"https://localhost/trade_aggregations?base_asset_type=native&counter_asset_code=SLT&counter_asset_issuer=GCKA6K5PCQ6PNF5RQBF7PQDJWRHO6UOGFMRLK3DYHDOI244V47XKQ4GP&counter_asset_type=credit_alphanum4&end_time=1517521726000&offset=0&order=desc&resolution=86400000&start_time=1517521726000",
+	).ReturnString(200, stringTradeAggsPage)
+	tradeAggs, err := client.TradeAggregations(taRequest)
+
+	if assert.NoError(t, err) {
+		assert.Len(t, tradeAggs.Embedded.Records, 1)
+	}
+
+	assert.Equal(t, int64(1565026860000), tradeAggs.Embedded.Records[0].Timestamp)
+	assert.Equal(t, int64(3), tradeAggs.Embedded.Records[0].TradeCount)
+}
+
 var tradeAggsResponse = `{
   "_links": {
     "self": {
@@ -129,8 +219,8 @@ var tradeAggsResponse = `{
   "_embedded": {
     "records": [
       {
-        "timestamp": 1517522400000,
-        "trade_count": 26,
+        "timestamp": "1517522400000",
+        "trade_count": "26",
         "base_volume": "27575.0201596",
         "counter_volume": "5085.6410385",
         "avg": "0.1844293",
@@ -156,8 +246,8 @@ var tradeAggsResponse = `{
         }
       },
       {
-        "timestamp": 1517526000000,
-        "trade_count": 15,
+        "timestamp": "1517526000000",
+        "trade_count": "15",
         "base_volume": "3913.8224543",
         "counter_volume": "719.4993608",
         "avg": "0.1838355",
@@ -180,6 +270,129 @@ var tradeAggsResponse = `{
         "close_r": {
           "N": 5,
           "D": 33
+        }
+      }
+    ]
+  }
+}`
+
+var firstTradeAggsPage = `{
+  "_links": {
+    "self": {
+      "href": "https://aurora-testnet.diamnet.org/trade_aggregations?base_asset_type=credit_alphanum4&base_asset_code=USD&base_asset_issuer=GDLEUZYDSFMWA5ZLQIOCYS7DMLYDKFS2KWJ5M3RQ3P3WS4L75ZTWKELP&counter_asset_type=credit_alphanum4&counter_asset_code=BTC&counter_asset_issuer=GDLEUZYDSFMWA5ZLQIOCYS7DMLYDKFS2KWJ5M3RQ3P3WS4L75ZTWKELP&resolution=60000&limit=2"
+    },
+    "next": {
+      "href": "https://aurora-testnet.diamnet.org/trade_aggregations?base_asset_code=USD&base_asset_issuer=GDLEUZYDSFMWA5ZLQIOCYS7DMLYDKFS2KWJ5M3RQ3P3WS4L75ZTWKELP&base_asset_type=credit_alphanum4&counter_asset_code=BTC&counter_asset_issuer=GDLEUZYDSFMWA5ZLQIOCYS7DMLYDKFS2KWJ5M3RQ3P3WS4L75ZTWKELP&counter_asset_type=credit_alphanum4&limit=2&resolution=60000&start_time=0"
+    },
+    "prev": {
+      "href": ""
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "timestamp": "1565026860000",
+        "trade_count": "3",
+        "base_volume": "23781.2128418",
+        "counter_volume": "2.0000000",
+        "avg": "0.0000841",
+        "high": "0.0000841",
+        "high_r": {
+          "N": 841,
+          "D": 10000000
+        },
+        "low": "0.0000841",
+        "low_r": {
+          "N": 841,
+          "D": 10000000
+        },
+        "open": "0.0000841",
+        "open_r": {
+          "N": 841,
+          "D": 10000000
+        },
+        "close": "0.0000841",
+        "close_r": {
+          "N": 841,
+          "D": 10000000
+        }
+      },
+      {
+        "timestamp": "1565026920000",
+        "trade_count": "1",
+        "base_volume": "11890.6052319",
+        "counter_volume": "0.9999999",
+        "avg": "0.0000841",
+        "high": "0.0000841",
+        "high_r": {
+          "N": 841,
+          "D": 10000000
+        },
+        "low": "0.0000841",
+        "low_r": {
+          "N": 841,
+          "D": 10000000
+        },
+        "open": "0.0000841",
+        "open_r": {
+          "N": 841,
+          "D": 10000000
+        },
+        "close": "0.0000841",
+        "close_r": {
+          "N": 841,
+          "D": 10000000
+        }
+      }
+    ]
+  }
+}`
+
+var emptyTradeAggsPage = `{
+  "_links": {
+    "self": {
+      "href": "https://aurora-testnet.diamnet.org/trade_aggregations?base_asset_type=credit_alphanum4&base_asset_code=USD&base_asset_issuer=GDLEUZYDSFMWA5ZLQIOCYS7DMLYDKFS2KWJ5M3RQ3P3WS4L75ZTWKELP&counter_asset_type=credit_alphanum4&counter_asset_code=BTC&counter_asset_issuer=GDLEUZYDSFMWA5ZLQIOCYS7DMLYDKFS2KWJ5M3RQ3P3WS4L75ZTWKELP&resolution=60000&limit=2"
+    },
+    "next": {
+      "href": "https://aurora-testnet.diamnet.org/trade_aggregations?base_asset_code=USD&base_asset_issuer=GDLEUZYDSFMWA5ZLQIOCYS7DMLYDKFS2KWJ5M3RQ3P3WS4L75ZTWKELP&base_asset_type=credit_alphanum4&counter_asset_code=BTC&counter_asset_issuer=GDLEUZYDSFMWA5ZLQIOCYS7DMLYDKFS2KWJ5M3RQ3P3WS4L75ZTWKELP&counter_asset_type=credit_alphanum4&limit=2&resolution=60000&start_time=0"
+    },
+    "prev": {
+      "href": "https://aurora-testnet.diamnet.org/trade_aggregations?base_asset_type=credit_alphanum4&base_asset_code=USD&base_asset_issuer=GDLEUZYDSFMWA5ZLQIOCYS7DMLYDKFS2KWJ5M3RQ3P3WS4L75ZTWKELP&counter_asset_type=credit_alphanum4&counter_asset_code=BTC&counter_asset_issuer=GDLEUZYDSFMWA5ZLQIOCYS7DMLYDKFS2KWJ5M3RQ3P3WS4L75ZTWKELP&start_time=1565132904&resolution=60000&limit=2"
+    }
+  },
+  "_embedded": {
+    "records": []
+  }
+}`
+
+var stringTradeAggsPage = `{
+  "_embedded": {
+    "records": [
+      {
+        "timestamp": "1565026860000",
+        "trade_count": "3",
+        "base_volume": "23781.2128418",
+        "counter_volume": "2.0000000",
+        "avg": "0.0000841",
+        "high": "0.0000841",
+        "high_r": {
+          "N": 841,
+          "D": 10000000
+        },
+        "low": "0.0000841",
+        "low_r": {
+          "N": 841,
+          "D": 10000000
+        },
+        "open": "0.0000841",
+        "open_r": {
+          "N": 841,
+          "D": 10000000
+        },
+        "close": "0.0000841",
+        "close_r": {
+          "N": 841,
+          "D": 10000000
         }
       }
     ]

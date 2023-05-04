@@ -1,5 +1,6 @@
 ---
 title: Stale History
+replacement: https://developers.diamnet.org/api/errors/http-status-codes/aurora-specific/
 ---
 
 A aurora server may be configured to reject historical requests when the history is known to be

@@ -2,11 +2,12 @@
 title: All Effects
 clientData:
   laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=effects&endpoint=all
+replacement: https://developers.diamnet.org/api/resources/effects/list/
 ---
 
 This endpoint represents all [effects](../resources/effect.md).
 
-This endpoint can also be used in [streaming](../streaming.md) mode so it is possible to use it to listen for new effects as transactions happen in the DiamNet network.
+This endpoint can also be used in [streaming](../streaming.md) mode so it is possible to use it to listen for new effects as transactions happen in the Diamnet network.
 If called in streaming mode Aurora will start at the earliest known effect unless a `cursor` is set. In that case it will start from the `cursor`. You can also set `cursor` value to `now` to only stream effects created since your request time.
 
 ## Request
@@ -32,8 +33,8 @@ curl "https://aurora-testnet.diamnet.org/effects"
 ### JavaScript Example Request
 
 ```javascript
-var DiamNetSdk = require('diamnet-sdk');
-var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
+var DiamnetSdk = require('diamnet-sdk');
+var server = new DiamnetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.effects()
   .call()
@@ -49,8 +50,8 @@ server.effects()
 ### JavaScript Streaming Example
 
 ```javascript
-var DiamNetSdk = require('diamnet-sdk')
-var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
+var DiamnetSdk = require('diamnet-sdk')
+var server = new DiamnetSdk.Server('https://aurora-testnet.diamnet.org');
 
 var effectHandler = function (effectResponse) {
   console.log(effectResponse);

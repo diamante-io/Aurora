@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"testing"
 
 	"github.com/diamnet/go/support/db/dbtest"
@@ -14,8 +15,9 @@ func TestDeleteBuilder_Exec(t *testing.T) {
 	sess := &Session{DB: db.Open()}
 	defer sess.DB.Close()
 
+	ctx := context.Background()
 	tbl := sess.GetTable("people")
-	r, err := tbl.Delete("name = ?", "scott").Exec()
+	r, err := tbl.Delete("name = ?", "scott").Exec(ctx)
 
 	if assert.NoError(t, err, "query error") {
 		actual, err := r.RowsAffected()
@@ -23,7 +25,7 @@ func TestDeleteBuilder_Exec(t *testing.T) {
 		assert.Equal(t, int64(1), actual)
 
 		var found int
-		err = sess.GetRaw(&found, "SELECT COUNT(*) FROM people WHERE name = ?", "scott")
+		err = sess.GetRaw(ctx, &found, "SELECT COUNT(*) FROM people WHERE name = ?", "scott")
 		require.NoError(t, err)
 		assert.Equal(t, 0, found)
 	}

@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"testing"
 
 	"github.com/diamnet/go/support/db/dbtest"
@@ -29,7 +30,7 @@ func TestSelectBuilder_Exec(t *testing.T) {
 		assert.Equal(t, "scott", args[0])
 	}
 
-	err = sb.Exec()
+	err = sb.Exec(context.Background())
 
 	if assert.NoError(t, err, "query error") {
 		if assert.Len(t, results, 1) {

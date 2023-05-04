@@ -1,14 +1,15 @@
 package gql
 
 import (
+	"context"
 	"errors"
 
 	"github.com/diamnet/go/services/ticker/internal/tickerdb"
 )
 
 // Assets resolves the assets() GraphQL query.
-func (r *resolver) Assets() (assets []*asset, err error) {
-	dbAssets, err := r.db.GetAllValidAssets()
+func (r *resolver) Assets(ctx context.Context) (assets []*asset, err error) {
+	dbAssets, err := r.db.GetAllValidAssets(ctx)
 	if err != nil {
 		// obfuscating sql errors to avoid exposing underlying
 		// implementation

@@ -19,21 +19,24 @@ import (
 
 // Config represents the configuration of a friendbot server
 type Config struct {
-	Port              int         `toml:"port" valid:"required"`
-	FriendbotSecret   string      `toml:"friendbot_secret" valid:"required"`
-	NetworkPassphrase string      `toml:"network_passphrase" valid:"required"`
-	AuroraURL        string      `toml:"aurora_url" valid:"required"`
-	StartingBalance   string      `toml:"starting_balance" valid:"required"`
-	TLS               *config.TLS `valid:"optional"`
-	NumMinions        int         `toml:"num_minions" valid:"optional"`
+	Port                   int         `toml:"port" valid:"required"`
+	FriendbotSecret        string      `toml:"friendbot_secret" valid:"required"`
+	NetworkPassphrase      string      `toml:"network_passphrase" valid:"required"`
+	AuroraURL             string      `toml:"aurora_url" valid:"required"`
+	StartingBalance        string      `toml:"starting_balance" valid:"required"`
+	TLS                    *config.TLS `valid:"optional"`
+	NumMinions             int         `toml:"num_minions" valid:"optional"`
+	BaseFee                int64       `toml:"base_fee" valid:"optional"`
+	MinionBatchSize        int         `toml:"minion_batch_size" valid:"optional"`
+	SubmitTxRetriesAllowed int         `toml:"submit_tx_retries_allowed" valid:"optional"`
 }
 
 func main() {
 
 	rootCmd := &cobra.Command{
 		Use:   "friendbot",
-		Short: "friendbot for the DiamNet Test Network",
-		Long:  "client-facing api server for the friendbot service on the DiamNet Test Network",
+		Short: "friendbot for the Diamnet Test Network",
+		Long:  "Client-facing API server for the friendbot service on the Diamnet Test Network",
 		Run:   run,
 	}
 
@@ -58,7 +61,9 @@ func run(cmd *cobra.Command, args []string) {
 		}
 		os.Exit(1)
 	}
-	fb, err := initFriendbot(cfg.FriendbotSecret, cfg.NetworkPassphrase, cfg.AuroraURL, cfg.StartingBalance, cfg.NumMinions)
+
+	fb, err := initFriendbot(cfg.FriendbotSecret, cfg.NetworkPassphrase, cfg.AuroraURL, cfg.StartingBalance,
+		cfg.NumMinions, cfg.BaseFee, cfg.MinionBatchSize, cfg.SubmitTxRetriesAllowed)
 	if err != nil {
 		log.Error(err)
 		os.Exit(1)
@@ -80,7 +85,7 @@ func run(cmd *cobra.Command, args []string) {
 }
 
 func initRouter(fb *internal.Bot) *chi.Mux {
-	mux := http.NewAPIMux(false)
+	mux := http.NewAPIMux(log.DefaultLogger)
 
 	handler := &internal.FriendbotHandler{Friendbot: fb}
 	mux.Get("/", handler.Handle)

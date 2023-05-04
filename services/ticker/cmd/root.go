@@ -15,10 +15,20 @@ var Client *auroraclient.Client
 var UseTestNet bool
 var Logger = hlog.New()
 
+var defaultDatabaseURL = getEnv("DB_URL", "postgres://localhost:5432/diamnetticker01?sslmode=disable")
+
 var rootCmd = &cobra.Command{
 	Use:   "ticker",
-	Short: "DiamNet Development Foundation Ticker.",
-	Long:  `A tool to provide DiamNet Asset and Market data.`,
+	Short: "Diamnet Development Foundation Ticker.",
+	Long:  `A tool to provide Diamnet Asset and Market data.`,
+}
+
+func getEnv(key, fallback string) string {
+	value, exists := os.LookupEnv(key)
+	if !exists {
+		value = fallback
+	}
+	return value
 }
 
 func init() {
@@ -27,14 +37,14 @@ func init() {
 		&DatabaseURL,
 		"db-url",
 		"d",
-		"postgres://localhost:5432/diamnetticker01?sslmode=disable",
+		defaultDatabaseURL,
 		"database URL, such as: postgres://user:pass@localhost:5432/ticker",
 	)
 	rootCmd.PersistentFlags().BoolVar(
 		&UseTestNet,
 		"testnet",
 		false,
-		"use the DiamNet Test Network, instead of the DiamNet Public Network",
+		"use the Diamnet Test Network, instead of the Diamnet Public Network",
 	)
 
 	Logger.SetLevel(logrus.DebugLevel)
@@ -42,10 +52,10 @@ func init() {
 
 func initConfig() {
 	if UseTestNet {
-		Logger.Debug("Using DiamNet Default Test Network")
+		Logger.Debug("Using Diamnet Default Test Network")
 		Client = auroraclient.DefaultTestNetClient
 	} else {
-		Logger.Debug("Using DiamNet Default Public Network")
+		Logger.Debug("Using Diamnet Default Public Network")
 		Client = auroraclient.DefaultPublicNetClient
 	}
 }

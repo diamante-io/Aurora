@@ -63,4 +63,4 @@ Offer ids in the aurora trade resource (base_offer_id, counter_offer_id) are syn
 | Resource                 | Type       | Resource URI Template                |
 |--------------------------|------------|--------------------------------------|
 | [Trades](../endpoints/trades.md)       | Collection | `/trades`       |
-| [Account Trades](../trades-for-account.md) | Collection | `/accounts/:account_id/trades`      |
+| [Account Trades](../endpoints/trades-for-account.md) | Collection | `/accounts/:account_id/trades`      |

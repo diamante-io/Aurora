@@ -1,14 +1,18 @@
 package tickerdb
 
+import (
+	"context"
+)
+
 // InsertOrUpdateAsset inserts an Asset on the database (if new),
 // or updates an existing one
-func (s *TickerSession) InsertOrUpdateAsset(a *Asset, preserveFields []string) (err error) {
-	return s.performUpsertQuery(*a, "assets", "assets_code_issuer_account", preserveFields)
+func (s *TickerSession) InsertOrUpdateAsset(ctx context.Context, a *Asset, preserveFields []string) (err error) {
+	return s.performUpsertQuery(ctx, *a, "assets", "assets_code_issuer_account", preserveFields)
 }
 
 // GetAssetByCodeAndIssuerAccount searches for an Asset with the given code
 // and public key, and returns its ID in case it is found.
-func (s *TickerSession) GetAssetByCodeAndIssuerAccount(
+func (s *TickerSession) GetAssetByCodeAndIssuerAccount(ctx context.Context,
 	code string,
 	issuerAccount string,
 ) (found bool, id int32, err error) {
@@ -20,7 +24,7 @@ func (s *TickerSession) GetAssetByCodeAndIssuerAccount(
 		"assets.code = ? AND assets.issuer_account = ?",
 		code,
 		issuerAccount,
-	).Exec()
+	).Exec(ctx)
 	if err != nil {
 		return
 	}
@@ -34,20 +38,20 @@ func (s *TickerSession) GetAssetByCodeAndIssuerAccount(
 
 // GetAllValidAssets returns a slice with all assets in the database
 // with is_valid = true
-func (s *TickerSession) GetAllValidAssets() (assets []Asset, err error) {
+func (s *TickerSession) GetAllValidAssets(ctx context.Context) (assets []Asset, err error) {
 	tbl := s.GetTable("assets")
 
 	err = tbl.Select(
 		&assets,
 		"assets.is_valid = TRUE",
-	).Exec()
+	).Exec(ctx)
 
 	return
 }
 
 // GetAssetsWithNestedIssuer returns a slice with all assets in the database
 // with is_valid = true, also adding the nested Issuer attribute
-func (s *TickerSession) GetAssetsWithNestedIssuer() (assets []Asset, err error) {
+func (s *TickerSession) GetAssetsWithNestedIssuer(ctx context.Context) (assets []Asset, err error) {
 	const q = `
 		SELECT
 			a.code, a.issuer_account, a.type, a.num_accounts, a.auth_required, a.auth_revocable,
@@ -62,7 +66,7 @@ func (s *TickerSession) GetAssetsWithNestedIssuer() (assets []Asset, err error) 
 		WHERE a.is_valid = TRUE
 	`
 
-	rows, err := s.DB.Query(q)
+	rows, err := s.DB.QueryContext(ctx, q)
 	if err != nil {
 		return
 	}

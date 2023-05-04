@@ -1,57 +1,287 @@
 package main
 
 import (
+	"context"
+	"encoding/base64"
+	"encoding/csv"
+	"flag"
 	"fmt"
+	"io"
 	"os"
 	"runtime"
+	"strconv"
 	"time"
 
-	"github.com/diamnet/go/exp/ingest"
-	"github.com/diamnet/go/exp/ingest/io"
-	"github.com/diamnet/go/exp/ingest/pipeline"
-	"github.com/diamnet/go/exp/ingest/processors"
-	"github.com/diamnet/go/support/historyarchive"
+	"github.com/diamnet/go/historyarchive"
+	"github.com/diamnet/go/ingest"
+	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/support/log"
 	"github.com/diamnet/go/xdr"
 )
 
-func main() {
-	dsn := "postgres://localhost:5432/aurorademo?sslmode=disable"
+// csvMap maintains a mapping from ledger entry type to csv file
+type csvMap struct {
+	files   map[xdr.LedgerEntryType]*os.File
+	writers map[xdr.LedgerEntryType]*csv.Writer
+}
 
-	archive, err := archive()
+// newCSVMap constructs an empty csvMap instance
+func newCSVMap() csvMap {
+	return csvMap{
+		files:   map[xdr.LedgerEntryType]*os.File{},
+		writers: map[xdr.LedgerEntryType]*csv.Writer{},
+	}
+}
+
+// put creates a new file with the given file name and links that file to the
+// given ledger entry type
+func (c csvMap) put(entryType xdr.LedgerEntryType, fileName string) error {
+	if _, ok := c.files[entryType]; ok {
+		return errors.Errorf("entry type %s is already present in the file set", fileName)
+	}
+
+	file, err := os.Create(fileName)
+	if err != nil {
+		return errors.Wrapf(err, "could not open file %s", fileName)
+	}
+
+	c.files[entryType] = file
+	c.writers[entryType] = csv.NewWriter(file)
+
+	return nil
+}
+
+// get returns a csv writer for the given ledger entry type if it exists in the mapping
+func (c csvMap) get(entryType xdr.LedgerEntryType) (*csv.Writer, bool) {
+	writer, ok := c.writers[entryType]
+	return writer, ok
+}
+
+// close will close all files contained in the mapping
+func (c csvMap) close() {
+	for entryType, file := range c.files {
+		if err := file.Close(); err != nil {
+			log.WithField("type", entryType.String()).Warn("could not close csv file")
+		}
+		delete(c.files, entryType)
+		delete(c.writers, entryType)
+	}
+}
+
+type csvProcessor struct {
+	files       csvMap
+	changeStats *ingest.StatsChangeProcessor
+}
+
+func (processor csvProcessor) ProcessChange(change ingest.Change) error {
+	csvWriter, ok := processor.files.get(change.Type)
+	if !ok {
+		return nil
+	}
+	if err := processor.changeStats.ProcessChange(context.Background(), change); err != nil {
+		return err
+	}
+
+	legerExt, err := xdr.MarshalBase64(change.Post.Ext)
+	if err != nil {
+		return err
+	}
+
+	switch change.Type {
+	case xdr.LedgerEntryTypeAccount:
+		account := change.Post.Data.MustAccount()
+
+		inflationDest := ""
+		if account.InflationDest != nil {
+			inflationDest = account.InflationDest.Address()
+		}
+
+		var signers string
+		if len(account.Signers) > 0 {
+			var err error
+			signers, err = xdr.MarshalBase64(account.Signers)
+			if err != nil {
+				return err
+			}
+		}
+
+		accountExt, err := xdr.MarshalBase64(account.Ext)
+		if err != nil {
+			return err
+		}
+
+		csvWriter.Write([]string{
+			account.AccountId.Address(),
+			strconv.FormatInt(int64(account.Balance), 10),
+			strconv.FormatInt(int64(account.SeqNum), 10),
+			strconv.FormatInt(int64(account.NumSubEntries), 10),
+			inflationDest,
+			base64.StdEncoding.EncodeToString([]byte(account.HomeDomain)),
+			base64.StdEncoding.EncodeToString(account.Thresholds[:]),
+			strconv.FormatInt(int64(account.Flags), 10),
+			accountExt,
+			signers,
+			legerExt,
+		})
+	case xdr.LedgerEntryTypeTrustline:
+		ledgerEntry, err := xdr.MarshalBase64(change.Post)
+		if err != nil {
+			return err
+		}
+		csvWriter.Write([]string{
+			ledgerEntry,
+		})
+	case xdr.LedgerEntryTypeOffer:
+		offer := change.Post.Data.MustOffer()
+
+		selling, err := xdr.MarshalBase64(offer.Selling)
+		if err != nil {
+			return err
+		}
+
+		buying, err := xdr.MarshalBase64(offer.Buying)
+		if err != nil {
+			return err
+		}
+
+		offerExt, err := xdr.MarshalBase64(offer.Ext)
+		if err != nil {
+			return err
+		}
+
+		csvWriter.Write([]string{
+			offer.SellerId.Address(),
+			strconv.FormatInt(int64(offer.OfferId), 10),
+			selling,
+			buying,
+			strconv.FormatInt(int64(offer.Amount), 10),
+			strconv.FormatInt(int64(offer.Price.N), 10),
+			strconv.FormatInt(int64(offer.Price.D), 10),
+			strconv.FormatInt(int64(offer.Flags), 10),
+			offerExt,
+			legerExt,
+		})
+	case xdr.LedgerEntryTypeData:
+		accountData := change.Post.Data.MustData()
+		accountDataExt, err := xdr.MarshalBase64(accountData.Ext)
+		if err != nil {
+			return err
+		}
+
+		csvWriter.Write([]string{
+			accountData.AccountId.Address(),
+			base64.StdEncoding.EncodeToString([]byte(accountData.DataName)),
+			base64.StdEncoding.EncodeToString(accountData.DataValue),
+			accountDataExt,
+			legerExt,
+		})
+	case xdr.LedgerEntryTypeClaimableBalance:
+		claimableBalance := change.Post.Data.MustClaimableBalance()
+
+		ledgerEntry, err := xdr.MarshalBase64(change.Post)
+		if err != nil {
+			return err
+		}
+
+		balanceID, err := xdr.MarshalBase64(claimableBalance.BalanceId)
+		if err != nil {
+			return err
+		}
+
+		csvWriter.Write([]string{
+			balanceID,
+			ledgerEntry,
+		})
+	case xdr.LedgerEntryTypeLiquidityPool:
+		ledgerEntry, err := xdr.MarshalBase64(change.Post)
+		if err != nil {
+			return err
+		}
+		csvWriter.Write([]string{
+			ledgerEntry,
+		})
+	default:
+		return errors.Errorf("Invalid LedgerEntryType: %d", change.Type)
+	}
+
+	if err := csvWriter.Error(); err != nil {
+		return errors.Wrap(err, "Error during csv.Writer.Write")
+	}
+
+	csvWriter.Flush()
+
+	if err := csvWriter.Error(); err != nil {
+		return errors.Wrap(err, "Error during csv.Writer.Flush")
+	}
+	return nil
+}
+
+func main() {
+	testnet := flag.Bool("testnet", false, "connect to the Diamnet test network")
+	flag.Parse()
+
+	archive, err := archive(*testnet)
 	if err != nil {
 		panic(err)
 	}
+	log.SetLevel(log.InfoLevel)
 
-	statePipeline := &pipeline.StatePipeline{}
-	statePipeline.SetRoot(
-		pipeline.StateNode(&processors.RootProcessor{}).
-			Pipe(
-				pipeline.StateNode(&processors.EntryTypeFilter{Type: xdr.LedgerEntryTypeAccount}).
-					Pipe(pipeline.StateNode(&processors.CSVPrinter{Filename: "./accounts.csv"})),
-				pipeline.StateNode(&processors.EntryTypeFilter{Type: xdr.LedgerEntryTypeData}).
-					Pipe(pipeline.StateNode(&processors.CSVPrinter{Filename: "./accountdata.csv"})),
-				pipeline.StateNode(&processors.EntryTypeFilter{Type: xdr.LedgerEntryTypeOffer}).
-					Pipe(pipeline.StateNode(&processors.CSVPrinter{Filename: "./offers.csv"})),
-				pipeline.StateNode(&processors.EntryTypeFilter{Type: xdr.LedgerEntryTypeTrustline}).
-					Pipe(pipeline.StateNode(&processors.CSVPrinter{Filename: "./trustlines.csv"})),
-			),
-	)
+	files := newCSVMap()
+	defer files.close()
 
-	session := &ingest.SingleLedgerSession{
-		LedgerSequence: 25154239,
-		Archive:        archive,
-		StatePipeline:  statePipeline,
-		TempSet:        &io.PostgresTempSet{DSN: dsn},
+	for entryType, fileName := range map[xdr.LedgerEntryType]string{
+		xdr.LedgerEntryTypeAccount:          "./accounts.csv",
+		xdr.LedgerEntryTypeData:             "./accountdata.csv",
+		xdr.LedgerEntryTypeOffer:            "./offers.csv",
+		xdr.LedgerEntryTypeTrustline:        "./trustlines.csv",
+		xdr.LedgerEntryTypeClaimableBalance: "./claimablebalances.csv",
+		xdr.LedgerEntryTypeLiquidityPool:    "./pools.csv",
+	} {
+		if err = files.put(entryType, fileName); err != nil {
+			log.WithField("err", err).
+				WithField("file", fileName).
+				Fatal("cannot create csv file")
+		}
 	}
 
-	doneStats := printPipelineStats(statePipeline)
-
-	err = session.Run()
+	ledgerSequenceString := os.Getenv("LATEST_LEDGER")
+	ledgerSequence, err := strconv.Atoi(ledgerSequenceString)
 	if err != nil {
-		fmt.Println("Session errored:")
-		fmt.Println(err)
-	} else {
-		fmt.Println("Session finished without errors")
+		log.WithField("ledger", ledgerSequenceString).
+			WithField("err", err).
+			Fatal("cannot parse latest ledger")
+	}
+	log.WithField("ledger", ledgerSequence).
+		Info("Processing entries from History Archive Snapshot")
+
+	changeReader, err := ingest.NewCheckpointChangeReader(
+		context.Background(),
+		archive,
+		uint32(ledgerSequence),
+	)
+	if err != nil {
+		log.WithField("err", err).Fatal("cannot construct change reader")
+	}
+	defer changeReader.Close()
+
+	changeStats := &ingest.StatsChangeProcessor{}
+	doneStats := printPipelineStats(changeStats)
+	changeProcessor := csvProcessor{files: files, changeStats: changeStats}
+	logFatalError := func(err error) {
+		log.WithField("err", err).Fatal("could not process all changes from HAS")
+	}
+	for {
+		change, err := changeReader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			logFatalError(errors.Wrap(err, "could not read transaction"))
+		}
+
+		if err = changeProcessor.ProcessChange(change); err != nil {
+			logFatalError(errors.Wrap(err, "could not process change"))
+		}
 	}
 
 	// Remove sorted files
@@ -60,32 +290,34 @@ func main() {
 		"./accountdata_sorted.csv",
 		"./offers_sorted.csv",
 		"./trustlines_sorted.csv",
+		"./claimablebalances_sort.csv",
 	}
 	for _, file := range sortedFiles {
 		err := os.Remove(file)
-		if err != nil {
+		// Ignore not exist errors
+		if err != nil && !os.IsNotExist(err) {
 			panic(err)
 		}
 	}
 
-	time.Sleep(10 * time.Second)
 	doneStats <- true
-	time.Sleep(10 * time.Second)
-	// Print go routines count for the last time
-	fmt.Printf("Goroutines = %v\n", runtime.NumGoroutine())
 }
 
-func archive() (*historyarchive.Archive, error) {
+func archive(testnet bool) (*historyarchive.Archive, error) {
+	if testnet {
+		return historyarchive.Connect(
+			"https://history.diamnet.org/prd/core-testnet/core_testnet_001",
+			historyarchive.ConnectOptions{},
+		)
+	}
+
 	return historyarchive.Connect(
-		fmt.Sprintf("s3://history.diamnet.org/prd/core-live/core_live_001/"),
-		historyarchive.ConnectOptions{
-			S3Region:         "eu-west-1",
-			UnsignedRequests: true,
-		},
+		fmt.Sprintf("https://history.diamnet.org/prd/core-live/core_live_001/"),
+		historyarchive.ConnectOptions{},
 	)
 }
 
-func printPipelineStats(p *pipeline.StatePipeline) chan<- bool {
+func printPipelineStats(reporter *ingest.StatsChangeProcessor) chan<- bool {
 	startTime := time.Now()
 	done := make(chan bool)
 	ticker := time.NewTicker(10 * time.Second)
@@ -96,19 +328,17 @@ func printPipelineStats(p *pipeline.StatePipeline) chan<- bool {
 		for {
 			var m runtime.MemStats
 			runtime.ReadMemStats(&m)
+			results := reporter.GetResults()
+			stats := log.F(results.Map())
+			stats["Alloc"] = bToMb(m.Alloc)
+			stats["HeapAlloc"] = bToMb(m.HeapAlloc)
+			stats["Sys"] = bToMb(m.Sys)
+			stats["NumGC"] = m.NumGC
+			stats["Goroutines"] = runtime.NumGoroutine()
+			stats["NumCPU"] = runtime.NumCPU()
+			stats["Duration"] = time.Since(startTime)
 
-			fmt.Printf("Alloc = %v MiB", bToMb(m.Alloc))
-			fmt.Printf("\tHeapAlloc = %v MiB", bToMb(m.HeapAlloc))
-			fmt.Printf("\tSys = %v MiB", bToMb(m.Sys))
-			fmt.Printf("\tNumGC = %v", m.NumGC)
-			fmt.Printf("\tGoroutines = %v", runtime.NumGoroutine())
-			fmt.Printf("\tNumCPU = %v\n\n", runtime.NumCPU())
-
-			fmt.Printf("Duration: %s\n", time.Since(startTime))
-			fmt.Println("Pipeline status:")
-			p.PrintStatus()
-
-			fmt.Println("========================================")
+			log.WithFields(stats).Info("Current Job Status")
 
 			select {
 			case <-ticker.C:

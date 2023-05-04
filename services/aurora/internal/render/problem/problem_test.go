@@ -2,6 +2,7 @@ package problem
 
 import (
 	"context"
+	"errors"
 	"net/http/httptest"
 	"testing"
 
@@ -32,4 +33,45 @@ func TestCommonProblems(t *testing.T) {
 			assert.Equal(t, tc.expectedCode, w.Code)
 		})
 	}
+}
+
+func TestMakeProblemWithInvalidField(t *testing.T) {
+	tt := assert.New(t)
+
+	p := problem.NewProblemWithInvalidField(
+		problem.NotFound,
+		"key",
+		errors.New("not found"),
+	)
+
+	expectedErr := map[string]interface{}{
+		"invalid_field": "key",
+		"reason":        "not found",
+	}
+
+	tt.Equal(expectedErr, p.Extras)
+	tt.Equal(p.Type, "not_found")
+
+	// it doesn't add keys to source problem
+	tt.Len(problem.NotFound.Extras, 0)
+}
+
+func TestMakeInvalidFieldProblem(t *testing.T) {
+	tt := assert.New(t)
+
+	p := problem.MakeInvalidFieldProblem(
+		"key",
+		errors.New("not found"),
+	)
+
+	expectedErr := map[string]interface{}{
+		"invalid_field": "key",
+		"reason":        "not found",
+	}
+
+	tt.Equal(expectedErr, p.Extras)
+	tt.Equal(p.Type, "bad_request")
+
+	// it doesn't add keys to source problem
+	tt.Len(problem.BadRequest.Extras, 0)
 }

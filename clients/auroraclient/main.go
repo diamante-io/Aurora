@@ -1,12 +1,12 @@
 /*
 Package auroraclient provides client access to a Aurora server, allowing an application to post transactions and look up ledger information.
 
-This library provides an interface to the DiamNet Aurora service. It supports the building of Go applications on
-top of the DiamNet network (https://www.diamnet.org/). Transactions may be constructed using the sister package to
+This library provides an interface to the Diamnet Aurora service. It supports the building of Go applications on
+top of the Diamnet network (https://www.diamnet.org/). Transactions may be constructed using the sister package to
 this one, txnbuild (https://github.com/diamnet/go/tree/master/txnbuild), and then submitted with this client to any
-Aurora instance for processing onto the ledger. Together, these two libraries provide a complete DiamNet SDK.
+Aurora instance for processing onto the ledger. Together, these two libraries provide a complete Diamnet SDK.
 
-For more information and further examples, see https://www.diamnet.org/developers/go/reference/index.html.
+For more information and further examples, see https://github.com/diamnet/go/blob/master/docs/reference/readme.md
 */
 package auroraclient
 
@@ -21,6 +21,7 @@ import (
 	hProtocol "github.com/diamnet/go/protocols/aurora"
 	"github.com/diamnet/go/protocols/aurora/effects"
 	"github.com/diamnet/go/protocols/aurora/operations"
+	"github.com/diamnet/go/support/clock"
 	"github.com/diamnet/go/support/render/problem"
 	"github.com/diamnet/go/txnbuild"
 )
@@ -46,6 +47,12 @@ type includeFailed bool
 // AssetType represents `asset_type` param in queries
 type AssetType string
 
+// join represents `join` param in queries
+type join string
+
+// reserves represents `reserves` param in queries
+type reserves []string
+
 const (
 	// OrderAsc represents an ascending order parameter
 	OrderAsc Order = "asc"
@@ -55,8 +62,11 @@ const (
 	AssetType4 AssetType = "credit_alphanum4"
 	// AssetType12 represents an asset type that is 12 characters long
 	AssetType12 AssetType = "credit_alphanum12"
-	// AssetTypeNative represents the asset type for DiamNet Lumens (XLM)
+	// AssetTypeNative represents the asset type for Diamnet Lumens (XLM)
 	AssetTypeNative AssetType = "native"
+	// accountRequiresMemo is the base64 encoding of "1".
+	// SEP 29 uses this value to define transaction memo requirements for incoming payments.
+	accountRequiresMemo = "MQ=="
 )
 
 // Error struct contains the problem returned by Aurora
@@ -81,8 +91,12 @@ var (
 	// "result_xdr" extra field populated when it is expected to be.
 	ErrResultNotPopulated = errors.New("result_xdr not populated")
 
-	// AuroraTimeOut is the default number of seconds before a request to aurora times out.
-	AuroraTimeOut = time.Duration(60)
+	// ErrAccountRequiresMemo is the error returned from a call to checkMemoRequired
+	// when any of the destination accounts required a memo in the transaction.
+	ErrAccountRequiresMemo = errors.New("destination account requires a memo in the transaction")
+
+	// AuroraTimeout is the default number of nanoseconds before a request to aurora times out.
+	AuroraTimeout = 60 * time.Second
 
 	// MinuteResolution represents 1 minute used as `resolution` parameter in trade aggregation
 	MinuteResolution = time.Duration(1 * time.Minute)
@@ -110,10 +124,16 @@ type HTTP interface {
 	PostForm(url string, data url.Values) (resp *http.Response, err error)
 }
 
+// UniversalTimeHandler is a function that is called to return the UTC unix time in seconds.
+// This handler is used when getting the time from a aurora server, which can be used to calculate
+// transaction timebounds.
+type UniversalTimeHandler func() int64
+
 // Client struct contains data for creating a aurora client that connects to the diamnet network.
 type Client struct {
 	// URL of Aurora server to connect
-	AuroraURL string
+	AuroraURL        string
+	fixAuroraURLOnce sync.Once
 
 	// HTTP client to make requests with
 	HTTP HTTP
@@ -123,25 +143,36 @@ type Client struct {
 
 	// AppVersion is the version of the application using the auroraclient package
 	AppVersion     string
-	auroraTimeOut time.Duration
-	isTestNet      bool
+	auroraTimeout time.Duration
+
+	// clock is a Clock returning the current time.
+	clock *clock.Clock
+}
+
+// SubmitTxOpts represents the submit transaction options
+type SubmitTxOpts struct {
+	SkipMemoRequiredCheck bool
 }
 
 // ClientInterface contains methods implemented by the aurora client
 type ClientInterface interface {
+	Accounts(request AccountsRequest) (hProtocol.AccountsPage, error)
 	AccountDetail(request AccountRequest) (hProtocol.Account, error)
 	AccountData(request AccountRequest) (hProtocol.AccountData, error)
 	Effects(request EffectRequest) (effects.EffectsPage, error)
 	Assets(request AssetRequest) (hProtocol.AssetsPage, error)
 	Ledgers(request LedgerRequest) (hProtocol.LedgersPage, error)
 	LedgerDetail(sequence uint32) (hProtocol.Ledger, error)
-	Metrics() (hProtocol.Metrics, error)
 	FeeStats() (hProtocol.FeeStats, error)
 	Offers(request OfferRequest) (hProtocol.OffersPage, error)
+	OfferDetails(offerID string) (offer hProtocol.Offer, err error)
 	Operations(request OperationRequest) (operations.OperationsPage, error)
 	OperationDetail(id string) (operations.Operation, error)
-	SubmitTransactionXDR(transactionXdr string) (hProtocol.TransactionSuccess, error)
-	SubmitTransaction(transactionXdr txnbuild.Transaction) (hProtocol.TransactionSuccess, error)
+	SubmitTransactionXDR(transactionXdr string) (hProtocol.Transaction, error)
+	SubmitFeeBumpTransactionWithOptions(transaction *txnbuild.FeeBumpTransaction, opts SubmitTxOpts) (hProtocol.Transaction, error)
+	SubmitTransactionWithOptions(transaction *txnbuild.Transaction, opts SubmitTxOpts) (hProtocol.Transaction, error)
+	SubmitFeeBumpTransaction(transaction *txnbuild.FeeBumpTransaction) (hProtocol.Transaction, error)
+	SubmitTransaction(transaction *txnbuild.Transaction) (hProtocol.Transaction, error)
 	Transactions(request TransactionRequest) (hProtocol.TransactionsPage, error)
 	TransactionDetail(txHash string) (hProtocol.Transaction, error)
 	OrderBook(request OrderBookRequest) (hProtocol.OrderBookSummary, error)
@@ -149,7 +180,7 @@ type ClientInterface interface {
 	Payments(request OperationRequest) (operations.OperationsPage, error)
 	TradeAggregations(request TradeAggregationRequest) (hProtocol.TradeAggregationsPage, error)
 	Trades(request TradeRequest) (hProtocol.TradesPage, error)
-	Fund(addr string) (hProtocol.TransactionSuccess, error)
+	Fund(addr string) (hProtocol.Transaction, error)
 	StreamTransactions(ctx context.Context, request TransactionRequest, handler TransactionHandler) error
 	StreamTrades(ctx context.Context, request TradeRequest, handler TradeHandler) error
 	StreamEffects(ctx context.Context, request EffectRequest, handler EffectHandler) error
@@ -159,6 +190,7 @@ type ClientInterface interface {
 	StreamLedgers(ctx context.Context, request LedgerRequest, handler LedgerHandler) error
 	StreamOrderBooks(ctx context.Context, request OrderBookRequest, handler OrderBookHandler) error
 	Root() (hProtocol.Root, error)
+	NextAccountsPage(hProtocol.AccountsPage) (hProtocol.AccountsPage, error)
 	NextAssetsPage(hProtocol.AssetsPage) (hProtocol.AssetsPage, error)
 	PrevAssetsPage(hProtocol.AssetsPage) (hProtocol.AssetsPage, error)
 	NextLedgersPage(hProtocol.LedgersPage) (hProtocol.LedgersPage, error)
@@ -176,29 +208,49 @@ type ClientInterface interface {
 	NextTradesPage(hProtocol.TradesPage) (hProtocol.TradesPage, error)
 	PrevTradesPage(hProtocol.TradesPage) (hProtocol.TradesPage, error)
 	HomeDomainForAccount(aid string) (string, error)
+	NextTradeAggregationsPage(hProtocol.TradeAggregationsPage) (hProtocol.TradeAggregationsPage, error)
+	PrevTradeAggregationsPage(hProtocol.TradeAggregationsPage) (hProtocol.TradeAggregationsPage, error)
+	LiquidityPoolDetail(request LiquidityPoolRequest) (hProtocol.LiquidityPool, error)
+	LiquidityPools(request LiquidityPoolsRequest) (hProtocol.LiquidityPoolsPage, error)
+	NextLiquidityPoolsPage(hProtocol.LiquidityPoolsPage) (hProtocol.LiquidityPoolsPage, error)
+	PrevLiquidityPoolsPage(hProtocol.LiquidityPoolsPage) (hProtocol.LiquidityPoolsPage, error)
 }
 
 // DefaultTestNetClient is a default client to connect to test network.
 var DefaultTestNetClient = &Client{
 	AuroraURL:     "https://aurora-testnet.diamnet.org/",
 	HTTP:           http.DefaultClient,
-	auroraTimeOut: AuroraTimeOut,
-	isTestNet:      true,
+	auroraTimeout: AuroraTimeout,
 }
 
 // DefaultPublicNetClient is a default client to connect to public network.
 var DefaultPublicNetClient = &Client{
 	AuroraURL:     "https://aurora.diamnet.org/",
 	HTTP:           http.DefaultClient,
-	auroraTimeOut: AuroraTimeOut,
+	auroraTimeout: AuroraTimeout,
 }
 
 // AuroraRequest contains methods implemented by request structs for aurora endpoints.
+// Action needed in release: auroraclient-v8.0.0: remove BuildURL()
 type AuroraRequest interface {
 	BuildURL() (string, error)
+	HTTPRequest(auroraURL string) (*http.Request, error)
 }
 
-// AccountRequest struct contains data for making requests to the accounts endpoint of a aurora server.
+// AccountsRequest struct contains data for making requests to the accounts endpoint of a aurora server.
+// Either "Signer" or "Asset" fields should be set when retrieving Accounts.
+// At the moment, you can't use both filters at the same time.
+type AccountsRequest struct {
+	Signer        string
+	Asset         string
+	Sponsor       string
+	LiquidityPool string
+	Order         Order
+	Cursor        string
+	Limit         uint
+}
+
+// AccountRequest struct contains data for making requests to the show account endpoint of a aurora server.
 // "AccountID" and "DataKey" fields should both be set when retrieving AccountData.
 // When getting the AccountDetail, only "AccountID" needs to be set.
 type AccountRequest struct {
@@ -208,16 +260,17 @@ type AccountRequest struct {
 
 // EffectRequest struct contains data for getting effects from a aurora server.
 // "ForAccount", "ForLedger", "ForOperation" and "ForTransaction": Not more than one of these
-//  can be set at a time. If none are set, the default is to return all effects.
+// can be set at a time. If none are set, the default is to return all effects.
 // The query parameters (Order, Cursor and Limit) are optional. All or none can be set.
 type EffectRequest struct {
-	ForAccount     string
-	ForLedger      string
-	ForOperation   string
-	ForTransaction string
-	Order          Order
-	Cursor         string
-	Limit          uint
+	ForAccount       string
+	ForLedger        string
+	ForLiquidityPool string
+	ForOperation     string
+	ForTransaction   string
+	Order            Order
+	Cursor           string
+	Limit            uint
 }
 
 // AssetRequest struct contains data for getting asset details from a aurora server.
@@ -240,19 +293,18 @@ type LedgerRequest struct {
 	forSequence uint32
 }
 
-type metricsRequest struct {
-	endpoint string
-}
-
 type feeStatsRequest struct {
 	endpoint string
 }
 
 // OfferRequest struct contains data for getting offers made by an account from a aurora server.
-// "ForAccount" is required.
 // The query parameters (Order, Cursor and Limit) are optional. All or none can be set.
 type OfferRequest struct {
+	OfferID    string
 	ForAccount string
+	Selling    string
+	Seller     string
+	Buying     string
 	Order      Order
 	Cursor     string
 	Limit      uint
@@ -263,15 +315,18 @@ type OfferRequest struct {
 // are provided, the default is to return all operations.
 // The query parameters (Order, Cursor, Limit and IncludeFailed) are optional. All or none can be set.
 type OperationRequest struct {
-	ForAccount     string
-	ForLedger      uint
-	ForTransaction string
-	forOperationID string
-	Order          Order
-	Cursor         string
-	Limit          uint
-	IncludeFailed  bool
-	endpoint       string
+	ForAccount          string
+	ForClaimableBalance string
+	ForLedger           uint
+	ForLiquidityPool    string
+	ForTransaction      string
+	forOperationID      string
+	Order               Order
+	Cursor              string
+	Limit               uint
+	IncludeFailed       bool
+	Join                string
+	endpoint            string
 }
 
 type submitRequest struct {
@@ -280,17 +335,19 @@ type submitRequest struct {
 }
 
 // TransactionRequest struct contains data for getting transaction details from a aurora server.
-// "ForAccount", "ForLedger": Only one of these can be set at a time. If none are provided, the
-// default is to return all transactions.
+// "ForAccount", "ForClaimableBalance", "ForLedger": Only one of these can be set at a time.
+// If none are provided, the default is to return all transactions.
 // The query parameters (Order, Cursor, Limit and IncludeFailed) are optional. All or none can be set.
 type TransactionRequest struct {
-	ForAccount         string
-	ForLedger          uint
-	forTransactionHash string
-	Order              Order
-	Cursor             string
-	Limit              uint
-	IncludeFailed      bool
+	ForAccount          string
+	ForClaimableBalance string
+	ForLedger           uint
+	ForLiquidityPool    string
+	forTransactionHash  string
+	Order               Order
+	Cursor              string
+	Limit               uint
+	IncludeFailed       bool
 }
 
 // OrderBookRequest struct contains data for getting the orderbook for an asset pair from a aurora server.
@@ -305,8 +362,10 @@ type OrderBookRequest struct {
 	Limit              uint
 }
 
-// PathsRequest struct contains data for getting available payment paths from a aurora server.
-// All parameters are required.
+// PathsRequest struct contains data for getting available strict receive path payments from a aurora server.
+// All the Destination related parameters are required and you need to include either
+// SourceAccount or SourceAssets.
+// See https://developers.diamnet.org/api/aggregations/paths/strict-receive/
 type PathsRequest struct {
 	DestinationAccount     string
 	DestinationAssetType   AssetType
@@ -314,6 +373,20 @@ type PathsRequest struct {
 	DestinationAssetIssuer string
 	DestinationAmount      string
 	SourceAccount          string
+	SourceAssets           string
+}
+
+// StrictSendPathsRequest struct contains data for getting available strict send path payments from a aurora server.
+// All the Source related parameters are required and you need to include either
+// DestinationAccount or DestinationAssets.
+// See https://developers.diamnet.org/api/aggregations/paths/strict-send/
+type StrictSendPathsRequest struct {
+	DestinationAccount string
+	DestinationAssets  string
+	SourceAssetType    AssetType
+	SourceAssetCode    string
+	SourceAssetIssuer  string
+	SourceAmount       string
 }
 
 // TradeRequest struct contains data for getting trade details from a aurora server.
@@ -323,12 +396,14 @@ type PathsRequest struct {
 type TradeRequest struct {
 	ForOfferID         string
 	ForAccount         string
+	ForLiquidityPool   string
 	BaseAssetType      AssetType
 	BaseAssetCode      string
 	BaseAssetIssuer    string
 	CounterAssetType   AssetType
 	CounterAssetCode   string
 	CounterAssetIssuer string
+	TradeType          string
 	Order              Order
 	Cursor             string
 	Limit              uint
@@ -350,6 +425,15 @@ type TradeAggregationRequest struct {
 	CounterAssetIssuer string
 	Order              Order
 	Limit              uint
+}
+
+// ClaimableBalanceRequest contains data about claimable balances.
+// The filters are optional (all added except Asset)
+type ClaimableBalanceRequest struct {
+	ID       string
+	Asset    string
+	Sponsor  string
+	Claimant string
 }
 
 // ServerTimeRecord contains data for the current unix time of a aurora server instance, and the local time when it was recorded.

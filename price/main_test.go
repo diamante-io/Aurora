@@ -1,11 +1,10 @@
-package price_test
+package price
 
 import (
 	"math"
 	"strings"
 	"testing"
 
-	"github.com/diamnet/go/price"
 	"github.com/diamnet/go/xdr"
 	"github.com/stretchr/testify/assert"
 )
@@ -45,13 +44,13 @@ var Tests = []struct {
 
 func TestParse(t *testing.T) {
 	for _, v := range Tests {
-		o, err := price.Parse(v.S)
+		o, err := Parse(v.S)
 		if v.V && err != nil {
 			t.Errorf("Couldn't parse %s: %v+", v.S, err)
 			continue
 		}
 
-		o, err = price.Parse(v.S)
+		o, err = Parse(v.S)
 		if !v.V && err == nil {
 			t.Errorf("expected err for input %s", v.S)
 			continue
@@ -62,12 +61,12 @@ func TestParse(t *testing.T) {
 		}
 	}
 
-	_, err := price.Parse("0.0000000003")
+	_, err := Parse("0.0000000003")
 	if err == nil {
 		t.Error("Expected error")
 	}
 
-	_, err = price.Parse("2147483649")
+	_, err = Parse("2147483649")
 	if err == nil {
 		t.Error("Expected error")
 	}
@@ -83,7 +82,7 @@ func TestStringFromFloat64(t *testing.T) {
 	}
 
 	for f, s := range tests {
-		assert.Equal(t, s, price.StringFromFloat64(f))
+		assert.Equal(t, s, StringFromFloat64(f))
 	}
 }
 
@@ -110,12 +109,24 @@ func TestConvertToBuyingUnits(t *testing.T) {
 	}
 	for _, kase := range testCases {
 		t.Run(t.Name(), func(t *testing.T) {
-			buyingUnits, sellingUnits, e := price.ConvertToBuyingUnits(kase.sellingOfferAmount, kase.sellingUnitsNeeded, kase.pricen, kase.priced)
+			buyingUnits, sellingUnits, e := ConvertToBuyingUnits(kase.sellingOfferAmount, kase.sellingUnitsNeeded, kase.pricen, kase.priced)
 			if !assert.Nil(t, e) {
 				return
 			}
 			assert.Equal(t, kase.wantBuyingUnits, buyingUnits)
 			assert.Equal(t, kase.wantSellingUnits, sellingUnits)
 		})
+	}
+}
+
+func TestMulFractionOverflow(t *testing.T) {
+	_, e := MulFractionRoundDown(math.MaxInt64/2+1, 2, 1)
+	if e != ErrOverflow {
+		t.Fatal("expected overflow error")
+	}
+
+	_, e = mulFractionRoundUp(math.MaxInt64/2+1, 2, 1)
+	if e != ErrOverflow {
+		t.Fatal("expected overflow error")
 	}
 }

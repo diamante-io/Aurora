@@ -1,5 +1,5 @@
 // Package simplepath provides an implementation of paths. Finder that performs
-// a breadth first search for paths against a diamnet-core's database.
+// a breadth first search for paths against an orderbook.
 //
 // The core algorithm works as follows:
 // 1. `search` object contains a queue of currently extended paths. Queue is

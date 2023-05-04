@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"net/url"
 
 	hProtocol "github.com/diamnet/go/protocols/aurora"
@@ -13,7 +14,7 @@ import (
 // BuildURL creates the endpoint to be queried based on the data in the TransactionRequest struct.
 // If no data is set, it defaults to the build the URL for all transactions
 func (tr TransactionRequest) BuildURL() (endpoint string, err error) {
-	nParams := countParams(tr.ForAccount, tr.ForLedger, tr.forTransactionHash)
+	nParams := countParams(tr.ForAccount, tr.ForLedger, tr.ForLiquidityPool, tr.forTransactionHash)
 
 	if nParams > 1 {
 		return endpoint, errors.New("invalid request: too many parameters")
@@ -23,8 +24,14 @@ func (tr TransactionRequest) BuildURL() (endpoint string, err error) {
 	if tr.ForAccount != "" {
 		endpoint = fmt.Sprintf("accounts/%s/transactions", tr.ForAccount)
 	}
+	if tr.ForClaimableBalance != "" {
+		endpoint = fmt.Sprintf("claimable_balances/%s/transactions", tr.ForClaimableBalance)
+	}
 	if tr.ForLedger > 0 {
 		endpoint = fmt.Sprintf("ledgers/%d/transactions", tr.ForLedger)
+	}
+	if tr.ForLiquidityPool != "" {
+		endpoint = fmt.Sprintf("liquidity_pools/%s/transactions", tr.ForLiquidityPool)
 	}
 	if tr.forTransactionHash != "" {
 		endpoint = fmt.Sprintf("transactions/%s", tr.forTransactionHash)
@@ -42,6 +49,16 @@ func (tr TransactionRequest) BuildURL() (endpoint string, err error) {
 	}
 
 	return endpoint, err
+}
+
+// HTTPRequest returns the http request for the transactions endpoint
+func (tr TransactionRequest) HTTPRequest(auroraURL string) (*http.Request, error) {
+	endpoint, err := tr.BuildURL()
+	if err != nil {
+		return nil, err
+	}
+
+	return http.NewRequest("GET", auroraURL+endpoint, nil)
 }
 
 // TransactionHandler is a function that is called when a new transaction is received

@@ -37,8 +37,8 @@ func TestPushCtx(t *testing.T) {
 
 	output := new(bytes.Buffer)
 	l := New()
-	l.Logger.Formatter.(*logrus.TextFormatter).DisableColors = true
-	l.Logger.Out = output
+	l.DisableColors()
+	l.entry.Logger.Out = output
 	ctx := Set(context.Background(), l.WithField("foo", "bar"))
 
 	Ctx(ctx).Warn("hello")
@@ -56,8 +56,8 @@ func TestPushCtx(t *testing.T) {
 func TestLoggingStatements(t *testing.T) {
 	output := new(bytes.Buffer)
 	l := New()
-	l.Logger.Formatter.(*logrus.TextFormatter).DisableColors = true
-	l.Logger.Out = output
+	l.DisableColors()
+	l.entry.Logger.Out = output
 
 	// level defaults to warn
 	l.Debug("debug")
@@ -71,7 +71,7 @@ func TestLoggingStatements(t *testing.T) {
 	// when on debug level, all statements are logged
 	output.Reset()
 	assert.Empty(t, output.String())
-	l.Logger.Level = logrus.DebugLevel
+	l.SetLevel(logrus.DebugLevel)
 	l.Debug("1")
 	l.Info("1")
 	l.Warn("1")
@@ -89,8 +89,8 @@ func TestLoggingStatements(t *testing.T) {
 func TestWithStack(t *testing.T) {
 	output := new(bytes.Buffer)
 	l := New()
-	l.Logger.Formatter.(*logrus.TextFormatter).DisableColors = true
-	l.Logger.Out = output
+	l.DisableColors()
+	l.entry.Logger.Out = output
 
 	// Adds stack=unknown when the provided err has not stack info
 	l.WithStack(errors.New("broken")).Error("test")

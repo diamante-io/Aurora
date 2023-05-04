@@ -1,45 +1,54 @@
 package logmetrics
 
 import (
-	metrics "github.com/rcrowley/go-metrics"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 	"github.com/diamnet/go/support/log"
 )
 
 // Metrics is a logrus hook-compliant struct that records metrics about logging
 // when added to a logrus.Logger
-type Metrics map[logrus.Level]metrics.Meter
+type Metrics map[logrus.Level]prometheus.Counter
 
-var DefaultLogger *log.Entry
-var DefaultMetrics *Metrics
+var DefaultMetrics = NewMetrics()
 
 func init() {
-	DefaultLogger, DefaultMetrics = New()
+	_, DefaultMetrics = New()
 }
 
 // New creates a new logger according to aurora specifications.
 func New() (l *log.Entry, m *Metrics) {
 	m = NewMetrics()
 	l = log.New()
-	l.Level = logrus.WarnLevel
-	l.Logger.Hooks.Add(m)
+	l.SetLevel(logrus.WarnLevel)
+	l.AddHook(m)
 	return
 }
 
 // NewMetrics creates a new hook for recording metrics.
 func NewMetrics() *Metrics {
 	return &Metrics{
-		logrus.DebugLevel: metrics.NewMeter(),
-		logrus.InfoLevel:  metrics.NewMeter(),
-		logrus.WarnLevel:  metrics.NewMeter(),
-		logrus.ErrorLevel: metrics.NewMeter(),
-		logrus.PanicLevel: metrics.NewMeter(),
+		logrus.DebugLevel: prometheus.NewCounter(prometheus.CounterOpts{
+			Namespace: "aurora", Subsystem: "log", Name: "debug_total",
+		}),
+		logrus.InfoLevel: prometheus.NewCounter(prometheus.CounterOpts{
+			Namespace: "aurora", Subsystem: "log", Name: "info_total",
+		}),
+		logrus.WarnLevel: prometheus.NewCounter(prometheus.CounterOpts{
+			Namespace: "aurora", Subsystem: "log", Name: "warn_total",
+		}),
+		logrus.ErrorLevel: prometheus.NewCounter(prometheus.CounterOpts{
+			Namespace: "aurora", Subsystem: "log", Name: "error_total",
+		}),
+		logrus.PanicLevel: prometheus.NewCounter(prometheus.CounterOpts{
+			Namespace: "aurora", Subsystem: "log", Name: "panic_total",
+		}),
 	}
 }
 
 // Fire is triggered by logrus, in response to a logging event
 func (m *Metrics) Fire(e *logrus.Entry) error {
-	(*m)[e.Level].Mark(1)
+	(*m)[e.Level].Inc()
 	return nil
 }
 

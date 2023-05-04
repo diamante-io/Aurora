@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"database/sql"
 	"reflect"
 
@@ -9,8 +10,8 @@ import (
 
 // Exec executes the query that has been previously configured on the
 // UpdateBuilder.
-func (ub *UpdateBuilder) Exec() (sql.Result, error) {
-	r, err := ub.Table.Session.Exec(ub.sql)
+func (ub *UpdateBuilder) Exec(ctx context.Context) (sql.Result, error) {
+	r, err := ub.Table.Session.Exec(ctx, ub.sql)
 	if err != nil {
 		return nil, errors.Wrap(err, "select failed")
 	}
@@ -73,7 +74,7 @@ func (ub *UpdateBuilder) SetStruct(s interface{}, ignored []string) *UpdateBuild
 		ignoredMap[ig] = true
 	}
 
-	cols := columnsForStruct(s)
+	cols := ColumnsForStruct(s)
 	row := reflect.ValueOf(s)
 	rvals := mapper.FieldsByName(row, cols)
 

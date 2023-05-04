@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/diamnet/go/support/errors"
 )
@@ -24,10 +23,15 @@ func (p *Pipeline) PrintStatus() {
 	p.printNodeStatus(p.root, 0)
 }
 
+// AddPreProcessingHook adds post-processing hook. Context will be a main
+// reader context.
 func (p *Pipeline) AddPreProcessingHook(hook func(context.Context) (context.Context, error)) {
 	p.preProcessingHooks = append(p.preProcessingHooks, hook)
 }
 
+// AddPostProcessingHook adds post-processing hook. Context will be a main
+// reader context and error will be nil, if processing was successful,
+// ErrShutdown when pipeline was shutdown and non nil otherwise.
 func (p *Pipeline) AddPostProcessingHook(hook func(context.Context, error) error) {
 	p.postProcessingHooks = append(p.postProcessingHooks, hook)
 }
@@ -66,18 +70,27 @@ func (p *Pipeline) SetRoot(rootProcessor *PipelineNode) {
 }
 
 // setRunning protects from processing more than once at a time.
-func (p *Pipeline) setRunning(setRunning bool) {
+func (p *Pipeline) setRunning(setRunning bool) error {
 	if setRunning {
 		if p.running {
-			panic("Pipeline is running...")
+			panic("Cannot start processing, pipeline is running...")
 		}
 
 		if p.shutDown {
-			panic("Pipeline was shut down...")
+			return ErrShutdown
 		}
 	}
 
 	p.running = setRunning
+	return nil
+}
+
+// IsRunning returns true if pipeline is running
+func (p *Pipeline) IsRunning() bool {
+	// Protects internal fields
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+	return p.running
 }
 
 // reset resets internal state of the pipeline and all the nodes and processors.
@@ -119,18 +132,25 @@ func (p *Pipeline) resetNode(node *PipelineNode) {
 	}
 }
 
+// Process starts pipeline. Return channel will return if an error occured in
+// any of the processors or any of the pipeline hooks. Will return ErrShutdown
+// if the pipeline was shutdown.
 func (p *Pipeline) Process(reader Reader) <-chan error {
 	// Protects internal fields
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 
-	p.setRunning(true)
+	errorChan := make(chan error, 1)
+	err := p.setRunning(true)
+	if err != nil {
+		errorChan <- err
+		return errorChan
+	}
 	p.reset()
 
 	ctx, err := p.sendPreProcessingHooks(reader.GetContext())
 	if err != nil {
 		p.setRunning(false)
-		errorChan := make(chan error, 1)
 		errorChan <- errors.Wrap(err, "Error running pre-hook")
 		return errorChan
 	}
@@ -179,8 +199,6 @@ func (p *Pipeline) processStateNode(ctx context.Context, store *Store, node *Pip
 		}
 	}()
 
-	finishUpdatingStats := p.updateStats(node, reader, writer)
-
 	for i, child := range node.Children {
 		wg.Add(1)
 		go func(i int, child *PipelineNode) {
@@ -196,21 +214,26 @@ func (p *Pipeline) processStateNode(ctx context.Context, store *Store, node *Pip
 
 	go func() {
 		wg.Wait()
-		finishUpdatingStats <- true
-
 		if node == p.root {
-			// If pipeline processing is finished run post-hooks (if not shut down)
-			// and send error if not already sent.
+			// If pipeline processing is finished run post-hooks and send error
+			// if not already sent.
 			var returnError error
-			if p.shutDown {
-				returnError = nil
+			var hookError error
+
+			hookError = processingError
+			if hookError == nil && p.shutDown {
+				hookError = ErrShutdown
+			}
+
+			err := p.sendPostProcessingHooks(reader.GetContext(), hookError)
+			if err != nil {
+				returnError = errors.Wrap(err, "Error running post-hook")
 			} else {
-				err := p.sendPostProcessingHooks(reader.GetContext(), processingError)
-				if err != nil {
-					returnError = errors.Wrap(err, "Error running post-hook")
-				} else {
-					returnError = processingError
-				}
+				returnError = processingError
+			}
+
+			if returnError == nil && p.shutDown {
+				returnError = ErrShutdown
 			}
 
 			p.mutex.Lock()
@@ -227,8 +250,8 @@ func (p *Pipeline) processStateNode(ctx context.Context, store *Store, node *Pip
 	return errorChan
 }
 
-// Shutdown stops the processing. Please note that post-processing hooks will not
-// be executed when Shutdown() is called.
+// Shutdown stops the processing. Please note that post-processing hooks will
+// receive ErrShutdown when Shutdown() is called.
 func (p *Pipeline) Shutdown() {
 	// Protects internal fields
 	p.mutex.Lock()
@@ -239,40 +262,8 @@ func (p *Pipeline) Shutdown() {
 	}
 	p.shutDown = true
 	p.cancelled = true
-	p.cancelFunc()
-}
-
-func (p *Pipeline) updateStats(node *PipelineNode, reader Reader, writer *multiWriter) chan<- bool {
-	// Update stats
-	interval := time.Second
-	done := make(chan bool)
-	ticker := time.NewTicker(interval)
-
-	go func() {
-		defer ticker.Stop()
-
-		for {
-			// This is not thread-safe: check if Mutex slows it down a lot...
-			readBuffer, readBufferIsBufferedReadWriter := reader.(*BufferedReadWriter)
-
-			node.writesPerSecond = (writer.wroteEntries - node.wroteEntries) * int(time.Second/interval)
-			node.wroteEntries = writer.wroteEntries
-
-			if readBufferIsBufferedReadWriter {
-				node.readsPerSecond = (readBuffer.readEntries - node.readEntries) * int(time.Second/interval)
-				node.readEntries = readBuffer.readEntries
-				node.queuedEntries = readBuffer.QueuedEntries()
-			}
-
-			select {
-			case <-ticker.C:
-				continue
-			case <-done:
-				// Pipeline done
-				return
-			}
-		}
-	}()
-
-	return done
+	// It's possible that Shutdown will be called before first run.
+	if p.cancelFunc != nil {
+		p.cancelFunc()
+	}
 }

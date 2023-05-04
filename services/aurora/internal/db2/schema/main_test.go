@@ -1,21 +1,35 @@
 package schema
 
 import (
+	"net/http"
 	"testing"
 
-	"github.com/diamnet/go/support/db"
-	"github.com/diamnet/go/support/db/dbtest"
+	assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/diamnet/go/support/db/dbtest"
+	supportHttp "github.com/diamnet/go/support/http"
 )
 
 func TestInit(t *testing.T) {
 	tdb := dbtest.Postgres(t)
 	defer tdb.Close()
-	sess := &db.Session{DB: tdb.Open()}
+	db := tdb.Open()
 
-	defer sess.DB.Close()
+	defer db.Close()
 
-	err := Init(sess)
+	// make sure migrating in both directions works
 
+	_, err := Migrate(db.DB, MigrateUp, 0)
 	assert.NoError(t, err)
+
+	_, err = Migrate(db.DB, MigrateDown, 0)
+	assert.NoError(t, err)
+}
+
+func TestGeneratedAssets(t *testing.T) {
+	generatedAssets := &assetfs.AssetFS{Asset: Asset, AssetDir: AssetDir, AssetInfo: AssetInfo}
+	if !supportHttp.EqualFileSystems(http.Dir("."), generatedAssets, "migrations") {
+		t.Fatalf("generated migrations does not match local migrations")
+	}
 }

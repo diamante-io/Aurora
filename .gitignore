@@ -11,3 +11,5 @@ debug
 *.crt
 *.csr
 *.key
+*.prof
+*.test

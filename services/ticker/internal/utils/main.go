@@ -16,9 +16,12 @@ func PanicIfError(e error) {
 	}
 }
 
-// WriteJSONToFile wrtites a json []byte dump to <filename>
+// WriteJSONToFile atomically writes a json []byte dump to <filename>
+// It ensures atomicity by first creating a tmp file (filename.tmp), writing
+// the contents to it, then renaming it to the originally specified filename.
 func WriteJSONToFile(jsonBytes []byte, filename string) (numBytes int, err error) {
-	f, err := os.Create(filename)
+	tmp := fmt.Sprintf("%s.tmp", filename)
+	f, err := os.Create(tmp)
 	PanicIfError(err)
 	defer f.Close()
 
@@ -32,6 +35,7 @@ func WriteJSONToFile(jsonBytes []byte, filename string) (numBytes int, err error
 		return
 	}
 
+	err = os.Rename(tmp, filename)
 	return
 }
 

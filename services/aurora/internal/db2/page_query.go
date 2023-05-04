@@ -3,11 +3,11 @@ package db2
 import (
 	"fmt"
 	"math"
-	"reflect"
 	"strconv"
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
+
 	"github.com/diamnet/go/support/errors"
 )
 
@@ -37,9 +37,6 @@ var (
 	// ErrInvalidCursor is an error that occurs when a user-provided cursor string
 	// is invalid
 	ErrInvalidCursor = &InvalidFieldError{"cursor"}
-	// ErrNotPageable is an error that occurs when the records provided to
-	// PageQuery.GetContinuations cannot be cast to Pageable
-	ErrNotPageable = errors.New("Records provided are not Pageable")
 )
 
 type InvalidFieldError struct {
@@ -65,6 +62,14 @@ func (p PageQuery) ApplyTo(
 	return p.ApplyToUsingCursor(sql, col, cursor)
 }
 
+// ApplyRawTo applies the raw PageQuery.Cursor cursor to the builder
+func (p PageQuery) ApplyRawTo(
+	sql sq.SelectBuilder,
+	col string,
+) (sq.SelectBuilder, error) {
+	return p.ApplyToUsingCursor(sql, col, p.Cursor)
+}
+
 // ApplyToUsingCursor returns a new SelectBuilder after applying the paging effects of
 // `p` to `sql`.  This method allows any type of cursor by a single column
 func (p PageQuery) ApplyToUsingCursor(
@@ -76,13 +81,23 @@ func (p PageQuery) ApplyToUsingCursor(
 
 	switch p.Order {
 	case "asc":
-		sql = sql.
-			Where(fmt.Sprintf("%s > ?", col), cursor).
-			OrderBy(fmt.Sprintf("%s asc", col))
+		if cursor == "" {
+			sql = sql.
+				OrderBy(fmt.Sprintf("%s asc", col))
+		} else {
+			sql = sql.
+				Where(fmt.Sprintf("%s > ?", col), cursor).
+				OrderBy(fmt.Sprintf("%s asc", col))
+		}
 	case "desc":
-		sql = sql.
-			Where(fmt.Sprintf("%s < ?", col), cursor).
-			OrderBy(fmt.Sprintf("%s desc", col))
+		if cursor == "" {
+			sql = sql.
+				OrderBy(fmt.Sprintf("%s desc", col))
+		} else {
+			sql = sql.
+				Where(fmt.Sprintf("%s < ?", col), cursor).
+				OrderBy(fmt.Sprintf("%s desc", col))
+		}
 	default:
 		return sql, errors.Errorf("invalid order: %s", p.Order)
 	}
@@ -100,35 +115,6 @@ func (p PageQuery) Invert() PageQuery {
 	}
 
 	return p
-}
-
-// GetContinuations returns two new PageQuery structs, a next and previous
-// query.
-func (p PageQuery) GetContinuations(records interface{}) (next PageQuery, prev PageQuery, err error) {
-	next = p
-	prev = p.Invert()
-
-	rv := reflect.ValueOf(records)
-	l := rv.Len()
-
-	if l <= 0 {
-		return
-	}
-
-	first, ok := rv.Index(0).Interface().(Pageable)
-	if !ok {
-		err = ErrNotPageable
-	}
-
-	last, ok := rv.Index(l - 1).Interface().(Pageable)
-	if !ok {
-		err = ErrNotPageable
-	}
-
-	next.Cursor = last.PagingToken()
-	prev.Cursor = first.PagingToken()
-
-	return
 }
 
 // CursorInt64 parses this query's Cursor string as an int64

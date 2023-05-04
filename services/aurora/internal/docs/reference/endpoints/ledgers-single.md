@@ -2,6 +2,7 @@
 title: Ledger Details
 clientData:
   laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=ledgers&endpoint=single
+replacement: https://developers.diamnet.org/api/resources/ledgers/single/
 ---
 
 The ledger details endpoint provides information on a single [ledger](../resources/ledger.md).
@@ -27,8 +28,8 @@ curl "https://aurora-testnet.diamnet.org/ledgers/69859"
 ### JavaScript Example Request
 
 ```js
-var DiamNetSdk = require('diamnet-sdk')
-var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
+var DiamnetSdk = require('diamnet-sdk')
+var server = new DiamnetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.ledgers()
   .ledger('69858')
@@ -75,6 +76,7 @@ This endpoint responds with a single Ledger.  See [ledger resource](../resources
   "successful_transaction_count": 0,
   "failed_transaction_count": 0,
   "operation_count": 0,
+  "tx_set_operation_count": 0,
   "closed_at": "2015-07-20T15:51:52Z",
   "total_coins": "100000000000.0000000",
   "fee_pool": "0.0025600",

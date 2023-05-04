@@ -2,18 +2,36 @@ package resourceadapter
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/diamnet/go/amount"
 	"github.com/diamnet/go/protocols/aurora"
 	"github.com/diamnet/go/services/aurora/internal/paths"
 )
 
+func extractAsset(asset string, t, c, i *string) error {
+	if asset == "native" {
+		*t = asset
+		return nil
+	}
+	parts := strings.Split(asset, "/")
+	if len(parts) != 3 {
+		return fmt.Errorf("expected length to be 3 but got %v", parts)
+	}
+	*t = parts[0]
+	*c = parts[1]
+	*i = parts[2]
+	return nil
+}
+
 // PopulatePath converts the paths.Path into a Path
 func PopulatePath(ctx context.Context, dest *aurora.Path, p paths.Path) (err error) {
 	dest.DestinationAmount = amount.String(p.DestinationAmount)
 	dest.SourceAmount = amount.String(p.SourceAmount)
 
-	err = p.Source.Extract(
+	err = extractAsset(
+		p.Source,
 		&dest.SourceAssetType,
 		&dest.SourceAssetCode,
 		&dest.SourceAssetIssuer)
@@ -21,7 +39,8 @@ func PopulatePath(ctx context.Context, dest *aurora.Path, p paths.Path) (err err
 		return
 	}
 
-	err = p.Destination.Extract(
+	err = extractAsset(
+		p.Destination,
 		&dest.DestinationAssetType,
 		&dest.DestinationAssetCode,
 		&dest.DestinationAssetIssuer)
@@ -31,7 +50,8 @@ func PopulatePath(ctx context.Context, dest *aurora.Path, p paths.Path) (err err
 
 	dest.Path = make([]aurora.Asset, len(p.Path))
 	for i, a := range p.Path {
-		err = a.Extract(
+		err = extractAsset(
+			a,
 			&dest.Path[i].Type,
 			&dest.Path[i].Code,
 			&dest.Path[i].Issuer)

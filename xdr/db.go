@@ -1,11 +1,10 @@
 package xdr
 
 import (
+	"database/sql/driver"
 	"encoding/hex"
 	"errors"
 	"fmt"
-
-	"github.com/lib/pq"
 )
 
 // This file contains implementations of the sql.Scanner interface for diamnet xdr types
@@ -37,6 +36,21 @@ func (t *Asset) Scan(src interface{}) error {
 	return safeBase64Scan(src, t)
 }
 
+// Value implements the database/sql/driver Valuer interface.
+func (t Asset) Value() (driver.Value, error) {
+	return MarshalBase64(t)
+}
+
+// Scan reads from src into a ClaimPredicate
+func (c *ClaimPredicate) Scan(src interface{}) error {
+	return safeBase64Scan(src, c)
+}
+
+// Value implements the database/sql/driver Valuer interface.
+func (c ClaimPredicate) Value() (driver.Value, error) {
+	return MarshalBase64(c)
+}
+
 // Scan reads from src into an Int64
 func (t *Int64) Scan(src interface{}) error {
 	val, ok := src.(int64)
@@ -45,24 +59,6 @@ func (t *Int64) Scan(src interface{}) error {
 	}
 
 	*t = Int64(val)
-	return nil
-}
-
-// Scan reads from a src into an xdr.Price
-func (t *Price) Scan(src interface{}) error {
-	// assuming the price is represented as a two-element array [n,d]
-	arr := pq.Int64Array{}
-	err := arr.Scan(src)
-
-	if err != nil {
-		return err
-	}
-
-	if len(arr) != 2 {
-		return errors.New("price array should have exactly 2 elements")
-	}
-
-	*t = Price{Int32(arr[0]), Int32(arr[1])}
 	return nil
 }
 
@@ -79,6 +75,11 @@ func (t *Hash) Scan(src interface{}) error {
 	*t = decodedHash
 
 	return nil
+}
+
+// Scan reads from src into an LedgerUpgrade struct
+func (t *LedgerUpgrade) Scan(src interface{}) error {
+	return safeBase64Scan(src, t)
 }
 
 // Scan reads from src into an LedgerEntryChanges struct

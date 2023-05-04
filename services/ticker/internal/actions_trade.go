@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/big"
 	"strconv"
 	"time"
 
@@ -29,25 +30,25 @@ func StreamTrades(
 	handler := func(trade hProtocol.Trade) {
 		l.Infof("New trade arrived. ID: %v; Close Time: %v\n", trade.ID, trade.LedgerCloseTime)
 		scraper.NormalizeTradeAssets(&trade)
-		bID, cID, err := findBaseAndCounter(s, trade)
+		bID, cID, err := findBaseAndCounter(ctx, s, trade)
 		if err != nil {
-			l.Errorln(err)
+			l.Error(err)
 			return
 		}
 		dbTrade, err := hProtocolTradeToDBTrade(trade, bID, cID)
 		if err != nil {
-			l.Errorln(err)
+			l.Error(err)
 			return
 		}
 
-		err = s.BulkInsertTrades([]tickerdb.Trade{dbTrade})
+		err = s.BulkInsertTrades(ctx, []tickerdb.Trade{dbTrade})
 		if err != nil {
-			l.Errorln("Could not insert trade in database: ", trade.ID)
+			l.Error("Could not insert trade in database: ", trade.ID)
 		}
 	}
 
 	// Ensure we start streaming from the last stored trade
-	lastTrade, err := s.GetLastTrade()
+	lastTrade, err := s.GetLastTrade(ctx)
 	if err != nil {
 		return err
 	}
@@ -59,6 +60,7 @@ func StreamTrades(
 // BackfillTrades ingest the most recent trades (limited to numDays) directly from Aurora
 // into the database.
 func BackfillTrades(
+	ctx context.Context,
 	s *tickerdb.TickerSession,
 	c *auroraclient.Client,
 	l *hlog.Entry,
@@ -79,21 +81,23 @@ func BackfillTrades(
 	var dbTrades []tickerdb.Trade
 
 	for _, trade := range trades {
-		bID, cID, err := findBaseAndCounter(s, trade)
+		var bID, cID int32
+		bID, cID, err = findBaseAndCounter(ctx, s, trade)
 		if err != nil {
 			continue
 		}
 
-		dbTrade, err := hProtocolTradeToDBTrade(trade, bID, cID)
+		var dbTrade tickerdb.Trade
+		dbTrade, err = hProtocolTradeToDBTrade(trade, bID, cID)
 		if err != nil {
-			l.Errorln("Could not convert entry to DB Trade: ", err)
+			l.Error("Could not convert entry to DB Trade: ", err)
 			continue
 		}
 		dbTrades = append(dbTrades, dbTrade)
 	}
 
 	l.Infof("Inserting %d entries in the database.\n", len(dbTrades))
-	err = s.BulkInsertTrades(dbTrades)
+	err = s.BulkInsertTrades(ctx, dbTrades)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -103,8 +107,9 @@ func BackfillTrades(
 
 // findBaseAndCounter tries to find the Base and Counter assets IDs in the database,
 // and returns an error if it doesn't find any.
-func findBaseAndCounter(s *tickerdb.TickerSession, trade hProtocol.Trade) (bID int32, cID int32, err error) {
+func findBaseAndCounter(ctx context.Context, s *tickerdb.TickerSession, trade hProtocol.Trade) (bID int32, cID int32, err error) {
 	bFound, bID, err := s.GetAssetByCodeAndIssuerAccount(
+		ctx,
 		trade.BaseAssetCode,
 		trade.BaseAssetIssuer,
 	)
@@ -113,6 +118,7 @@ func findBaseAndCounter(s *tickerdb.TickerSession, trade hProtocol.Trade) (bID i
 	}
 
 	cFound, cID, err := s.GetAssetByCodeAndIssuerAccount(
+		ctx,
 		trade.CounterAssetCode,
 		trade.CounterAssetIssuer,
 	)
@@ -143,7 +149,8 @@ func hProtocolTradeToDBTrade(
 		return
 	}
 
-	fPrice := float64(hpt.Price.D) / float64(hpt.Price.N)
+	rPrice := big.NewRat(int64(hpt.Price.D), int64(hpt.Price.N))
+	fPrice, _ := rPrice.Float64()
 
 	trade = tickerdb.Trade{
 		AuroraID:       hpt.ID,

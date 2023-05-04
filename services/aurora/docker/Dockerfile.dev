@@ -1,0 +1,28 @@
+FROM golang:1.17 AS builder
+
+WORKDIR /go/src/github.com/diamnet/go
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . ./
+RUN go install github.com/diamnet/go/services/aurora
+RUN go install github.com/diamnet/go/exp/services/captivecore
+
+FROM ubuntu:20.04
+ARG DIAMNET_CORE_VERSION 
+ENV DIAMNET_CORE_VERSION=${DIAMNET_CORE_VERSION:-*}
+ENV DIAMNET_CORE_BINARY_PATH /usr/bin/diamnet-core
+
+ENV DEBIAN_FRONTEND=noninteractive
+# ca-certificates are required to make tls connections
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl wget gnupg apt-utils
+RUN wget -qO - https://apt.diamnet.org/SDF.asc | APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=true apt-key add -
+RUN echo "deb https://apt.diamnet.org focal stable" >/etc/apt/sources.list.d/SDF.list
+RUN echo "deb https://apt.diamnet.org focal unstable" >/etc/apt/sources.list.d/SDF-unstable.list
+RUN apt-get update && apt-get install -y diamnet-core=${DIAMNET_CORE_VERSION}
+RUN apt-get clean
+
+COPY --from=builder /go/bin/aurora ./
+COPY --from=builder /go/bin/captivecore ./
+
+ENTRYPOINT ["./aurora"]
+    

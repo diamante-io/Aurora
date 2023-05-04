@@ -1,6 +1,7 @@
 package assets
 
 import (
+	"context"
 	"strconv"
 	"testing"
 
@@ -8,6 +9,18 @@ import (
 	"github.com/diamnet/go/services/aurora/internal/db2/history"
 	"github.com/diamnet/go/services/aurora/internal/test"
 )
+
+// AssetStatsR is the result from the AssetStatsQ query
+type AssetStatsR struct {
+	SortKey     string `db:"sort_key"`
+	Type        string `db:"asset_type"`
+	Code        string `db:"asset_code"`
+	Issuer      string `db:"asset_issuer"`
+	Amount      string `db:"amount"`
+	NumAccounts int32  `db:"num_accounts"`
+	Flags       int8   `db:"flags"`
+	Toml        string `db:"toml"`
+}
 
 func TestAssetsStatsQExec(t *testing.T) {
 	item0 := AssetStatsR{
@@ -71,14 +84,15 @@ func TestAssetsStatsQExec(t *testing.T) {
 
 	for i, kase := range testCases {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
-			tt := test.Start(t).Scenario("ingest_asset_stats")
+			tt := test.Start(t)
+			tt.Scenario("ingest_asset_stats")
 			defer tt.Finish()
 
 			sql, err := kase.query.GetSQL()
 			tt.Require.NoError(err)
 
 			var results []AssetStatsR
-			err = history.Q{Session: tt.AuroraSession()}.Select(&results, sql)
+			err = history.Q{SessionInterface: tt.AuroraSession()}.Select(context.Background(), &results, sql)
 			tt.Require.NoError(err)
 			if !tt.Assert.Equal(3, len(results)) {
 				return

@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/pkg/errors"
@@ -8,8 +9,8 @@ import (
 
 // Exec executes the query represented by the builder, deleting any rows that
 // match the queries where clauses.
-func (delb *DeleteBuilder) Exec() (sql.Result, error) {
-	r, err := delb.Table.Session.Exec(delb.sql)
+func (delb *DeleteBuilder) Exec(ctx context.Context) (sql.Result, error) {
+	r, err := delb.Table.Session.Exec(ctx, delb.sql)
 	if err != nil {
 		return nil, errors.Wrap(err, "delete failed")
 	}

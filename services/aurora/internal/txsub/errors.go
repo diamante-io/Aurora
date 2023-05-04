@@ -1,6 +1,7 @@
 package txsub
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 
@@ -37,13 +38,32 @@ func (fte *FailedTransactionError) Result() (result xdr.TransactionResult, err e
 	return
 }
 
-func (fte *FailedTransactionError) TransactionResultCode() (result string, err error) {
+// ResultCodes represents the result codes from a request attempting to submit a fee bump transaction.
+type ResultCodes struct {
+	Code      string
+	InnerCode string
+}
+
+func (fte *FailedTransactionError) TransactionResultCodes(transactionHash string) (result ResultCodes, err error) {
 	r, err := fte.Result()
 	if err != nil {
 		return
 	}
 
-	result, err = codes.String(r.Result.Code)
+	if innerResultPair, ok := r.Result.GetInnerResultPair(); ok {
+		// This handles the case of a transaction which was fee bumped by another request.
+		// The request submitting the inner transaction should have a view of the inner result,
+		// instead of the fee bump transaction.
+		if transactionHash == hex.EncodeToString(innerResultPair.TransactionHash[:]) {
+			result.Code, err = codes.String(innerResultPair.Result.Result.Code)
+			return
+		}
+		result.InnerCode, err = codes.String(innerResultPair.Result.Result.Code)
+		if err != nil {
+			return
+		}
+	}
+	result.Code, err = codes.String(r.Result.Code)
 	return
 }
 
@@ -52,8 +72,7 @@ func (fte *FailedTransactionError) OperationResultCodes() (result []string, err 
 	if err != nil {
 		return
 	}
-
-	oprs, ok := r.Result.GetResults()
+	oprs, ok := r.OperationResults()
 
 	if !ok {
 		return
@@ -69,14 +88,4 @@ func (fte *FailedTransactionError) OperationResultCodes() (result []string, err 
 	}
 
 	return
-}
-
-// MalformedTransactionError represent an error that occurred because
-// a TransactionEnvelope could not be decoded from the provided data.
-type MalformedTransactionError struct {
-	EnvelopeXDR string
-}
-
-func (err *MalformedTransactionError) Error() string {
-	return "tx malformed"
 }

@@ -1,6 +1,6 @@
 package main
 
-// This is a build script that Travis uses to build DiamNet release packages.
+// This is a build script that Travis uses to build Diamnet release packages.
 
 import (
 	"flag"
@@ -12,13 +12,11 @@ import (
 	"regexp"
 	"strings"
 
-	"time"
-
 	"github.com/diamnet/go/support/errors"
 	"github.com/diamnet/go/support/log"
 )
 
-var extractBinName = regexp.MustCompile(`^(?P<bin>[a-z-]+)-(?P<tag>.+)$`)
+var extractBinName = regexp.MustCompile(`^(?P<bin>[a-z0-9-]+)-(?P<tag>.+)$`)
 
 var builds = []buildConfig{
 	{"darwin", "amd64"},
@@ -83,18 +81,22 @@ func binNamesForDir(dir string) []string {
 }
 
 func build(pkg, dest, version, buildOS, buildArch string) {
-	buildTime := time.Now().Format(time.RFC3339)
-
-	timeFlag := fmt.Sprintf("-X github.com/diamnet/go/support/app.buildTime=%s", buildTime)
-	versionFlag := fmt.Sprintf("-X github.com/diamnet/go/support/app.version=%s", version)
+	// Note: verison string should match other build pipelines to create
+	// reproducible builds for Aurora (and other projects in the future).
+	rev := runOutput("git", "rev-parse", "HEAD")
+	versionString := version[1:] // Remove letter `v`
+	versionFlag := fmt.Sprintf(
+		"-X=github.com/diamnet/go/support/app.version=%s-%s",
+		versionString, rev,
+	)
 
 	if buildOS == "windows" {
 		dest = dest + ".exe"
 	}
 
 	cmd := exec.Command("go", "build",
+		"-trimpath",
 		"-o", dest,
-		"-ldflags", fmt.Sprintf("%s %s", timeFlag, versionFlag),
 		pkg,
 	)
 	cmd.Stderr = os.Stderr
@@ -102,6 +104,8 @@ func build(pkg, dest, version, buildOS, buildArch string) {
 
 	cmd.Env = append(
 		os.Environ(),
+		"CGO_ENABLED=0",
+		fmt.Sprintf("GOFLAGS=-ldflags=%s", versionFlag),
 		fmt.Sprintf("GOOS=%s", buildOS),
 		fmt.Sprintf("GOARCH=%s", buildArch),
 	)
@@ -186,15 +190,6 @@ func buildSnapshots() {
 		}
 
 		for _, cfg := range getBuildConfigs() {
-
-			//WARNING - DIRTY FILTHY HACK
-			//hardcode non-linux bifrost out of the snapshots build
-			//TODO: find alternative
-			if pkg == "services/bifrost" && !(cfg.OS == "linux" && cfg.Arch == "amd64") {
-				log.Info("ignoring biforst for non linux/amd64")
-				continue
-			}
-
 			dest := prepareDest(pkg, bin, "snapshot", cfg.OS, cfg.Arch)
 
 			build(
@@ -310,6 +305,11 @@ func prepareDest(pkg, bin, version, os, arch string) string {
 	run("cp", "COPYING", dest)
 	run("cp", filepath.Join(pkg, "README.md"), dest)
 	run("cp", filepath.Join(pkg, "CHANGELOG.md"), dest)
+	if bin == "aurora" {
+		// Add default config files for Captive-Core
+		run("cp", filepath.Join(pkg, "configs/captive-core-pubnet.cfg"), dest)
+		run("cp", filepath.Join(pkg, "configs/captive-core-testnet.cfg"), dest)
+	}
 	return dest
 }
 

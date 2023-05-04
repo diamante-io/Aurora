@@ -16,7 +16,7 @@ import (
 // `h`.
 func NewDefaultSubmitter(h *http.Client, url string) Submitter {
 	return &submitter{
-		DiamNetCore: &diamnetcore.Client{
+		DiamnetCore: &diamnetcore.Client{
 			HTTP: h,
 			URL:  url,
 		},
@@ -28,7 +28,7 @@ func NewDefaultSubmitter(h *http.Client, url string) Submitter {
 // submits directly to the configured diamnet-core instance using the
 // configured http client.
 type submitter struct {
-	DiamNetCore *diamnetcore.Client
+	DiamnetCore *diamnetcore.Client
 	Log         *log.Entry
 }
 
@@ -44,7 +44,7 @@ func (sub *submitter) Submit(ctx context.Context, env string) (result Submission
 		}).Info("Submitter result")
 	}()
 
-	cresp, err := sub.DiamNetCore.SubmitTransaction(ctx, env)
+	cresp, err := sub.DiamnetCore.SubmitTransaction(ctx, env)
 	if err != nil {
 		result.Err = errors.Wrap(err, "failed to submit")
 		return

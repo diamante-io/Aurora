@@ -4,9 +4,9 @@ This document contains additional information related to the development of Auro
 
 - [Initial set up](#setup)
 - [Regenerating generated code](#regen)
-- [Adding and rebuilding test scenarios](#scenarios)
 - [Running tests](#tests)
 - [Logging](#logging)
+- [Adding migrations](#migrations)
 
 
 ---
@@ -16,30 +16,17 @@ Compile and install Aurora as described in the [Aurora development guide](develo
 ## <a name="regen"></a> Regenerating generated code
 
 Aurora uses two Go tools you'll need to install:
-1. [go-bindata](https://github.com/jteeuwen/go-bindata) is used to bundle test data
-2. [go-codegen](https://github.com/nullstyle/go-codegen) is used to generate some boilerplate code
+1. [go-bindata](github.com/kevinburke/go-bindata) is used to bundle test data
 
-After the above are installed, run `go generate github.com/diamnet/go/services/aurora/...`. This will look for any `.tmpl` files in the directory and use them to generate code when annotated structs are found in the package source.
-
-## <a name="scenarios"></a> Adding, rebuilding and using test scenarios
-
-In order to simulate ledgers Aurora uses [`diamnet-core-commander`](https://github.com/diamnet/diamnet_core_commander) recipe files to add transactions and operations to ledgers using the diamnet-core test framework.
-
-In order to add a new scenario or rebuild existing scenarios you need:
-
-1. [`diamnet-core-commander`](https://github.com/diamnet/diamnet_core_commander) (in short: `scc`) installed and [configured](https://github.com/diamnet/diamnet_core_commander#assumptions-about-environment).
-2. [`diamnet-core`](https://github.com/diamnet/diamnet-core) binary.
-3. This repository cloned locally.
-
-`scc` allows you to write scripts/recipes that are later executed in `diamnet-core` isolated network. After executing a recipe you can then export the `diamnet-core` database to be able to run Aurora ingestion system against it (this repository contains a script that does this for you - read below).
+After the above are installed, run `go generate github.com/diamnet/go/services/aurora/...`.
 
 ### Example recipe
 
 Here's an example of recipe file with comments:
 ```rb
 # Define two accounts test accounts
-account :scott, DiamNet::KeyPair.from_seed("SBZWG33UOQQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAPSA")
-account :bartek, DiamNet::KeyPair.from_seed("SBRGC4TUMVVSAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCBDHV")
+account :scott, Diamnet::KeyPair.from_seed("SBZWG33UOQQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAPSA")
+account :bartek, Diamnet::KeyPair.from_seed("SBRGC4TUMVVSAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCBDHV")
 
 # use_manual_close causes scc to run a process with MANUAL_CLOSE=true
 use_manual_close
@@ -55,46 +42,22 @@ close_ledger
 payment :scott, :bartek,  [:native, 5]
 ```
 
-You can find more recipes in [`scc` examples](https://github.com/diamnet/diamnet_core_commander/tree/84d5ffb97202ecc3a0ed34a739c98e69536c0c2c/examples) and [aurora test scenarios](https://github.com/diamnet/go/tree/master/services/aurora/internal/test/scenarios).
+You can find more recipes in [`scc` examples](https://github.com/diamnet/diamnet_core_commander/tree/84d5ffb97202ecc3a0ed34a739c98e69536c0c2c/examples). 
 
-### Rebuilding scenarios
+Scenarios are in [aurora test scenarios](https://github.com/diamnet/go/tree/master/services/aurora/internal/test/scenarios). They are
+used by many different integration tests.
 
-1. Create a new or modify existing recipe. All new recipes should be added to [aurora test scenarios](https://github.com/diamnet/go/tree/master/services/aurora/internal/test/scenarios) directory.
-2. In `diamnet/go` repository root directory run `./services/aurora/internal/scripts/build_test_scenarios.bash`.
-3. The command above will rebuild all test scenarios. If you need to rebuild only one scenario modify `PACKAGES` environment variable temporarily in the script.
+### Deprecated Scenario sql files
 
-### Using test scenarios
+1. Scenario .sql files are located in services/aurora/internal/test/scenarios and have been used in unit and integeration tests, however, they are deprecated and are not meant to be used or included in new development. They were manually maintained and have not been updated with more recent db schema changes and are not associated with db migrations. 
 
-In your `Test*` function execute:
-
-```go
-ht := StartHTTPTest(t, scenarioName)
-defer ht.Finish()
-```
-where `scenarioName` is the name of the scenario you want to use. This will start test Aurora server with data loaded from the recipe.
-
-When testing ingestion you can load scenario data without Aurora database like:
-
-```go
-tt := test.Start(t).ScenarioWithoutAurora("kahuna")
-defer tt.Finish()
-s := ingest(tt, true)
-```
-
-Check existing tests for more examples.
 
 ## <a name="tests"></a> Running Tests
 
-start a redis server on port `6379`
+run the all the Go monorepo tests like so (assuming you are at diamnet/go, or run from diamnet/go/services/aurora for just the Aurora subset):
 
 ```bash
-redis-server
-```
-
-then, run the all the Go monorepo tests like so (assuming you are at diamnet/go, or run from diamnet/go/services/aurora for just the Aurora subset):
-
-```bash
-bash ./support/scripts/run_tests
+go test ./...
 ```
 
 or run individual Aurora tests like so, providing the expected arguments:
@@ -172,6 +135,10 @@ With the "bad" form of the logging example above, an operator can filter on both
 
 ## <a name="TLS"></a> Enabling TLS on your local workstation
 
-Aurora support HTTP/2 when served using TLS.  To enable TLS on your local workstation, you must generate a certificate and configure Aurora to use it.  We've written a helper script at `tls/regen.sh` to make this simple.  Run the script from your terminal, and simply choose all the default options.  This will create two files: `tls/server.crt` and `tls/server.key`.  
+Aurora support HTTP/2 when served using TLS.  To enable TLS on your local workstation, you must generate a certificate and configure Aurora to use it.  We've written a helper script at `tls/regen.sh` to make this simple.  Run the script from your terminal, and simply choose all the default options.  This will create two files: `tls/server.crt` and `tls/server.key`.
 
 Now you must configure Aurora to use them: You can simply add `--tls-cert tls/server.crt --tls-key tls/server.key` to your command line invocations of Aurora, or you may specify `TLS_CERT` and `TLS_KEY` environment variables.
+
+# <a name="migrations"></a> Adding migrations
+1. Add your migration to `services/aurora/internal/db2/schema/migrations/` using the same name nomenclature as other migrations.
+2. After creating you migration, run `bash services/aurora/internal/scripts/rebuild_schema.bash` this script will create all the autogenerated code for migrations.

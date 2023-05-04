@@ -54,7 +54,8 @@ var cmdIngestAssets = &cobra.Command{
 		}
 		defer session.DB.Close()
 
-		err = ticker.RefreshAssets(&session, Client, Logger)
+		ctx := context.Background()
+		err = ticker.RefreshAssets(ctx, &session, Client, Logger)
 		if err != nil {
 			Logger.Fatal("could not refresh asset database:", err)
 		}
@@ -76,20 +77,20 @@ var cmdIngestTrades = &cobra.Command{
 		}
 		defer session.DB.Close()
 
+		ctx := context.Background()
 		numDays := float32(BackfillHours) / 24.0
 		Logger.Infof(
 			"Backfilling Trade data for the past %d hour(s) [%.2f days]\n",
 			BackfillHours,
 			numDays,
 		)
-		err = ticker.BackfillTrades(&session, Client, Logger, BackfillHours, 0)
+		err = ticker.BackfillTrades(ctx, &session, Client, Logger, BackfillHours, 0)
 		if err != nil {
 			Logger.Fatal("could not refresh trade database:", err)
 		}
 
 		if ShouldStream {
 			Logger.Info("Streaming new data (this is a continuous process)")
-			ctx := context.Background()
 			err = ticker.StreamTrades(ctx, &session, Client, Logger)
 			if err != nil {
 				Logger.Fatal("could not refresh trade database:", err)

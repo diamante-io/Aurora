@@ -1,7 +1,7 @@
 # federation server
 
 
-Go implementation of [Federation](https://www.diamnet.org/developers/learn/concepts/federation.html) protocol server. This federation server is designed to be dropped in to your existing infrastructure. It can be configured to pull the data it needs out of your existing DB.
+Go implementation of [Federation](https://developers.diamnet.org/docs/glossary/federation/) protocol server. This federation server is designed to be dropped in to your existing infrastructure. It can be configured to pull the data it needs out of your existing DB.
 
 ## Downloading the server
 
@@ -13,15 +13,14 @@ By default this server uses a config file named `federation.cfg` in the current 
 
 * `port` - server listening port
 * `database`
-  * `type` - database type (sqlite3, mysql, postgres)
+  * `type` - database type (sqlite3, postgres)
   * `dsn` - The DSN (data source name) used to connect to the database connection.  This value should be appropriate for the database type chosen.
-    * for `mysql`: `user:password@(host:port)/dbname` ([more info](https://github.com/go-sql-driver/mysql#dsn-data-source-name))
     * for `postgres`: `postgres://user:password@host/dbname?sslmode=sslmode` ([more info](https://godoc.org/github.com/lib/pq#hdr-Connection_String_Parameters))
 * `queries`
-  * `federation` - Implementation dependent query to fetch federation results, should return either 1 or 3 columns. These columns should be labeled `id`,`memo`,`memo_type`. Memo and memo_type are optional - see [Federation](https://www.diamnet.org/developers/learn/concepts/federation.html) docs for more detail).  When executed, this query will be provided with two input parameters, the first will be the name portion of a diamnet address and the second will be the domain portion of a diamnet address.  For example, a request for `scott*diamnet.org` would trigger a query with two input parameters, `scott` and `diamnet.org` respectively. 
-  * `reverse-federation` - A SQL query to fetch reverse federation results that should return two columns, labeled `name` and `domain`.   When executed, this query will be provided with one input parameter, a [diamnet account ID](https://www.diamnet.org/developers/guides/concepts/accounts.html#account-id) used to lookup the name and domain mapping.
+  * `federation` - Implementation dependent query to fetch federation results, should return either 1 or 3 columns. These columns should be labeled `id`,`memo`,`memo_type`. Memo and memo_type are optional - see [Federation](https://developers.diamnet.org/docs/glossary/federation/) docs for more detail).  When executed, this query will be provided with two input parameters, the first will be the name portion of a diamnet address and the second will be the domain portion of a diamnet address.  For example, a request for `scott*diamnet.org` would trigger a query with two input parameters, `scott` and `diamnet.org` respectively. 
+  * `reverse-federation` - A SQL query to fetch reverse federation results that should return two columns, labeled `name` and `domain`.   When executed, this query will be provided with one input parameter, a [diamnet account ID](https://developers.diamnet.org/docs/glossary/accounts/#account-id) used to lookup the name and domain mapping.
 
-    If reverse-lookup isn't supported (e.g. you have a single DiamNet account for all users), leave this entry out.
+    If reverse-lookup isn't supported (e.g. you have a single Diamnet account for all users), leave this entry out.
 
 * `tls` (only when running HTTPS server)
   * `certificate-file` - a file containing a certificate
@@ -35,16 +34,16 @@ By default this server uses a config file named `federation.cfg` in the current 
 ## Example `federation.cfg`
 In this section you can find config examples for the two main ways of setting up a federation server.
 
-### #1: Every user has their own DiamNet account
+### #1: Every user has their own Diamnet account
 
-In the case that every user owns a DiamNet account, you don't need `memo`. You can simply return `id` based on the username. Your `queries` section could look like this:
+In the case that every user owns a Diamnet account, you don't need `memo`. You can simply return `id` based on the username. Your `queries` section could look like this:
 
 ```toml
 port = 8000
 
 [database]
-type = "mysql"
-dsn = "dbuser:dbpassword@/dbname"
+type = "postgres"
+dsn = "postgres://user:password@host/dbname?sslmode=sslmode"
 
 [queries]
 federation = "SELECT account_id as id FROM Users WHERE username = ? AND domain = ?"
@@ -52,18 +51,18 @@ reverse-federation = "SELECT username as name, domain FROM Users WHERE account_i
 ```
 
 
-### #2: Single DiamNet account for all incoming transactions
+### #2: Single Diamnet account for all incoming transactions
 
-If you have a single DiamNet account for all incoming transactions you need to use `memo` to check which internal account should receive the payment.
+If you have a single Diamnet account for all incoming transactions you need to use `memo` to check which internal account should receive the payment.
 
-Let's say that your DiamNet account ID is: `GD6WU64OEP5C4LRBH6NK3MHYIA2ADN6K6II6EXPNVUR3ERBXT4AN4ACD` and every user has an `id` and `username` in your database. Then your `queries` section could look like this:
+Let's say that your Diamnet account ID is: `GD6WU64OEP5C4LRBH6NK3MHYIA2ADN6K6II6EXPNVUR3ERBXT4AN4ACD` and every user has an `id` and `username` in your database. Then your `queries` section could look like this:
 
 ```toml
 port = 8000
 
 [database]
-type = "mysql"
-dsn = "dbuser:dbpassword@/dbname"
+type = "postgres"
+dsn = "postgres://user:password@host/dbname?sslmode=sslmode"
 
 [queries]
 federation = "SELECT username as memo, 'text' as memo_type, 'GD6WU64OEP5C4LRBH6NK3MHYIA2ADN6K6II6EXPNVUR3ERBXT4AN4ACD' as id FROM Users WHERE username = ? AND domain = ?"

@@ -1,9 +1,10 @@
 ---
 title: XDR
+replacement: https://developers.diamnet.org/api/introduction/xdr/
 ---
 
 **XDR**, also known as _External Data Representation_, is used extensively in
-the DiamNet Network, especially in the core protocol.  The ledger, transactions, results,
+the Diamnet Network, especially in the core protocol.  The ledger, transactions, results,
 history, and even the messages passed between computers running diamnet-core
 are encoded using XDR.
 
@@ -21,5 +22,5 @@ into a byte stream, then decode the XDR into an in-memory data structure.
 ## .X files
 
 Data structures in XDR are specified in an _interface definition file_ (IDL).
-The IDL files used for the DiamNet Network are available
+The IDL files used for the Diamnet Network are available
 [on GitHub](https://github.com/diamnet/diamnet-core/tree/master/src/xdr).

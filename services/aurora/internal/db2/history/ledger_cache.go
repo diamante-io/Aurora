@@ -1,6 +1,8 @@
 package history
 
 import (
+	"context"
+
 	"github.com/diamnet/go/support/errors"
 )
 
@@ -18,7 +20,7 @@ func (lc *LedgerCache) Queue(seq int32) {
 
 // Load loads a batch of ledgers identified by `sequences`, using `q`,
 // and populates the cache with the results
-func (lc *LedgerCache) Load(q *Q) error {
+func (lc *LedgerCache) Load(ctx context.Context, q *Q) error {
 	lc.lock.Lock()
 	defer lc.lock.Unlock()
 
@@ -32,7 +34,7 @@ func (lc *LedgerCache) Load(q *Q) error {
 	}
 
 	var ledgers []Ledger
-	err := q.LedgersBySequence(&ledgers, sequences...)
+	err := q.LedgersBySequence(ctx, &ledgers, sequences...)
 	if err != nil {
 		return errors.Wrap(err, "failed to load ledger batch")
 	}

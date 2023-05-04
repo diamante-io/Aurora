@@ -2,6 +2,7 @@
 title: Effects for Transaction
 clientData:
   laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=effects&endpoint=for_transaction
+replacement: https://developers.diamnet.org/api/resources/transactions/effects/
 ---
 
 This endpoint represents all [effects](../resources/effect.md) that occurred as a result of a given [transaction](../resources/transaction.md).
@@ -16,7 +17,7 @@ GET /transactions/{hash}/effects{?cursor,limit,order}
 
 | name | notes | description | example |
 | ---- | ----- | ----------- | ------- |
-| `hash` | required, string | A transaction hash, hex-encoded | `7e2050abc676003efc3eaadd623c927f753b7a6c37f50864bf284f4e1510d088` |
+| `hash` | required, string | A transaction hash, hex-encoded, lowercase. | `7e2050abc676003efc3eaadd623c927f753b7a6c37f50864bf284f4e1510d088` |
 | `?cursor` | optional, default _null_ | A paging token, specifying where to start returning records from. | `12884905984` |
 | `?order` | optional, string, default `asc` | The order in which to return rows, "asc" or "desc". | `asc` |
 | `?limit` | optional, number, default `10` | Maximum number of records to return. | `200` |
@@ -30,8 +31,8 @@ curl "https://aurora-testnet.diamnet.org/transactions/7e2050abc676003efc3eaadd62
 ### JavaScript Example Request
 
 ```javascript
-var DiamNetSdk = require('diamnet-sdk');
-var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
+var DiamnetSdk = require('diamnet-sdk');
+var server = new DiamnetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.effects()
   .forTransaction("7e2050abc676003efc3eaadd623c927f753b7a6c37f50864bf284f4e1510d088")

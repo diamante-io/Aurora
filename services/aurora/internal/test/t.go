@@ -1,12 +1,17 @@
+//lint:file-ignore U1001 Ignore all unused code, thinks the code is unused because of the test skips
 package test
 
 import (
 	"io"
+	"testing"
 
 	"encoding/json"
 
+	"github.com/jmoiron/sqlx"
+	"github.com/diamnet/go/services/aurora/internal/db2/schema"
 	"github.com/diamnet/go/services/aurora/internal/ledger"
 	"github.com/diamnet/go/services/aurora/internal/operationfeestats"
+	"github.com/diamnet/go/services/aurora/internal/test/scenarios"
 	"github.com/diamnet/go/support/db"
 	"github.com/diamnet/go/support/render/hal"
 )
@@ -14,21 +19,23 @@ import (
 // CoreSession returns a db.Session instance pointing at the diamnet core test database
 func (t *T) CoreSession() *db.Session {
 	return &db.Session{
-		DB:  t.CoreDB,
-		Ctx: t.Ctx,
+		DB: t.CoreDB,
 	}
 }
 
 // Finish finishes the test, logging any accumulated aurora logs to the logs
 // output
 func (t *T) Finish() {
-	RestoreLogger()
-	// Reset cached ledger state
-	ledger.SetState(ledger.State{})
+	logEntries := RestoreLogger()
 	operationfeestats.ResetState()
 
-	if t.LogBuffer.Len() > 0 {
-		t.T.Log("\n" + t.LogBuffer.String())
+	for _, entry := range logEntries {
+		logString, err := entry.String()
+		if err != nil {
+			t.T.Logf("Error from entry.String: %v", err)
+		} else {
+			t.T.Log(logString)
+		}
 	}
 }
 
@@ -36,23 +43,49 @@ func (t *T) Finish() {
 // database
 func (t *T) AuroraSession() *db.Session {
 	return &db.Session{
-		DB:  t.AuroraDB,
-		Ctx: t.Ctx,
+		DB: t.AuroraDB,
+	}
+}
+
+func (t *T) loadScenario(scenarioName string, includeAurora bool) {
+	diamnetCorePath := scenarioName + "-core.sql"
+
+	scenarios.Load(DiamnetCoreDatabaseURL(), diamnetCorePath)
+
+	if includeAurora {
+		auroraPath := scenarioName + "-aurora.sql"
+		scenarios.Load(DatabaseURL(), auroraPath)
 	}
 }
 
 // Scenario loads the named sql scenario into the database
-func (t *T) Scenario(name string) *T {
-	LoadScenario(name)
-	t.UpdateLedgerState()
-	return t
+func (t *T) Scenario(name string) ledger.Status {
+	clearAuroraDB(t.T, t.AuroraDB)
+	t.loadScenario(name, true)
+	return t.LoadLedgerStatus()
 }
 
 // ScenarioWithoutAurora loads the named sql scenario into the database
-func (t *T) ScenarioWithoutAurora(name string) *T {
-	LoadScenarioWithoutAurora(name)
-	t.UpdateLedgerState()
-	return t
+func (t *T) ScenarioWithoutAurora(name string) ledger.Status {
+	t.loadScenario(name, false)
+	ResetAuroraDB(t.T, t.AuroraDB)
+	return t.LoadLedgerStatus()
+}
+
+// ResetAuroraDB sets up a new aurora database with empty tables
+func ResetAuroraDB(t *testing.T, db *sqlx.DB) {
+	clearAuroraDB(t, db)
+	_, err := schema.Migrate(db.DB, schema.MigrateUp, 0)
+	if err != nil {
+		t.Fatalf("could not run migrations up on test db: %v", err)
+	}
+}
+
+func clearAuroraDB(t *testing.T, db *sqlx.DB) {
+	_, err := schema.Migrate(db.DB, schema.MigrateDown, 0)
+	if err != nil {
+		t.Fatalf("could not run migrations down on test db: %v", err)
+	}
 }
 
 // UnmarshalPage populates dest with the records contained in the json-encoded page in r
@@ -104,11 +137,11 @@ func (t *T) UnmarshalExtras(r io.Reader) map[string]string {
 	return resp.Extras
 }
 
-// UpdateLedgerState updates the cached ledger state (or panicing on failure).
-func (t *T) UpdateLedgerState() {
-	var next ledger.State
+// LoadLedgerStatus loads ledger state from the core db(or panicing on failure).
+func (t *T) LoadLedgerStatus() ledger.Status {
+	var next ledger.Status
 
-	err := t.CoreSession().GetRaw(&next, `
+	err := t.CoreSession().GetRaw(t.Ctx, &next, `
 		SELECT
 			COALESCE(MAX(ledgerseq), 0) as core_latest
 		FROM ledgerheaders
@@ -118,7 +151,7 @@ func (t *T) UpdateLedgerState() {
 		panic(err)
 	}
 
-	err = t.AuroraSession().GetRaw(&next, `
+	err = t.AuroraSession().GetRaw(t.Ctx, &next, `
 			SELECT
 				COALESCE(MIN(sequence), 0) as history_elder,
 				COALESCE(MAX(sequence), 0) as history_latest
@@ -129,5 +162,5 @@ func (t *T) UpdateLedgerState() {
 		panic(err)
 	}
 
-	ledger.SetState(next)
+	return next
 }

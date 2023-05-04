@@ -1,5 +1,5 @@
 # Ticker
-This project aims to provide an easy-to-deploy DiamNet ticker.
+This project aims to provide an easy-to-deploy Diamnet ticker.
 
 ## Quick Start
 This project provides a docker setup that makes it easy to get a Ticker up and running (you can
@@ -7,8 +7,8 @@ check an architecture overview [here](docs/Architecture.md)). In order to get up
 follow these steps:
 
 1. Install [Docker](https://hub.docker.com/editions/community/docker-ce-desktop-mac)
-2. Clone the [monorepo](https://github.com/diamnet/go) and `$ cd services/ticker`
-3. Build the Ticker's docker image: `$ docker build -t ticker .`
+2. Clone the [monorepo](https://github.com/diamnet/go)
+3. Build the Ticker's docker image. At the repo's root, run `$ docker build -t ticker -f services/ticker/docker/Dockerfile-dev .`
 4. Run the Ticker: `$ docker run --rm -it -p "8000:8000" ticker` (you'll be asked to enter a
    PostgreSQL password)
 5. After the initial setup (after the `supervisord started` message), you should be able to visit
@@ -32,7 +32,5 @@ you want to do this, replace step `4` with the following steps:
 ## Using the CLI
 You can also test the Ticker locally, without the Docker setup. For that, you'll need a PostgreSQL
 instance running. In order to build the Ticker project, follow these steps:
-1. Install `go-dep`
-2. Go to the monorepo root and install the dependencies: `$ cd ../.. && dep ensure -v`
-3. After the dependencies are installed, run `$ go run main.go --help` to see the list of available
-   commands.
+1. See the details in [README.md](../../../../README.md#dependencies) for installing dependencies.
+2. Run `$ go run main.go --help` to see the list of available commands.

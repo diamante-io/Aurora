@@ -64,17 +64,17 @@ func (s *submissionList) Add(ctx context.Context, hash string, l Listener) error
 	return nil
 }
 
-func (s *submissionList) Finish(ctx context.Context, r Result) error {
+func (s *submissionList) Finish(ctx context.Context, hash string, r Result) error {
 	s.Lock()
 	defer s.Unlock()
 
-	os, ok := s.submissions[r.Hash]
+	os, ok := s.submissions[hash]
 	if !ok {
 		return nil
 	}
 
 	s.log.WithFields(log.F{
-		"hash":      r.Hash,
+		"hash":      hash,
 		"listeners": len(os.Listeners),
 		"result":    fmt.Sprintf("%+v", r),
 	}).Info("Sending submission result to listeners")
@@ -84,7 +84,7 @@ func (s *submissionList) Finish(ctx context.Context, r Result) error {
 		close(l)
 	}
 
-	delete(s.submissions, r.Hash)
+	delete(s.submissions, hash)
 	return nil
 }
 

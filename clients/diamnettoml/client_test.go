@@ -1,9 +1,10 @@
 package diamnettoml
 
 import (
-	"net/http"
 	"strings"
 	"testing"
+
+	"net/http"
 
 	"github.com/diamnet/go/support/http/httptest"
 	"github.com/stretchr/testify/assert"
@@ -31,7 +32,7 @@ func TestClient(t *testing.T) {
 		ReturnString(http.StatusOK,
 			`FEDERATION_SERVER="https://localhost/federation"`,
 		)
-	stoml, err := c.GetDiamNetToml("diamnet.org")
+	stoml, err := c.GetDiamnetToml("diamnet.org")
 	require.NoError(t, err)
 	assert.Equal(t, "https://localhost/federation", stoml.FederationServer)
 
@@ -39,9 +40,9 @@ func TestClient(t *testing.T) {
 	h.
 		On("GET", "https://toobig.org/.well-known/diamnet.toml").
 		ReturnString(http.StatusOK,
-			`FEDERATION_SERVER="https://localhost/federation`+strings.Repeat("0", DiamNetTomlMaxSize)+`"`,
+			`FEDERATION_SERVER="https://localhost/federation`+strings.Repeat("0", DiamnetTomlMaxSize)+`"`,
 		)
-	stoml, err = c.GetDiamNetToml("toobig.org")
+	stoml, err = c.GetDiamnetToml("toobig.org")
 	if assert.Error(t, err) {
 		assert.Contains(t, err.Error(), "diamnet.toml response exceeds")
 	}
@@ -50,14 +51,14 @@ func TestClient(t *testing.T) {
 	h.
 		On("GET", "https://missing.org/.well-known/diamnet.toml").
 		ReturnNotFound()
-	stoml, err = c.GetDiamNetToml("missing.org")
+	stoml, err = c.GetDiamnetToml("missing.org")
 	assert.EqualError(t, err, "http request failed with non-200 status code")
 
 	// invalid toml
 	h.
 		On("GET", "https://json.org/.well-known/diamnet.toml").
 		ReturnJSON(http.StatusOK, map[string]string{"hello": "world"})
-	stoml, err = c.GetDiamNetToml("json.org")
+	stoml, err = c.GetDiamnetToml("json.org")
 
 	if assert.Error(t, err) {
 		assert.Contains(t, err.Error(), "toml decode failed")

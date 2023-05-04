@@ -39,13 +39,14 @@ func TestLedgerActions_Show(t *testing.T) {
 		ht.Assert.NotEmpty(result.HeaderXDR)
 		ht.Assert.Equal(int32(3), result.SuccessfulTransactionCount)
 		ht.Assert.Equal(int32(0), *result.FailedTransactionCount)
+		ht.Assert.Nil(result.TxSetOperationCount)
 	}
 
 	// There's no way to test previous versions of ingestion right now
 	// so let's manually update the state to look like version 14 of ingesiton
 	// only the latest gap is considered for determining the elder ledger
 	_, err = ht.AuroraDB.Exec(`
-		UPDATE history_ledgers SET successful_transaction_count = NULL, failed_transaction_count = NULL WHERE sequence = 2
+		UPDATE history_ledgers SET successful_transaction_count = NULL, failed_transaction_count = NULL, tx_set_operation_count = 5 WHERE sequence = 2
 	`)
 	ht.Require.NoError(err, "failed to update history_ledgers")
 
@@ -59,6 +60,7 @@ func TestLedgerActions_Show(t *testing.T) {
 		ht.Assert.NotEmpty(result.HeaderXDR)
 		ht.Assert.Equal(int32(3), result.SuccessfulTransactionCount)
 		ht.Assert.Nil(result.FailedTransactionCount)
+		ht.Assert.Equal(int32(5), *result.TxSetOperationCount)
 	}
 
 	// ledger higher than history

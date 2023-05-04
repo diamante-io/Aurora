@@ -1,6 +1,7 @@
 package tickerdb
 
 import (
+	"context"
 	"math"
 	"strings"
 	"time"
@@ -9,14 +10,14 @@ import (
 // BulkInsertTrades inserts a slice of trades in the database. Trades
 // that are already in the database (i.e. aurora_id already exists)
 // are ignored.
-func (s *TickerSession) BulkInsertTrades(trades []Trade) (err error) {
+func (s *TickerSession) BulkInsertTrades(ctx context.Context, trades []Trade) (err error) {
 	if len(trades) <= 50 {
-		return performInsertTrades(s, trades)
+		return performInsertTrades(ctx, s, trades)
 	}
 
 	chunks := chunkifyDBTrades(trades, 50)
 	for _, chunk := range chunks {
-		err = performInsertTrades(s, chunk)
+		err = performInsertTrades(ctx, s, chunk)
 		if err != nil {
 			return
 		}
@@ -26,14 +27,14 @@ func (s *TickerSession) BulkInsertTrades(trades []Trade) (err error) {
 }
 
 // GetLastTrade returns the newest Trade object in the database.
-func (s *TickerSession) GetLastTrade() (trade Trade, err error) {
-	err = s.GetRaw(&trade, "SELECT * FROM trades ORDER BY ledger_close_time DESC LIMIT 1")
+func (s *TickerSession) GetLastTrade(ctx context.Context) (trade Trade, err error) {
+	err = s.GetRaw(ctx, &trade, "SELECT * FROM trades ORDER BY ledger_close_time DESC LIMIT 1")
 	return
 }
 
 // DeleteOldTrades deletes trades in the database older than minDate.
-func (s *TickerSession) DeleteOldTrades(minDate time.Time) error {
-	_, err := s.ExecRaw("DELETE FROM trades WHERE ledger_close_time < ?", minDate)
+func (s *TickerSession) DeleteOldTrades(ctx context.Context, minDate time.Time) error {
+	_, err := s.ExecRaw(ctx, "DELETE FROM trades WHERE ledger_close_time < ?", minDate)
 	return err
 }
 
@@ -61,7 +62,7 @@ func chunkifyDBTrades(sl []Trade, chunkSize int) [][]Trade {
 	return chunkedSlice
 }
 
-func performInsertTrades(s *TickerSession, trades []Trade) (err error) {
+func performInsertTrades(ctx context.Context, s *TickerSession, trades []Trade) (err error) {
 	var t Trade
 	var placeholders string
 	var dbValues []interface{}
@@ -83,6 +84,6 @@ func performInsertTrades(s *TickerSession, trades []Trade) (err error) {
 	qs += " VALUES " + placeholders
 	qs += " ON CONFLICT ON CONSTRAINT trades_aurora_id_key DO NOTHING;"
 
-	_, err = s.ExecRaw(qs, dbValues...)
+	_, err = s.ExecRaw(ctx, qs, dbValues...)
 	return
 }

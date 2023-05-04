@@ -1,4 +1,4 @@
-// Package log provides the common logging facilities used by the DiamNet
+// Package log provides the common logging facilities used by the Diamnet
 // Development foundation.
 //
 // You may notice that this package does not expose the "Fatal" family of

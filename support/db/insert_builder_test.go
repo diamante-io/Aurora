@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"testing"
 
 	"github.com/diamnet/go/support/db/dbtest"
@@ -9,6 +10,7 @@ import (
 )
 
 func TestInsertBuilder_Exec(t *testing.T) {
+	ctx := context.Background()
 	db := dbtest.Postgres(t).Load(testSchema)
 	defer db.Close()
 	sess := &Session{DB: db.Open()}
@@ -19,11 +21,11 @@ func TestInsertBuilder_Exec(t *testing.T) {
 	_, err := tbl.Insert(person{
 		Name:        "bubba",
 		HungerLevel: "120",
-	}).Exec()
+	}).Exec(ctx)
 
 	if assert.NoError(t, err) {
 		var found []person
-		err = sess.SelectRaw(
+		err = sess.SelectRaw(ctx,
 			&found,
 			"SELECT * FROM people WHERE name = ?",
 			"bubba",
@@ -38,7 +40,7 @@ func TestInsertBuilder_Exec(t *testing.T) {
 	}
 
 	// no rows
-	_, err = tbl.Insert().Exec()
+	_, err = tbl.Insert().Exec(ctx)
 	if assert.Error(t, err) {
 		assert.IsType(t, &NoRowsError{}, err)
 		assert.EqualError(t, err, "no rows provided to insert")
@@ -51,7 +53,7 @@ func TestInsertBuilder_Exec(t *testing.T) {
 	}, person{
 		Name:        "bubba3",
 		HungerLevel: "120",
-	}).Exec()
+	}).Exec(ctx)
 
 	if assert.NoError(t, err) {
 		count, err2 := r.RowsAffected()
@@ -68,7 +70,7 @@ func TestInsertBuilder_Exec(t *testing.T) {
 		Name:        "bubba2",
 		HungerLevel: "120",
 		NotAColumn:  3,
-	}).Exec()
+	}).Exec(ctx)
 
 	assert.Error(t, err)
 }

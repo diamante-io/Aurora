@@ -1,7 +1,18 @@
 package main
 
-import "github.com/diamnet/go/services/aurora/cmd"
+import (
+	"fmt"
+	"os"
+
+	"github.com/diamnet/go/services/aurora/cmd"
+)
 
 func main() {
-	cmd.Execute()
+	err := cmd.Execute()
+	if e, ok := err.(cmd.ErrExitCode); ok {
+		os.Exit(int(e))
+	} else if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
 }

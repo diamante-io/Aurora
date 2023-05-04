@@ -2,6 +2,7 @@ package auroraclient
 
 import (
 	"fmt"
+	"net/http"
 	"net/url"
 
 	"github.com/diamnet/go/support/errors"
@@ -20,6 +21,7 @@ func (pr PathsRequest) BuildURL() (endpoint string, err error) {
 	paramMap["destination_asset_issuer"] = pr.DestinationAssetIssuer
 	paramMap["destination_amount"] = pr.DestinationAmount
 	paramMap["source_account"] = pr.SourceAccount
+	paramMap["source_assets"] = pr.SourceAssets
 
 	queryParams := addQueryParams(paramMap)
 	if queryParams != "" {
@@ -32,4 +34,14 @@ func (pr PathsRequest) BuildURL() (endpoint string, err error) {
 	}
 
 	return endpoint, err
+}
+
+// HTTPRequest returns the http request for the path payment endpoint
+func (pr PathsRequest) HTTPRequest(auroraURL string) (*http.Request, error) {
+	endpoint, err := pr.BuildURL()
+	if err != nil {
+		return nil, err
+	}
+
+	return http.NewRequest("GET", auroraURL+endpoint, nil)
 }

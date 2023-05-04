@@ -18,18 +18,6 @@ type requestHelper struct {
 	router *chi.Mux
 }
 
-func RequestHelperRemoteAddr(ip string) func(r *http.Request) {
-	return func(r *http.Request) {
-		r.RemoteAddr = ip
-	}
-}
-
-func RequestHelperXFF(xff string) func(r *http.Request) {
-	return func(r *http.Request) {
-		r.Header.Set("X-Forwarded-For", xff)
-	}
-}
-
 func RequestHelperRaw(r *http.Request) {
 	r.Header.Set("Accept", "application/octet-stream")
 }

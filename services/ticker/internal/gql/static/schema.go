@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-//go:generate go-bindata -ignore=\.go -pkg=static -o=bindata.go ./...
+//go:generate go-bindata -nometadata -ignore=\.go -pkg=static -o=bindata.go ./...
 
 // Schema reads the .gql schema files from the generated _bindata.go file, concatenating the
 // files together into one string.

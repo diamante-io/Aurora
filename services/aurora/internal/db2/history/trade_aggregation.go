@@ -1,14 +1,16 @@
 package history
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
+
 	"github.com/diamnet/go/services/aurora/internal/db2"
+	"github.com/diamnet/go/services/aurora/internal/toid"
 	"github.com/diamnet/go/support/errors"
 	strtime "github.com/diamnet/go/support/time"
-	"github.com/diamnet/go/xdr"
 )
 
 // AllowedResolutions is the set of trade aggregation time windows allowed to be used as the
@@ -28,15 +30,19 @@ var StrictResolutionFiltering = true
 
 // TradeAggregation represents an aggregation of trades from the trades table
 type TradeAggregation struct {
-	Timestamp     int64     `db:"timestamp"`
-	TradeCount    int64     `db:"count"`
-	BaseVolume    string    `db:"base_volume"`
-	CounterVolume string    `db:"counter_volume"`
-	Average       float64   `db:"avg"`
-	High          xdr.Price `db:"high"`
-	Low           xdr.Price `db:"low"`
-	Open          xdr.Price `db:"open"`
-	Close         xdr.Price `db:"close"`
+	Timestamp     int64   `db:"timestamp"`
+	TradeCount    int64   `db:"count"`
+	BaseVolume    string  `db:"base_volume"`
+	CounterVolume string  `db:"counter_volume"`
+	Average       float64 `db:"avg"`
+	HighN         int64   `db:"high_n"`
+	HighD         int64   `db:"high_d"`
+	LowN          int64   `db:"low_n"`
+	LowD          int64   `db:"low_d"`
+	OpenN         int64   `db:"open_n"`
+	OpenD         int64   `db:"open_d"`
+	CloseN        int64   `db:"close_n"`
+	CloseD        int64   `db:"close_d"`
 }
 
 // TradeAggregationsQ is a helper struct to aid in configuring queries to
@@ -129,31 +135,23 @@ func (q *TradeAggregationsQ) GetSql() sq.SelectBuilder {
 		bucketSQL = reverseBucketTrades(q.resolution, q.offset)
 	}
 
-	bucketSQL = bucketSQL.From("history_trades").
+	bucketSQL = bucketSQL.From("history_trades_60000").
 		Where(sq.Eq{"base_asset_id": q.baseAssetID, "counter_asset_id": q.counterAssetID})
 
 	//adjust time range and apply time filters
-	bucketSQL = bucketSQL.Where(sq.GtOrEq{"ledger_closed_at": q.startTime.ToTime()})
+	bucketSQL = bucketSQL.Where(sq.GtOrEq{"timestamp": q.startTime})
 	if !q.endTime.IsNil() {
-		bucketSQL = bucketSQL.Where(sq.Lt{"ledger_closed_at": q.endTime.ToTime()})
+		bucketSQL = bucketSQL.Where(sq.Lt{"timestamp": q.endTime})
 	}
 
-	//ensure open/close order for cases when multiple trades occur in the same ledger
-	bucketSQL = bucketSQL.OrderBy("history_operation_id ", "\"order\"")
+	if q.resolution != 60000 {
+		//ensure open/close order for cases when multiple trades occur in the same ledger
+		bucketSQL = bucketSQL.OrderBy("timestamp ASC", "open_ledger_toid ASC")
+		// Do on-the-fly aggregation for higher resolutions.
+		bucketSQL = aggregate(bucketSQL)
+	}
 
-	return sq.Select(
-		"timestamp",
-		"count(*) as count",
-		"sum(base_amount) as base_volume",
-		"sum(counter_amount) as counter_volume",
-		"sum(counter_amount)/sum(base_amount) as avg",
-		"max_price(price) as high",
-		"min_price(price) as low",
-		"first(price)  as open",
-		"last(price) as close",
-	).
-		FromSelect(bucketSQL, "htrd").
-		GroupBy("timestamp").
+	return bucketSQL.
 		Limit(q.pagingParams.Limit).
 		OrderBy("timestamp " + q.pagingParams.Order)
 }
@@ -162,8 +160,7 @@ func (q *TradeAggregationsQ) GetSql() sq.SelectBuilder {
 // and the offset. Given a time t, it gives it a timestamp defined by
 // f(t) = ((t - offset)/resolution)*resolution + offset.
 func formatBucketTimestampSelect(resolution int64, offset int64) string {
-	return fmt.Sprintf("div((cast((extract(epoch from ledger_closed_at) * 1000 ) as bigint) - %d), %d)*%d + %d as timestamp",
-		offset, resolution, resolution, offset)
+	return fmt.Sprintf("((timestamp - %d) / %d) * %d + %d as timestamp", offset, resolution, resolution, offset)
 }
 
 // bucketTrades generates a select statement to filter rows from the `history_trades` table in
@@ -171,13 +168,18 @@ func formatBucketTimestampSelect(resolution int64, offset int64) string {
 func bucketTrades(resolution int64, offset int64) sq.SelectBuilder {
 	return sq.Select(
 		formatBucketTimestampSelect(resolution, offset),
-		"history_operation_id",
-		"\"order\"",
-		"base_asset_id",
-		"base_amount",
-		"counter_asset_id",
-		"counter_amount",
-		"ARRAY[price_n, price_d] as price",
+		"count",
+		"base_volume",
+		"counter_volume",
+		"avg",
+		"high_n",
+		"high_d",
+		"low_n",
+		"low_d",
+		"open_n",
+		"open_d",
+		"close_n",
+		"close_d",
 	)
 }
 
@@ -186,12 +188,130 @@ func bucketTrades(resolution int64, offset int64) sq.SelectBuilder {
 func reverseBucketTrades(resolution int64, offset int64) sq.SelectBuilder {
 	return sq.Select(
 		formatBucketTimestampSelect(resolution, offset),
+		"count",
+		"base_volume as counter_volume",
+		"counter_volume as base_volume",
+		"(base_volume::numeric/counter_volume::numeric) as avg",
+		"low_n as high_d",
+		"low_d as high_n",
+		"high_n as low_d",
+		"high_d as low_n",
+		"open_n as open_d",
+		"open_d as open_n",
+		"close_n as close_d",
+		"close_d as close_n",
+	)
+}
+
+func aggregate(query sq.SelectBuilder) sq.SelectBuilder {
+	return sq.Select(
+		"timestamp",
+		"sum(\"count\") as count",
+		"sum(base_volume) as base_volume",
+		"sum(counter_volume) as counter_volume",
+		"sum(counter_volume::numeric)/sum(base_volume::numeric) as avg",
+		"(max_price(ARRAY[high_n, high_d]))[1] as high_n",
+		"(max_price(ARRAY[high_n, high_d]))[2] as high_d",
+		"(min_price(ARRAY[low_n, low_d]))[1] as low_n",
+		"(min_price(ARRAY[low_n, low_d]))[2] as low_d",
+		"(first(ARRAY[open_n, open_d]))[1] as open_n",
+		"(first(ARRAY[open_n, open_d]))[2] as open_d",
+		"(last(ARRAY[close_n, close_d]))[1] as close_n",
+		"(last(ARRAY[close_n, close_d]))[2] as close_d",
+	).FromSelect(query, "htrd").GroupBy("timestamp")
+}
+
+// RebuildTradeAggregationTimes rebuilds a specific set of trade aggregation
+// buckets, (specified by start and end times) to ensure complete data in case
+// of partial reingestion.
+func (q Q) RebuildTradeAggregationTimes(ctx context.Context, from, to strtime.Millis) error {
+	from = from.RoundDown(60_000)
+	to = to.RoundDown(60_000)
+	// Clear out the old bucket values.
+	_, err := q.Exec(ctx, sq.Delete("history_trades_60000").Where(
+		sq.GtOrEq{"timestamp": from},
+	).Where(
+		sq.LtOrEq{"timestamp": to},
+	))
+	if err != nil {
+		return errors.Wrap(err, "could not rebuild trade aggregation bucket")
+	}
+
+	// find all related trades
+	trades := sq.Select(
+		"to_millis(ledger_closed_at, 60000) as timestamp",
 		"history_operation_id",
 		"\"order\"",
-		"counter_asset_id as base_asset_id",
-		"counter_amount as base_amount",
-		"base_asset_id as counter_asset_id",
-		"base_amount as counter_amount",
-		"ARRAY[price_d, price_n] as price",
+		"base_asset_id",
+		"base_amount",
+		"counter_asset_id",
+		"counter_amount",
+		"ARRAY[price_n, price_d] as price",
+	).From("history_trades").Where(
+		sq.GtOrEq{"to_millis(ledger_closed_at, 60000)": from},
+	).Where(
+		sq.LtOrEq{"to_millis(ledger_closed_at, 60000)": to},
+	).OrderBy("base_asset_id", "counter_asset_id", "history_operation_id", "\"order\"")
+
+	// figure out the new bucket values
+	rebuilt := sq.Select(
+		"timestamp",
+		"base_asset_id",
+		"counter_asset_id",
+		"count(*) as count",
+		"sum(base_amount) as base_volume",
+		"sum(counter_amount) as counter_volume",
+		"sum(counter_amount::numeric)/sum(base_amount::numeric) as avg",
+		"(max_price(price))[1] as high_n",
+		"(max_price(price))[2] as high_d",
+		"(min_price(price))[1] as low_n",
+		"(min_price(price))[2] as low_d",
+		"first(history_operation_id) as open_ledger_toid",
+		"(first(price))[1] as open_n",
+		"(first(price))[2] as open_d",
+		"last(history_operation_id) as close_ledger_toid",
+		"(last(price))[1] as close_n",
+		"(last(price))[2] as close_d",
+	).FromSelect(trades, "trades").GroupBy("base_asset_id", "counter_asset_id", "timestamp")
+
+	// Insert the new bucket values.
+	_, err = q.Exec(ctx, sq.Insert("history_trades_60000").Select(rebuilt))
+	if err != nil {
+		return errors.Wrap(err, "could not rebuild trade aggregation bucket")
+	}
+	return nil
+}
+
+// RebuildTradeAggregationBuckets rebuilds a specific set of trade aggregation
+// buckets, (specified by start and end ledger seq) to ensure complete data in
+// case of partial reingestion.
+func (q Q) RebuildTradeAggregationBuckets(ctx context.Context, fromSeq, toSeq uint32) error {
+	fromLedgerToid := toid.New(int32(fromSeq), 0, 0).ToInt64()
+	// toLedger should be inclusive here.
+	toLedgerToid := toid.New(int32(toSeq+1), 0, 0).ToInt64()
+
+	// Get the affected timestamp buckets
+	timestamps := sq.Select(
+		"to_millis(closed_at, 60000)",
+	).From("history_ledgers").Where(
+		sq.GtOrEq{"id": fromLedgerToid},
+	).Where(
+		sq.Lt{"id": toLedgerToid},
 	)
+
+	// Get first bucket timestamp in the ledger range
+	var from strtime.Millis
+	err := q.Get(ctx, &from, timestamps.OrderBy("id").Limit(1))
+	if err != nil {
+		return errors.Wrap(err, "could not rebuild trade aggregation bucket")
+	}
+
+	// Get last bucket timestamp in the ledger range
+	var to strtime.Millis
+	err = q.Get(ctx, &to, timestamps.OrderBy("id DESC").Limit(1))
+	if err != nil {
+		return errors.Wrap(err, "could not rebuild trade aggregation bucket")
+	}
+
+	return q.RebuildTradeAggregationTimes(ctx, from, to)
 }

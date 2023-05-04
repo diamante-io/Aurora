@@ -5,27 +5,34 @@
 package reap
 
 import (
-	"time"
+	"context"
 
+	"github.com/diamnet/go/services/aurora/internal/db2/history"
+	"github.com/diamnet/go/services/aurora/internal/ledger"
 	"github.com/diamnet/go/support/db"
 )
 
 // System represents the history reaping subsystem of aurora.
 type System struct {
-	AuroraDB      *db.Session
+	HistoryQ       *history.Q
 	RetentionCount uint
-
-	nextRun time.Time
+	ledgerState    *ledger.State
+	ctx            context.Context
+	cancel         context.CancelFunc
 }
 
 // New initializes the reaper, causing it to begin polling the diamnet-core
 // database for now ledgers and ingesting data into the aurora database.
-func New(retention uint, aurora *db.Session) *System {
+func New(retention uint, dbSession db.SessionInterface, ledgerState *ledger.State) *System {
+	ctx, cancel := context.WithCancel(context.Background())
+
 	r := &System{
-		AuroraDB:      aurora,
+		HistoryQ:       &history.Q{dbSession.Clone()},
 		RetentionCount: retention,
+		ledgerState:    ledgerState,
+		ctx:            ctx,
+		cancel:         cancel,
 	}
 
-	r.nextRun = time.Now().Add(1 * time.Hour)
 	return r
 }

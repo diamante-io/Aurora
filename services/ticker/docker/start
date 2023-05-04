@@ -2,12 +2,12 @@
 set -e
 
 
-export HCNET_HOME="/opt/diamnet"
-export HCNET_BIN="$HCNET_HOME/bin"
-export CONF_HOME="$HCNET_HOME/conf"
-export WWW_HOME="$HCNET_HOME/www"
+export DIAMNET_HOME="/opt/diamnet"
+export DIAMNET_BIN="$DIAMNET_HOME/bin"
+export CONF_HOME="$DIAMNET_HOME/conf"
+export WWW_HOME="$DIAMNET_HOME/www"
 
-export PGHOME="$HCNET_HOME/postgresql"
+export PGHOME="$DIAMNET_HOME/postgresql"
 export PGBIN="/usr/lib/postgresql/9.5/bin"
 export PGDATA="$PGHOME/data"
 export PGUSER="diamnet"
@@ -41,7 +41,7 @@ function migrate_db() {
 	echo ""
 	echo "Upgrading database to latest version"
 	echo ""
-	sudo -u diamnet $HCNET_BIN/ticker migrate --db-url=$PGURL
+	sudo -E -u diamnet $DIAMNET_BIN/ticker migrate
 }
 
 
@@ -53,7 +53,7 @@ function populate_assets() {
 	echo ""
 	echo "Populating initial asset database"
 	echo ""
-	sudo -u diamnet $HCNET_BIN/ticker ingest assets --db-url=$PGURL
+	sudo -E -u diamnet $DIAMNET_BIN/ticker ingest assets
 	touch $PGHOME/.assets-populated
 }
 
@@ -66,7 +66,7 @@ function populate_trades() {
 	echo ""
 	echo "Populating initial trade database"
 	echo ""
-	sudo -u diamnet $HCNET_BIN/ticker ingest trades --db-url=$PGURL
+	sudo -E -u diamnet $DIAMNET_BIN/ticker ingest trades
 	touch $PGHOME/.trades-populated
 }
 
@@ -79,32 +79,32 @@ function populate_orderbooks() {
 	echo ""
 	echo "Populating initial orderbook database"
 	echo ""
-	sudo -u diamnet $HCNET_BIN/ticker ingest orderbooks --db-url=$PGURL
+	sudo -E -u diamnet $DIAMNET_BIN/ticker ingest orderbooks
 	touch $PGHOME/.orderbooks-populated
 }
 
 
 function generate_assets_file() {
-	if [ -f $HCNET_HOME/www/assets.json ]; then
+	if [ -f $DIAMNET_HOME/www/assets.json ]; then
 		echo "ticker: assets.json already pre-populated"
 		return 0
 	fi
 	echo ""
 	echo "Creating assets.json file"
 	echo ""
-	sudo -u diamnet $HCNET_BIN/ticker generate asset-data --db-url=$PGURL -o $WWW_HOME/assets.json
+	sudo -E -u diamnet $DIAMNET_BIN/ticker generate asset-data -o $WWW_HOME/assets.json
 }
 
 
 function generate_markets_file() {
-	if [ -f $HCNET_HOME/www/markets.json ]; then
+	if [ -f $DIAMNET_HOME/www/markets.json ]; then
 		echo "ticker: markets.json already pre-populated"
 		return 0
 	fi
 	echo ""
 	echo "Creating markets.json file"
 	echo ""
-	sudo -u diamnet $HCNET_BIN/ticker generate market-data --db-url=$PGURL -o $WWW_HOME/markets.json
+	sudo -E -u diamnet $DIAMNET_BIN/ticker generate market-data -o $WWW_HOME/markets.json
 }
 
 
@@ -136,23 +136,12 @@ function run_silent() {
 }
 
 
-function set_pg_password() {
-	read -s -p "Enter New Postgresql Password: " PGPASS
-	echo ""
-	read -s -p "Confirm: " PGPASS_CONFIRMATION
-	echo ""
-
-	if [ -z "$PGPASS" ]; then
-		echo "Password empty" >&2
-		exit 1
-	fi
-
-	if [ "$PGPASS" != "$PGPASS_CONFIRMATION" ]; then
-		echo "Password mistmach" >&2
-		exit 1
-	fi
+function set_db_url() {
+	PGPASS="diamnet"
+	export DB_URL="postgres://diamnet:${PGPASS}@127.0.0.1:5432/ticker"
+	echo "Setting db url: $DB_URL"
+	echo DB_URL="${DB_URL}" >> /etc/environment
 }
-
 
 function copy_pgpass() {
 	cp $PGHOME/.pgpass /home/diamnet
@@ -170,7 +159,7 @@ function init_db() {
 
 	echo "postgres user: $PGUSER"
 
-	set_pg_password
+	set_db_url
 
 	run_silent "finalize-pgpass" sed -ri "s/__PGPASS__/$PGPASS/g" $CONF_HOME/.pgpass
 

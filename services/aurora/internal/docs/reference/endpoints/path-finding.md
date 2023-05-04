@@ -2,9 +2,13 @@
 title: Find Payment Paths
 clientData:
   laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=paths&endpoint=all
+replacement: https://developers.diamnet.org/api/aggregations/paths/
 ---
 
-The DiamNet Network allows payments to be made across assets through _path payments_.  A path
+**Note**: This endpoint will be deprecated, use [/path/strict-receive](./path-finding-strict-receive.md) instead. There are no differences between both endpoints, `/paths` is an alias for `/path/strict-receive`.
+
+
+The Diamnet Network allows payments to be made across assets through _path payments_.  A path
 payment specifies a series of assets to route a payment through, from source asset (the asset
 debited from the payer) to destination asset (the asset credited to the payee).
 
@@ -35,7 +39,12 @@ GET /paths?destination_account={da}&source_account={sa}&destination_asset_type={
 | `?destination_asset_issuer` | string | The issuer for the destination, if destination_asset_type is not "native" | `GAEDTJ4PPEFVW5XV2S7LUXBEHNQMX5Q2GM562RJGOQG7GVCE5H3HIB4V` |
 | `?destination_amount` | string | The amount, denominated in the destination asset, that any returned path should be able to satisfy | `10.1` |
 | `?source_account` | string | The sender's account id. Any returned path must use a source that the sender can hold | `GARSFJNXJIHO6ULUBK3DBYKVSIZE7SC72S5DYBCHU7DKL22UXKVD7MXP` |
+| `?source_assets` | string | A comma separated list of assets. Any returned path must use a source included in this list  | `USD:GAEDTJ4PPEFVW5XV2S7LUXBEHNQMX5Q2GM562RJGOQG7GVCE5H3HIB4V,native` |
 
+The endpoint will not allow requests which provide both a `source_account` and a `source_assets` parameter. All requests must provide one or the other.
+The assets in `source_assets` are expected to be encoded using the following format:
+
+The native asset should be represented as `"native"`. Issued assets should be represented as `"Code:IssuerAccountID"`. `"Code"` must consist of alphanumeric ASCII characters.
 
 
 ### curl Example Request
@@ -47,12 +56,12 @@ curl "https://aurora-testnet.diamnet.org/paths?destination_account=GAEDTJ4PPEFVW
 ### JavaScript Example Request
 
 ```javascript
-var DiamNetSdk = require('diamnet-sdk');
-var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
+var DiamnetSdk = require('diamnet-sdk');
+var server = new DiamnetSdk.Server('https://aurora-testnet.diamnet.org');
 
 var source_account = "GARSFJNXJIHO6ULUBK3DBYKVSIZE7SC72S5DYBCHU7DKL22UXKVD7MXP";
 var destination_account = "GAEDTJ4PPEFVW5XV2S7LUXBEHNQMX5Q2GM562RJGOQG7GVCE5H3HIB4V";
-var destination_asset = DiamNetSdk.Asset.native();
+var destination_asset = DiamnetSdk.Asset.native();
 var destination_amount = "20";
 
 server.paths(source_account, destination_account, destination_asset, destination_amount)

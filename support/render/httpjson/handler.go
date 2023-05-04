@@ -8,6 +8,7 @@ import (
 	"reflect"
 
 	"github.com/diamnet/go/support/errors"
+	"github.com/diamnet/go/support/http/httpdecode"
 	"github.com/diamnet/go/support/render/problem"
 )
 
@@ -82,9 +83,9 @@ func (h *handler) executeFunc(ctx context.Context, req *http.Request) (interface
 	if h.inType != nil {
 		if h.readFromBody {
 			inPtr := reflect.New(h.inType)
-			err := read(req.Body, inPtr.Interface())
+			err := httpdecode.DecodeJSON(req, inPtr.Interface())
 			if err != nil {
-				return nil, err
+				return nil, ErrBadRequest
 			}
 			a = append(a, inPtr.Elem())
 		} else {

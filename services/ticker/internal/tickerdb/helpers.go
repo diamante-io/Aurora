@@ -1,6 +1,7 @@
 package tickerdb
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"reflect"
@@ -121,7 +122,7 @@ func getBaseAndCounterCodes(pairName string) (string, string, error) {
 // performUpsertQuery introspects a dbStruct interface{} and performs an insert query
 // (if the conflictConstraint isn't broken), otherwise it updates the instance on the
 // db, preserving the old values for the fields in preserveFields
-func (s *TickerSession) performUpsertQuery(dbStruct interface{}, tableName string, conflictConstraint string, preserveFields []string) error {
+func (s *TickerSession) performUpsertQuery(ctx context.Context, dbStruct interface{}, tableName string, conflictConstraint string, preserveFields []string) error {
 	dbFields := getDBFieldTags(dbStruct, true)
 	dbFieldsString := strings.Join(dbFields, ", ")
 	dbValues := getDBFieldValues(dbStruct, true)
@@ -132,6 +133,6 @@ func (s *TickerSession) performUpsertQuery(dbStruct interface{}, tableName strin
 	qs := fmt.Sprintf("INSERT INTO %s (", tableName) + dbFieldsString + ")"
 	qs += " VALUES (" + generatePlaceholders(dbValues) + ")"
 	qs += " " + createOnConflictFragment(conflictConstraint, toUpdateFields) + ";"
-	_, err := s.ExecRaw(qs, dbValues...)
+	_, err := s.ExecRaw(ctx, qs, dbValues...)
 	return err
 }

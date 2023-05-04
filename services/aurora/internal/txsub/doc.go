@@ -8,6 +8,5 @@ package txsub
 // - main.go: interface and result types
 // - errors.go: error definitions exposed by txsub
 // - system.go: txsub.System, the struct that ties all the interfaces together
-// - internal.go: helper functions
 // - open_submission_list.go: A default implementation of the OpenSubmissionList interface
 // - submitter.go: A default implementation of the Submitter interface

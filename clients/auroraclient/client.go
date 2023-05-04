@@ -9,12 +9,15 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/diamnet/go/txnbuild"
+	"github.com/diamnet/go/xdr"
 
 	"github.com/manucorporat/sse"
+
 	hProtocol "github.com/diamnet/go/protocols/aurora"
 	"github.com/diamnet/go/protocols/aurora/effects"
 	"github.com/diamnet/go/protocols/aurora/operations"
@@ -23,50 +26,104 @@ import (
 
 // sendRequest builds the URL for the given aurora request and sends the url to a aurora server
 func (c *Client) sendRequest(hr AuroraRequest, resp interface{}) (err error) {
-	endpoint, err := hr.BuildURL()
+	req, err := hr.HTTPRequest(c.fixAuroraURL())
 	if err != nil {
-		return
+		return err
 	}
 
-	c.AuroraURL = c.fixAuroraURL()
-	_, ok := hr.(submitRequest)
-	if ok {
-		return c.sendRequestURL(c.AuroraURL+endpoint, "post", resp)
-	}
-
-	return c.sendRequestURL(c.AuroraURL+endpoint, "get", resp)
+	return c.sendHTTPRequest(req, resp)
 }
 
-// sendRequestURL sends a url to a aurora server.
-// It can be used for requests that do not implement the AuroraRequest interface.
-func (c *Client) sendRequestURL(requestURL string, method string, a interface{}) (err error) {
-	var req *http.Request
+// checkMemoRequired implements a memo required check as defined in
+// https://github.com/diamnet/diamnet-protocol/blob/master/ecosystem/sep-0029.md
+func (c *Client) checkMemoRequired(transaction *txnbuild.Transaction) error {
+	destinations := map[string]bool{}
 
-	if method == "post" || method == "POST" {
-		req, err = http.NewRequest("POST", requestURL, nil)
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
-	} else {
-		req, err = http.NewRequest("GET", requestURL, nil)
+	for i, op := range transaction.Operations() {
+		var destination string
+
+		if err := op.Validate(true); err != nil {
+			return err
+		}
+
+		switch p := op.(type) {
+		case *txnbuild.Payment:
+			destination = p.Destination
+		case *txnbuild.PathPaymentStrictReceive:
+			destination = p.Destination
+		case *txnbuild.PathPaymentStrictSend:
+			destination = p.Destination
+		case *txnbuild.AccountMerge:
+			destination = p.Destination
+		default:
+			continue
+		}
+
+		muxed, err := xdr.AddressToMuxedAccount(destination)
+		if err != nil {
+			return errors.Wrapf(err, "destination %v is not a valid address", destination)
+		}
+		// Skip destination addresses with a memo id because the address has a memo
+		// encoded within it
+		destinationHasMemoID := muxed.Type == xdr.CryptoKeyTypeKeyTypeMuxedEd25519
+
+		if destinations[destination] || destinationHasMemoID {
+			continue
+		}
+		destinations[destination] = true
+
+		request := AccountRequest{
+			AccountID: destination,
+			DataKey:   "config.memo_required",
+		}
+
+		data, err := c.AccountData(request)
+		if err != nil {
+			auroraError := GetError(err)
+
+			if auroraError == nil || auroraError.Response.StatusCode != 404 {
+				return err
+			}
+
+			continue
+		}
+
+		if data.Value == accountRequiresMemo {
+			return errors.Wrap(
+				ErrAccountRequiresMemo,
+				fmt.Sprintf("operation[%d]", i),
+			)
+		}
 	}
 
+	return nil
+}
+
+// sendGetRequest sends a HTTP GET request to a aurora server.
+// It can be used for requests that do not implement the AuroraRequest interface.
+func (c *Client) sendGetRequest(requestURL string, a interface{}) error {
+	req, err := http.NewRequest("GET", requestURL, nil)
 	if err != nil {
 		return errors.Wrap(err, "error creating HTTP request")
 	}
+	return c.sendHTTPRequest(req, a)
+}
+
+func (c *Client) sendHTTPRequest(req *http.Request, a interface{}) error {
 	c.setClientAppHeaders(req)
 	c.setDefaultClient()
-	if c.auroraTimeOut == 0 {
-		c.auroraTimeOut = AuroraTimeOut
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*c.auroraTimeOut)
-	resp, err := c.HTTP.Do(req.WithContext(ctx))
-	if err != nil {
-		cancel()
-		return
-	}
 
-	err = decodeResponse(resp, &a)
-	cancel()
-	return
+	if c.auroraTimeout == 0 {
+		c.auroraTimeout = AuroraTimeout
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), c.auroraTimeout)
+	defer cancel()
+
+	if resp, err := c.HTTP.Do(req.WithContext(ctx)); err != nil {
+		return err
+	} else {
+		return decodeResponse(resp, &a, c)
+	}
 }
 
 // stream handles connections to endpoints that support streaming on a aurora server
@@ -212,22 +269,34 @@ func (c *Client) setDefaultClient() {
 
 // fixAuroraURL strips all slashes(/) at the end of AuroraURL if any, then adds a single slash
 func (c *Client) fixAuroraURL() string {
-	return strings.TrimRight(c.AuroraURL, "/") + "/"
+	c.fixAuroraURLOnce.Do(func() {
+		c.AuroraURL = strings.TrimRight(c.AuroraURL, "/") + "/"
+	})
+	return c.AuroraURL
 }
 
-// SetAuroraTimeOut allows users to set the number of seconds before a aurora request is cancelled.
-func (c *Client) SetAuroraTimeOut(t uint) *Client {
-	c.auroraTimeOut = time.Duration(t)
+// SetAuroraTimeout allows users to set the timeout before a aurora request is cancelled.
+// The timeout is specified as a time.Duration which is in nanoseconds.
+func (c *Client) SetAuroraTimeout(t time.Duration) *Client {
+	c.auroraTimeout = t
 	return c
 }
 
-// AuroraTimeOut returns the current timeout for a aurora client
-func (c *Client) AuroraTimeOut() time.Duration {
-	return c.auroraTimeOut
+// AuroraTimeout returns the current timeout for a aurora client
+func (c *Client) AuroraTimeout() time.Duration {
+	return c.auroraTimeout
+}
+
+// Accounts returns accounts who have a given signer or
+// have a trustline to an asset.
+// See https://developers.diamnet.org/api/resources/accounts/
+func (c *Client) Accounts(request AccountsRequest) (accounts hProtocol.AccountsPage, err error) {
+	err = c.sendRequest(request, &accounts)
+	return
 }
 
 // AccountDetail returns information for a single account.
-// See https://www.diamnet.org/developers/aurora/reference/endpoints/accounts-single.html
+// See https://developers.diamnet.org/api/resources/accounts/single/
 func (c *Client) AccountDetail(request AccountRequest) (account hProtocol.Account, err error) {
 	if request.AccountID == "" {
 		err = errors.New("no account ID provided")
@@ -242,7 +311,7 @@ func (c *Client) AccountDetail(request AccountRequest) (account hProtocol.Accoun
 }
 
 // AccountData returns a single data associated with a given account
-// See https://www.diamnet.org/developers/aurora/reference/endpoints/data-for-account.html
+// See https://developers.diamnet.org/api/resources/accounts/data/
 func (c *Client) AccountData(request AccountRequest) (accountData hProtocol.AccountData, err error) {
 	if request.AccountID == "" || request.DataKey == "" {
 		err = errors.New("too few parameters")
@@ -256,7 +325,7 @@ func (c *Client) AccountData(request AccountRequest) (accountData hProtocol.Acco
 	return
 }
 
-// Effects returns effects(https://www.diamnet.org/developers/aurora/reference/resources/effect.html)
+// Effects returns effects (https://developers.diamnet.org/api/resources/effects/)
 // It can be used to return effects for an account, a ledger, an operation, a transaction and all effects on the network.
 func (c *Client) Effects(request EffectRequest) (effects effects.EffectsPage, err error) {
 	err = c.sendRequest(request, &effects)
@@ -264,21 +333,21 @@ func (c *Client) Effects(request EffectRequest) (effects effects.EffectsPage, er
 }
 
 // Assets returns asset information.
-// See https://www.diamnet.org/developers/aurora/reference/endpoints/assets-all.html
+// See https://developers.diamnet.org/api/resources/assets/list/
 func (c *Client) Assets(request AssetRequest) (assets hProtocol.AssetsPage, err error) {
 	err = c.sendRequest(request, &assets)
 	return
 }
 
 // Ledgers returns information about all ledgers.
-// See https://www.diamnet.org/developers/aurora/reference/endpoints/ledgers-all.html
+// See https://developers.diamnet.org/api/resources/ledgers/list/
 func (c *Client) Ledgers(request LedgerRequest) (ledgers hProtocol.LedgersPage, err error) {
 	err = c.sendRequest(request, &ledgers)
 	return
 }
 
 // LedgerDetail returns information about a particular ledger for a given sequence number
-// See https://www.diamnet.org/developers/aurora/reference/endpoints/ledgers-single.html
+// See https://developers.diamnet.org/api/resources/ledgers/single/
 func (c *Client) LedgerDetail(sequence uint32) (ledger hProtocol.Ledger, err error) {
 	if sequence == 0 {
 		err = errors.New("invalid sequence number provided")
@@ -293,16 +362,8 @@ func (c *Client) LedgerDetail(sequence uint32) (ledger hProtocol.Ledger, err err
 	return
 }
 
-// Metrics returns monitoring information about a aurora server
-// See https://www.diamnet.org/developers/aurora/reference/endpoints/metrics.html
-func (c *Client) Metrics() (metrics hProtocol.Metrics, err error) {
-	request := metricsRequest{endpoint: "metrics"}
-	err = c.sendRequest(request, &metrics)
-	return
-}
-
 // FeeStats returns information about fees in the last 5 ledgers.
-// See https://www.diamnet.org/developers/aurora/reference/endpoints/fee-stats.html
+// See https://developers.diamnet.org/api/aggregations/fee-stats/
 func (c *Client) FeeStats() (feestats hProtocol.FeeStats, err error) {
 	request := feeStatsRequest{endpoint: "fee_stats"}
 	err = c.sendRequest(request, &feestats)
@@ -310,21 +371,38 @@ func (c *Client) FeeStats() (feestats hProtocol.FeeStats, err error) {
 }
 
 // Offers returns information about offers made on the SDEX.
-// See https://www.diamnet.org/developers/aurora/reference/endpoints/offers-for-account.html
+// See https://developers.diamnet.org/api/resources/offers/list/
 func (c *Client) Offers(request OfferRequest) (offers hProtocol.OffersPage, err error) {
 	err = c.sendRequest(request, &offers)
 	return
 }
 
-// Operations returns diamnet operations (https://www.diamnet.org/developers/aurora/reference/resources/operation.html)
+// OfferDetails returns information for a single offer.
+// See https://developers.diamnet.org/api/resources/offers/single/
+func (c *Client) OfferDetails(offerID string) (offer hProtocol.Offer, err error) {
+	if len(offerID) == 0 {
+		err = errors.New("no offer ID provided")
+		return
+	}
+
+	if _, err = strconv.ParseInt(offerID, 10, 64); err != nil {
+		err = errors.New("invalid offer ID provided")
+		return
+	}
+
+	err = c.sendRequest(OfferRequest{OfferID: offerID}, &offer)
+	return
+}
+
+// Operations returns diamnet operations (https://developers.diamnet.org/api/resources/operations/list/)
 // It can be used to return operations for an account, a ledger, a transaction and all operations on the network.
 func (c *Client) Operations(request OperationRequest) (ops operations.OperationsPage, err error) {
 	err = c.sendRequest(request.SetOperationsEndpoint(), &ops)
 	return
 }
 
-// OperationDetail returns a single diamnet operations (https://www.diamnet.org/developers/aurora/reference/resources/operation.html)
-// for a given operation id
+// OperationDetail returns a single diamnet operation for a given operation id
+// See https://developers.diamnet.org/api/resources/operations/single/
 func (c *Client) OperationDetail(id string) (ops operations.Operation, err error) {
 	if id == "" {
 		return ops, errors.New("invalid operation id provided")
@@ -349,22 +427,48 @@ func (c *Client) OperationDetail(id string) (ops operations.Operation, err error
 	}
 
 	ops, err = operations.UnmarshalOperation(baseRecord.GetTypeI(), dataString)
-	return ops, errors.Wrap(err, "unmarshaling to the correct operation type")
+	if err != nil {
+		return ops, errors.Wrap(err, "unmarshaling to the correct operation type")
+	}
+	return ops, nil
 }
 
 // SubmitTransactionXDR submits a transaction represented as a base64 XDR string to the network. err can be either error object or aurora.Error object.
-// See https://www.diamnet.org/developers/aurora/reference/endpoints/transactions-create.html
-func (c *Client) SubmitTransactionXDR(transactionXdr string) (txSuccess hProtocol.TransactionSuccess,
+// See https://developers.diamnet.org/api/resources/transactions/post/
+func (c *Client) SubmitTransactionXDR(transactionXdr string) (tx hProtocol.Transaction,
 	err error) {
 	request := submitRequest{endpoint: "transactions", transactionXdr: transactionXdr}
-	err = c.sendRequest(request, &txSuccess)
+	err = c.sendRequest(request, &tx)
 	return
 }
 
-// SubmitTransaction submits a transaction to the network. err can be either error object or aurora.Error object.
-// See https://www.diamnet.org/developers/aurora/reference/endpoints/transactions-create.html
-func (c *Client) SubmitTransaction(transaction txnbuild.Transaction) (txSuccess hProtocol.TransactionSuccess,
-	err error) {
+// SubmitFeeBumpTransaction submits a fee bump transaction to the network. err can be either an
+// error object or a aurora.Error object.
+//
+// This function will always check if the destination account requires a memo in the transaction as
+// defined in SEP0029: https://github.com/diamnet/diamnet-protocol/blob/master/ecosystem/sep-0029.md
+//
+// If you want to skip this check, use SubmitTransactionWithOptions.
+//
+// See https://developers.diamnet.org/api/resources/transactions/post/
+func (c *Client) SubmitFeeBumpTransaction(transaction *txnbuild.FeeBumpTransaction) (tx hProtocol.Transaction, err error) {
+	return c.SubmitFeeBumpTransactionWithOptions(transaction, SubmitTxOpts{})
+}
+
+// SubmitFeeBumpTransactionWithOptions submits a fee bump transaction to the network, allowing
+// you to pass SubmitTxOpts. err can be either an error object or a aurora.Error object.
+//
+// See https://developers.diamnet.org/api/resources/transactions/post/
+func (c *Client) SubmitFeeBumpTransactionWithOptions(transaction *txnbuild.FeeBumpTransaction, opts SubmitTxOpts) (tx hProtocol.Transaction, err error) {
+	// only check if memo is required if skip is false and the inner transaction
+	// doesn't have a memo.
+	if inner := transaction.InnerTransaction(); !opts.SkipMemoRequiredCheck && inner.Memo() == nil {
+		err = c.checkMemoRequired(inner)
+		if err != nil {
+			return
+		}
+	}
+
 	txeBase64, err := transaction.Base64()
 	if err != nil {
 		err = errors.Wrap(err, "Unable to convert transaction object to base64 string")
@@ -374,7 +478,43 @@ func (c *Client) SubmitTransaction(transaction txnbuild.Transaction) (txSuccess 
 	return c.SubmitTransactionXDR(txeBase64)
 }
 
-// Transactions returns diamnet transactions (https://www.diamnet.org/developers/aurora/reference/resources/transaction.html)
+// SubmitTransaction submits a transaction to the network. err can be either an
+// error object or a aurora.Error object.
+//
+// This function will always check if the destination account requires a memo in the transaction as
+// defined in SEP0029: https://github.com/diamnet/diamnet-protocol/blob/master/ecosystem/sep-0029.md
+//
+// If you want to skip this check, use SubmitTransactionWithOptions.
+//
+// See https://developers.diamnet.org/api/resources/transactions/post/
+func (c *Client) SubmitTransaction(transaction *txnbuild.Transaction) (tx hProtocol.Transaction, err error) {
+	return c.SubmitTransactionWithOptions(transaction, SubmitTxOpts{})
+}
+
+// SubmitTransactionWithOptions submits a transaction to the network, allowing
+// you to pass SubmitTxOpts. err can be either an error object or a aurora.Error object.
+//
+// See https://developers.diamnet.org/api/resources/transactions/post/
+func (c *Client) SubmitTransactionWithOptions(transaction *txnbuild.Transaction, opts SubmitTxOpts) (tx hProtocol.Transaction, err error) {
+	// only check if memo is required if skip is false and the transaction
+	// doesn't have a memo.
+	if !opts.SkipMemoRequiredCheck && transaction.Memo() == nil {
+		err = c.checkMemoRequired(transaction)
+		if err != nil {
+			return
+		}
+	}
+
+	txeBase64, err := transaction.Base64()
+	if err != nil {
+		err = errors.Wrap(err, "Unable to convert transaction object to base64 string")
+		return
+	}
+
+	return c.SubmitTransactionXDR(txeBase64)
+}
+
+// Transactions returns diamnet transactions (https://developers.diamnet.org/api/resources/transactions/list/)
 // It can be used to return transactions for an account, a ledger,and all transactions on the network.
 func (c *Client) Transactions(request TransactionRequest) (txs hProtocol.TransactionsPage, err error) {
 	err = c.sendRequest(request, &txs)
@@ -382,7 +522,7 @@ func (c *Client) Transactions(request TransactionRequest) (txs hProtocol.Transac
 }
 
 // TransactionDetail returns information about a particular transaction for a given transaction hash
-// See https://www.diamnet.org/developers/aurora/reference/endpoints/transactions-single.html
+// See https://developers.diamnet.org/api/resources/transactions/single/
 func (c *Client) TransactionDetail(txHash string) (tx hProtocol.Transaction, err error) {
 	if txHash == "" {
 		return tx, errors.New("no transaction hash provided")
@@ -393,14 +533,27 @@ func (c *Client) TransactionDetail(txHash string) (tx hProtocol.Transaction, err
 	return
 }
 
-// OrderBook returns the orderbook for an asset pair (https://www.diamnet.org/developers/aurora/reference/resources/orderbook.html)
+// OrderBook returns the orderbook for an asset pair (https://developers.diamnet.org/api/aggregations/order-books/single/)
 func (c *Client) OrderBook(request OrderBookRequest) (obs hProtocol.OrderBookSummary, err error) {
 	err = c.sendRequest(request, &obs)
 	return
 }
 
-// Paths returns the available paths to make a payment. See https://www.diamnet.org/developers/aurora/reference/endpoints/path-finding.html
+// Paths returns the available paths to make a strict receive path payment. See https://developers.diamnet.org/api/aggregations/paths/strict-receive/
+// This function is an alias for `client.StrictReceivePaths` and will be deprecated, use `client.StrictReceivePaths` instead.
 func (c *Client) Paths(request PathsRequest) (paths hProtocol.PathsPage, err error) {
+	paths, err = c.StrictReceivePaths(request)
+	return
+}
+
+// StrictReceivePaths returns the available paths to make a strict receive path payment. See https://developers.diamnet.org/api/aggregations/paths/strict-receive/
+func (c *Client) StrictReceivePaths(request PathsRequest) (paths hProtocol.PathsPage, err error) {
+	err = c.sendRequest(request, &paths)
+	return
+}
+
+// StrictSendPaths returns the available paths to make a strict send path payment. See https://developers.diamnet.org/api/aggregations/paths/strict-send/
+func (c *Client) StrictSendPaths(request StrictSendPathsRequest) (paths hProtocol.PathsPage, err error) {
 	err = c.sendRequest(request, &paths)
 	return
 }
@@ -412,7 +565,7 @@ func (c *Client) Payments(request OperationRequest) (ops operations.OperationsPa
 	return
 }
 
-// Trades returns diamnet trades (https://www.diamnet.org/developers/aurora/reference/resources/trade.html)
+// Trades returns diamnet trades (https://developers.diamnet.org/api/resources/trades/list/)
 // It can be used to return trades for an account, an offer and all trades on the network.
 func (c *Client) Trades(request TradeRequest) (tds hProtocol.TradesPage, err error) {
 	err = c.sendRequest(request, &tds)
@@ -420,13 +573,13 @@ func (c *Client) Trades(request TradeRequest) (tds hProtocol.TradesPage, err err
 }
 
 // Fund creates a new account funded from friendbot. It only works on test networks. See
-// https://www.diamnet.org/developers/guides/get-started/create-account.html for more information.
-func (c *Client) Fund(addr string) (txSuccess hProtocol.TransactionSuccess, err error) {
-	if !c.isTestNet {
-		return txSuccess, errors.New("can't fund account from friendbot on production network")
-	}
+// https://developers.diamnet.org/docs/tutorials/create-account/ for more information.
+func (c *Client) Fund(addr string) (tx hProtocol.Transaction, err error) {
 	friendbotURL := fmt.Sprintf("%sfriendbot?addr=%s", c.fixAuroraURL(), addr)
-	err = c.sendRequestURL(friendbotURL, "get", &txSuccess)
+	err = c.sendGetRequest(friendbotURL, &tx)
+	if IsNotFoundError(err) {
+		return tx, errors.Wrap(err, "funding is only available on test networks and may not be supported by "+c.fixAuroraURL())
+	}
 	return
 }
 
@@ -438,7 +591,7 @@ func (c *Client) StreamTrades(ctx context.Context, request TradeRequest, handler
 	return
 }
 
-// TradeAggregations returns diamnet trade aggregations (https://www.diamnet.org/developers/aurora/reference/resources/trade_aggregation.html)
+// TradeAggregations returns diamnet trade aggregations (https://developers.diamnet.org/api/aggregations/trade-aggregations/list/)
 func (c *Client) TradeAggregations(request TradeAggregationRequest) (tds hProtocol.TradeAggregationsPage, err error) {
 	err = c.sendRequest(request, &tds)
 	return
@@ -461,7 +614,7 @@ func (c *Client) StreamEffects(ctx context.Context, request EffectRequest, handl
 // StreamOperations streams diamnet operations. It can be used to stream all operations or operations
 // for an account. Use context.WithCancel to stop streaming or context.Background() if you want to
 // stream indefinitely. OperationHandler is a user-supplied function that is executed for each streamed
-//  operation received.
+// operation received.
 func (c *Client) StreamOperations(ctx context.Context, request OperationRequest, handler OperationHandler) error {
 	return request.SetOperationsEndpoint().StreamOperations(ctx, c, handler)
 }
@@ -470,12 +623,12 @@ func (c *Client) StreamOperations(ctx context.Context, request OperationRequest,
 // for an account. Payments include create_account, payment, path_payment and account_merge operations.
 // Use context.WithCancel to stop streaming or context.Background() if you want to
 // stream indefinitely. OperationHandler is a user-supplied function that is executed for each streamed
-//  operation received.
+// operation received.
 func (c *Client) StreamPayments(ctx context.Context, request OperationRequest, handler OperationHandler) error {
 	return request.SetPaymentsEndpoint().StreamOperations(ctx, c, handler)
 }
 
-// StreamOffers streams offers processed by the DiamNet network for an account. Use context.WithCancel
+// StreamOffers streams offers processed by the Diamnet network for an account. Use context.WithCancel
 // to stop streaming or context.Background() if you want to stream indefinitely.
 // OfferHandler is a user-supplied function that is executed for each streamed offer received.
 func (c *Client) StreamOffers(ctx context.Context, request OfferRequest, handler OfferHandler) error {
@@ -505,7 +658,7 @@ func (c *Client) FetchTimebounds(seconds int64) (txnbuild.Timebounds, error) {
 	if err != nil {
 		return txnbuild.Timebounds{}, errors.Wrap(err, "unable to parse aurora url")
 	}
-	currentTime := currentServerTime(serverURL.Hostname())
+	currentTime := currentServerTime(serverURL.Hostname(), c.clock.Now().UTC().Unix())
 	if currentTime != 0 {
 		return txnbuild.NewTimebounds(0, currentTime+seconds), nil
 	}
@@ -517,7 +670,7 @@ func (c *Client) FetchTimebounds(seconds int64) (txnbuild.Timebounds, error) {
 
 // Root loads the root endpoint of aurora
 func (c *Client) Root() (root hProtocol.Root, err error) {
-	err = c.sendRequestURL(c.fixAuroraURL(), "get", &root)
+	err = c.sendGetRequest(c.fixAuroraURL(), &root)
 	return
 }
 
@@ -526,63 +679,69 @@ func (c *Client) Version() string {
 	return version
 }
 
+// NextAccountsPage returns the next page of accounts.
+func (c *Client) NextAccountsPage(page hProtocol.AccountsPage) (accounts hProtocol.AccountsPage, err error) {
+	err = c.sendGetRequest(page.Links.Next.Href, &accounts)
+	return
+}
+
 // NextAssetsPage returns the next page of assets.
 func (c *Client) NextAssetsPage(page hProtocol.AssetsPage) (assets hProtocol.AssetsPage, err error) {
-	err = c.sendRequestURL(page.Links.Next.Href, "get", &assets)
+	err = c.sendGetRequest(page.Links.Next.Href, &assets)
 	return
 }
 
 // PrevAssetsPage returns the previous page of assets.
 func (c *Client) PrevAssetsPage(page hProtocol.AssetsPage) (assets hProtocol.AssetsPage, err error) {
-	err = c.sendRequestURL(page.Links.Prev.Href, "get", &assets)
+	err = c.sendGetRequest(page.Links.Prev.Href, &assets)
 	return
 }
 
 // NextLedgersPage returns the next page of ledgers.
 func (c *Client) NextLedgersPage(page hProtocol.LedgersPage) (ledgers hProtocol.LedgersPage, err error) {
-	err = c.sendRequestURL(page.Links.Next.Href, "get", &ledgers)
+	err = c.sendGetRequest(page.Links.Next.Href, &ledgers)
 	return
 }
 
 // PrevLedgersPage returns the previous page of ledgers.
 func (c *Client) PrevLedgersPage(page hProtocol.LedgersPage) (ledgers hProtocol.LedgersPage, err error) {
-	err = c.sendRequestURL(page.Links.Prev.Href, "get", &ledgers)
+	err = c.sendGetRequest(page.Links.Prev.Href, &ledgers)
 	return
 }
 
 // NextEffectsPage returns the next page of effects.
 func (c *Client) NextEffectsPage(page effects.EffectsPage) (efp effects.EffectsPage, err error) {
-	err = c.sendRequestURL(page.Links.Next.Href, "get", &efp)
+	err = c.sendGetRequest(page.Links.Next.Href, &efp)
 	return
 }
 
 // PrevEffectsPage returns the previous page of effects.
 func (c *Client) PrevEffectsPage(page effects.EffectsPage) (efp effects.EffectsPage, err error) {
-	err = c.sendRequestURL(page.Links.Prev.Href, "get", &efp)
+	err = c.sendGetRequest(page.Links.Prev.Href, &efp)
 	return
 }
 
 // NextTransactionsPage returns the next page of transactions.
 func (c *Client) NextTransactionsPage(page hProtocol.TransactionsPage) (transactions hProtocol.TransactionsPage, err error) {
-	err = c.sendRequestURL(page.Links.Next.Href, "get", &transactions)
+	err = c.sendGetRequest(page.Links.Next.Href, &transactions)
 	return
 }
 
 // PrevTransactionsPage returns the previous page of transactions.
 func (c *Client) PrevTransactionsPage(page hProtocol.TransactionsPage) (transactions hProtocol.TransactionsPage, err error) {
-	err = c.sendRequestURL(page.Links.Prev.Href, "get", &transactions)
+	err = c.sendGetRequest(page.Links.Prev.Href, &transactions)
 	return
 }
 
 // NextOperationsPage returns the next page of operations.
 func (c *Client) NextOperationsPage(page operations.OperationsPage) (operations operations.OperationsPage, err error) {
-	err = c.sendRequestURL(page.Links.Next.Href, "get", &operations)
+	err = c.sendGetRequest(page.Links.Next.Href, &operations)
 	return
 }
 
 // PrevOperationsPage returns the previous page of operations.
 func (c *Client) PrevOperationsPage(page operations.OperationsPage) (operations operations.OperationsPage, err error) {
-	err = c.sendRequestURL(page.Links.Prev.Href, "get", &operations)
+	err = c.sendGetRequest(page.Links.Prev.Href, &operations)
 	return
 }
 
@@ -598,25 +757,25 @@ func (c *Client) PrevPaymentsPage(page operations.OperationsPage) (operations.Op
 
 // NextOffersPage returns the next page of offers.
 func (c *Client) NextOffersPage(page hProtocol.OffersPage) (offers hProtocol.OffersPage, err error) {
-	err = c.sendRequestURL(page.Links.Next.Href, "get", &offers)
+	err = c.sendGetRequest(page.Links.Next.Href, &offers)
 	return
 }
 
 // PrevOffersPage returns the previous page of offers.
 func (c *Client) PrevOffersPage(page hProtocol.OffersPage) (offers hProtocol.OffersPage, err error) {
-	err = c.sendRequestURL(page.Links.Prev.Href, "get", &offers)
+	err = c.sendGetRequest(page.Links.Prev.Href, &offers)
 	return
 }
 
 // NextTradesPage returns the next page of trades.
 func (c *Client) NextTradesPage(page hProtocol.TradesPage) (trades hProtocol.TradesPage, err error) {
-	err = c.sendRequestURL(page.Links.Next.Href, "get", &trades)
+	err = c.sendGetRequest(page.Links.Next.Href, &trades)
 	return
 }
 
 // PrevTradesPage returns the previous page of trades.
 func (c *Client) PrevTradesPage(page hProtocol.TradesPage) (trades hProtocol.TradesPage, err error) {
-	err = c.sendRequestURL(page.Links.Prev.Href, "get", &trades)
+	err = c.sendGetRequest(page.Links.Prev.Href, &trades)
 	return
 }
 
@@ -632,6 +791,54 @@ func (c *Client) HomeDomainForAccount(aid string) (string, error) {
 	}
 
 	return accountDetail.HomeDomain, nil
+}
+
+// NextTradeAggregationsPage returns the next page of trade aggregations from the current
+// trade aggregations response.
+func (c *Client) NextTradeAggregationsPage(page hProtocol.TradeAggregationsPage) (ta hProtocol.TradeAggregationsPage, err error) {
+	err = c.sendGetRequest(page.Links.Next.Href, &ta)
+	return
+}
+
+// PrevTradeAggregationsPage returns the previous page of trade aggregations from the current
+// trade aggregations response.
+func (c *Client) PrevTradeAggregationsPage(page hProtocol.TradeAggregationsPage) (ta hProtocol.TradeAggregationsPage, err error) {
+	err = c.sendGetRequest(page.Links.Prev.Href, &ta)
+	return
+}
+
+// ClaimableBalances returns details about available claimable balances,
+// possibly filtered to a specific sponsor or other parameters.
+func (c *Client) ClaimableBalances(cbr ClaimableBalanceRequest) (cb hProtocol.ClaimableBalances, err error) {
+	err = c.sendRequest(cbr, &cb)
+	return
+}
+
+// ClaimableBalance returns details about a *specific*, unique claimable balance.
+func (c *Client) ClaimableBalance(id string) (cb hProtocol.ClaimableBalance, err error) {
+	cbr := ClaimableBalanceRequest{ID: id}
+	err = c.sendRequest(cbr, &cb)
+	return
+}
+
+func (c *Client) LiquidityPoolDetail(request LiquidityPoolRequest) (lp hProtocol.LiquidityPool, err error) {
+	err = c.sendRequest(request, &lp)
+	return
+}
+
+func (c *Client) LiquidityPools(request LiquidityPoolsRequest) (lp hProtocol.LiquidityPoolsPage, err error) {
+	err = c.sendRequest(request, &lp)
+	return
+}
+
+func (c *Client) NextLiquidityPoolsPage(page hProtocol.LiquidityPoolsPage) (lp hProtocol.LiquidityPoolsPage, err error) {
+	err = c.sendGetRequest(page.Links.Next.Href, &lp)
+	return
+}
+
+func (c *Client) PrevLiquidityPoolsPage(page hProtocol.LiquidityPoolsPage) (lp hProtocol.LiquidityPoolsPage, err error) {
+	err = c.sendGetRequest(page.Links.Prev.Href, &lp)
+	return
 }
 
 // ensure that the aurora client implements ClientInterface

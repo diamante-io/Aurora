@@ -2,6 +2,7 @@ package derivation
 
 import (
 	"bytes"
+	"crypto/ed25519"
 	"crypto/hmac"
 	"crypto/sha512"
 	"encoding/binary"
@@ -9,18 +10,16 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-
-	"golang.org/x/crypto/ed25519"
 )
 
 const (
-	// DiamNetAccountPrefix is a prefix for DiamNet key pairs derivation.
-	DiamNetAccountPrefix = "m/44'/148'"
-	// DiamNetPrimaryAccountPath is a derivation path of the primary account.
-	DiamNetPrimaryAccountPath = "m/44'/148'/0'"
-	// DiamNetAccountPathFormat is a path format used for DiamNet key pair
+	// DiamnetAccountPrefix is a prefix for Diamnet key pairs derivation.
+	DiamnetAccountPrefix = "m/44'/148'"
+	// DiamnetPrimaryAccountPath is a derivation path of the primary account.
+	DiamnetPrimaryAccountPath = "m/44'/148'/0'"
+	// DiamnetAccountPathFormat is a path format used for Diamnet key pair
 	// derivation as described in SEP-00XX. Use with `fmt.Sprintf` and `DeriveForPath`.
-	DiamNetAccountPathFormat = "m/44'/148'/%d'"
+	DiamnetAccountPathFormat = "m/44'/148'/%d'"
 	// FirstHardenedIndex is the index of the first hardened key.
 	FirstHardenedIndex = uint32(0x80000000)
 	// As in https://github.com/satoshilabs/slips/blob/master/slip-0010.md

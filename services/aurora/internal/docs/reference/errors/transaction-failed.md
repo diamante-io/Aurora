@@ -1,5 +1,6 @@
 ---
 title: Transaction Failed
+replacement: https://developers.diamnet.org/api/errors/http-status-codes/aurora-specific/
 ---
 
 The `transaction_failed` error occurs when a client submits a transaction that was well-formed but
@@ -37,7 +38,7 @@ In addition, the following additional data is provided in the `extras` field of 
 |----------------------------|--------|-----------------------------------------------------------------------------------------------------------------------------|
 | `envelope_xdr`             | String | A base64-encoded representation of the TransactionEnvelope XDR whose failure triggered this response.                       |
 | `result_xdr`               | String | A base64-encoded representation of the TransactionResult XDR returned by diamnet-core when submitting this transaction.     |
-| `result_codes.transaction` | String | The transaction result code returned by DiamNet Core.                                                                       |
+| `result_codes.transaction` | String | The transaction result code returned by Diamnet Core.                                                                       |
 | `result_codes.operations`  | Array  | An array of strings, representing the operation result codes for each operation in the submitted transaction, if available. |
 
 

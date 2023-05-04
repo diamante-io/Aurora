@@ -3,8 +3,60 @@ package auroraclient
 import (
 	"testing"
 
+	"github.com/diamnet/go/support/render/problem"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestError_Error(t *testing.T) {
+	var herr Error
+
+	// transaction failed happy path: with the appropriate extra fields
+	herr = Error{
+		Problem: problem.P{
+			Title: "Transaction Failed",
+			Type:  "transaction_failed",
+			Extras: map[string]interface{}{
+				"result_codes": map[string]interface{}{
+					"transaction": "tx_failed",
+					"operations":  []string{"op_underfunded", "op_already_exists"},
+				},
+			},
+		},
+	}
+	assert.Equal(t, `aurora error: "Transaction Failed" (tx_failed, op_underfunded, op_already_exists) - check aurora.Error.Problem for more information`, herr.Error())
+
+	// transaction failed sad path: missing result_codes extra
+	herr = Error{
+		Problem: problem.P{
+			Title:  "Transaction Failed",
+			Type:   "transaction_failed",
+			Extras: map[string]interface{}{},
+		},
+	}
+	assert.Equal(t, `aurora error: "Transaction Failed" - check aurora.Error.Problem for more information`, herr.Error())
+
+	// transaction failed sad path: unparseable result_codes extra
+	herr = Error{
+		Problem: problem.P{
+			Title: "Transaction Failed",
+			Type:  "transaction_failed",
+			Extras: map[string]interface{}{
+				"result_codes": "kaboom",
+			},
+		},
+	}
+	assert.Equal(t, `aurora error: "Transaction Failed" - check aurora.Error.Problem for more information`, herr.Error())
+
+	// non-transaction errors
+	herr = Error{
+		Problem: problem.P{
+			Type:   "https://diamnet.org/aurora-errors/not_found",
+			Title:  "Resource Missing",
+			Status: 404,
+		},
+	}
+	assert.Equal(t, `aurora error: "Resource Missing" - check aurora.Error.Problem for more information`, herr.Error())
+}
 
 func TestError_ResultCodes(t *testing.T) {
 	var herr Error

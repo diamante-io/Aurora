@@ -3,10 +3,10 @@ package txnbuild
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/diamnet/go/xdr"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestNativeAssetToXDR(t *testing.T) {
@@ -33,7 +33,7 @@ func TestAlphaNum4AssetToXDR(t *testing.T) {
 	assert.Nil(t, err)
 
 	expected := xdr.Asset{Type: xdr.AssetTypeAssetTypeCreditAlphanum4,
-		AlphaNum4: &xdr.AssetAlphaNum4{
+		AlphaNum4: &xdr.AlphaNum4{
 			AssetCode: xdrAssetCode,
 			Issuer:    xdrIssuer,
 		}}
@@ -54,7 +54,7 @@ func TestAlphaNum12AssetToXDR(t *testing.T) {
 	assert.Nil(t, err)
 
 	expected := xdr.Asset{Type: xdr.AssetTypeAssetTypeCreditAlphanum12,
-		AlphaNum12: &xdr.AssetAlphaNum12{
+		AlphaNum12: &xdr.AlphaNum12{
 			AssetCode: xdrAssetCode,
 			Issuer:    xdrIssuer,
 		}}
@@ -99,6 +99,6 @@ func TestBadIssuer(t *testing.T) {
 	var xdrAssetCode [4]byte
 	copy(xdrAssetCode[:], asset.Code)
 	var xdrIssuer xdr.AccountId
-	expectedErrMsg := "base32 decode failed: illegal base32 data at input byte 16"
+	expectedErrMsg := "non-canonical strkey; unused bits should be set to 0"
 	require.EqualError(t, xdrIssuer.SetAddress(asset.Issuer), expectedErrMsg, "Issuer address should be validated")
 }

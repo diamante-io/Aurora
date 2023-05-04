@@ -1,9 +1,7 @@
 package aurora
 
 import (
-	"context"
 	"encoding/json"
-	"net/http/httptest"
 	"testing"
 	"time"
 
@@ -11,7 +9,6 @@ import (
 	"github.com/diamnet/go/protocols/aurora/effects"
 	"github.com/diamnet/go/protocols/aurora/operations"
 	"github.com/diamnet/go/services/aurora/internal/db2/history"
-	"github.com/diamnet/go/services/aurora/internal/render/sse"
 	"github.com/diamnet/go/services/aurora/internal/test"
 )
 
@@ -53,6 +50,12 @@ func TestOperationActions_Index(t *testing.T) {
 	}
 
 	w = ht.Get("/accounts/GCXKG6RN4ONIEPCMNFB732A436Z5PNDSRLGWK7GBLCMQLIFO4S7EYWVU/operations")
+	if ht.Assert.Equal(200, w.Code) {
+		ht.Assert.PageOf(2, w.Body)
+	}
+
+	// filtered by claimable balance
+	w = ht.Get("/claimable_balances/00000000178826fbfe339e1f5c53417c6fedfe2c05e8bec14303143ec46b38981b09c3f9/operations")
 	if ht.Assert.Equal(200, w.Code) {
 		ht.Assert.PageOf(2, w.Body)
 	}
@@ -166,7 +169,7 @@ func TestOperationActions_Show_Failed(t *testing.T) {
 	}
 
 	// NULL value
-	_, err := ht.AuroraSession().ExecRaw(
+	_, err := ht.AuroraSession().ExecRaw(ht.Ctx,
 		`UPDATE history_transactions SET successful = NULL WHERE transaction_hash = ?`,
 		"56e3216045d579bea40f2d35a09406de3a894ecb5be70dbda5ec9c0427a0d5a1",
 	)
@@ -215,27 +218,6 @@ func TestOperationActions_IncludeTransactions(t *testing.T) {
 	ht.Assert.Equal(withoutTransactions, withTransactions)
 }
 
-func TestOperationActions_SSE(t *testing.T) {
-	tt := test.Start(t).Scenario("failed_transactions")
-	defer tt.Finish()
-
-	ctx := context.Background()
-	stream := sse.NewStream(ctx, httptest.NewRecorder())
-	oa := OperationIndexAction{
-		Action: *NewTestAction(ctx, "/operations?account_id=GA5WBPYA5Y4WAEHXWR2UKO2UO4BUGHUQ74EUPKON2QHV4WRHOIRNKKH2"),
-	}
-
-	oa.SSE(stream)
-	tt.Require.NoError(oa.Err)
-
-	streamWithTransactions := sse.NewStream(ctx, httptest.NewRecorder())
-	oaWithTransactions := OperationIndexAction{
-		Action: *NewTestAction(ctx, "/operations?account_id=GA5WBPYA5Y4WAEHXWR2UKO2UO4BUGHUQ74EUPKON2QHV4WRHOIRNKKH2&join=transactions"),
-	}
-	oaWithTransactions.SSE(streamWithTransactions)
-	tt.Require.NoError(oaWithTransactions.Err)
-}
-
 func TestOperationActions_Show(t *testing.T) {
 	ht := StartHTTPTest(t, "base")
 	defer ht.Finish()
@@ -260,7 +242,7 @@ func TestOperationActions_Show(t *testing.T) {
 	ht.Assert.Equal(410, w.Code)
 }
 
-func TestOperationActions_Regressions(t *testing.T) {
+func TestOperationActions_StreamRegression(t *testing.T) {
 	ht := StartHTTPTest(t, "base")
 	defer ht.Finish()
 
@@ -269,18 +251,6 @@ func TestOperationActions_Regressions(t *testing.T) {
 	w := ht.Get("/accounts/GAS2FZOQRFVHIDY35TUSBWFGCROPLWPZVFRN5JZEOUUVRGDRZGHPBLYZ/operations?limit=1", test.RequestHelperStreaming)
 	if ht.Assert.Equal(404, w.Code) {
 		ht.Assert.ProblemType(w.Body, "not_found")
-	}
-
-	// #202 - price is not shown on manage_offer operations
-	test.LoadScenario("trades")
-	w = ht.Get("/operations/25769807873")
-	if ht.Assert.Equal(200, w.Code) {
-		var result operations.ManageSellOffer
-		err := json.Unmarshal(w.Body.Bytes(), &result)
-		ht.Require.NoError(err, "failed to parse body")
-		ht.Assert.Equal("1.0000000", result.Price)
-		ht.Assert.Equal(int32(1), result.PriceR.N)
-		ht.Assert.Equal(int32(1), result.PriceR.D)
 	}
 }
 
@@ -293,8 +263,8 @@ func TestOperation_CreatedAt(t *testing.T) {
 	ht.UnmarshalPage(w.Body, &records)
 
 	l := history.Ledger{}
-	hq := history.Q{Session: ht.AuroraSession()}
-	ht.Require.NoError(hq.LedgerBySequence(&l, 3))
+	hq := history.Q{SessionInterface: ht.AuroraSession()}
+	ht.Require.NoError(hq.LedgerBySequence(ht.Ctx, &l, 3))
 
 	ht.Assert.WithinDuration(l.ClosedAt, records[0].LedgerCloseTime, 1*time.Second)
 }
@@ -322,6 +292,35 @@ func TestOperationEffect_BumpSequence(t *testing.T) {
 		var result []effects.SequenceBumped
 		ht.UnmarshalPage(w.Body, &result)
 		ht.Assert.Equal(int64(300000000000), result[0].NewSeq)
+
+		data, err := json.Marshal(&result[0])
+		ht.Assert.NoError(err)
+		effect := struct {
+			NewSeq string `json:"new_seq"`
+		}{}
+
+		json.Unmarshal(data, &effect)
+		ht.Assert.Equal("300000000000", effect.NewSeq)
+	}
+}
+func TestOperationEffect_Trade(t *testing.T) {
+	ht := StartHTTPTest(t, "kahuna")
+	defer ht.Finish()
+
+	w := ht.Get("/operations/103079219201/effects")
+	if ht.Assert.Equal(200, w.Code) {
+		var result []effects.Trade
+		ht.UnmarshalPage(w.Body, &result)
+		ht.Assert.Equal(int64(3), result[0].OfferID)
+
+		data, err := json.Marshal(&result[0])
+		ht.Assert.NoError(err)
+		effect := struct {
+			OfferID string `json:"offer_id"`
+		}{}
+
+		json.Unmarshal(data, &effect)
+		ht.Assert.Equal("3", effect.OfferID)
 	}
 }
 
@@ -353,32 +352,17 @@ func TestOperation_IncludeTransaction(t *testing.T) {
 	ht.Require.NoError(err, "failed to parse body")
 	ht.Assert.Equal(transactionInOperationsResponse, getTransactionResponse)
 }
-
-// TestOperationActions_Show_Extra_TxID tests if failed transactions are not returned
-// when `tx_id` GET param is present. This was happening because `base.GetString()`
-// method retuns values from the query when URL param is not present.
 func TestOperationActions_Show_Extra_TxID(t *testing.T) {
 	ht := StartHTTPTest(t, "failed_transactions")
 	defer ht.Finish()
 
-	w := ht.Get("/accounts/GBXGQJWVLWOYHFLVTKWV5FGHA3LNYY2JQKM7OAJAUEQFU6LPCSEFVXON/operations?limit=200&tx_id=abc")
+	w := ht.Get("/accounts/GBXGQJWVLWOYHFLVTKWV5FGHA3LNYY2JQKM7OAJAUEQFU6LPCSEFVXON/operations?limit=200&tx_id=aa168f12124b7c196c0adaee7c73a64d37f99428cacb59a91ff389626845e7cf")
 
-	if ht.Assert.Equal(200, w.Code) {
-		records := []operations.Base{}
-		ht.UnmarshalPage(w.Body, &records)
-
-		successful := 0
-		failed := 0
-
-		for _, op := range records {
-			if op.TransactionSuccessful {
-				successful++
-			} else {
-				failed++
-			}
-		}
-
-		ht.Assert.Equal(3, successful)
-		ht.Assert.Equal(0, failed)
-	}
+	ht.Assert.Equal(400, w.Code)
+	payload := ht.UnmarshalExtras(w.Body)
+	ht.Assert.Equal("filters", payload["invalid_field"])
+	ht.Assert.Equal(
+		"Use a single filter for operations, you can only use one of tx_id, account_id or ledger_id",
+		payload["reason"],
+	)
 }

@@ -1,19 +1,19 @@
-// Copyright 2015 DiamNet Development Foundation and contributors. Licensed
+// Copyright 2015 Diamnet Development Foundation and contributors. Licensed
 // under the Apache License, Version 2.0. See the COPYING file at the root
 // of this distribution or at http://www.apache.org/licenses/LICENSE-2.0
 
-%#include "xdr/DiamNet-SCP.h"
-%#include "xdr/DiamNet-transaction.h"
+%#include "xdr/Diamnet-SCP.h"
+%#include "xdr/Diamnet-transaction.h"
 
 namespace diamnet
 {
 
 typedef opaque UpgradeType<128>;
 
-enum DiamNetValueType
+enum DiamnetValueType
 {
-    HCNET_VALUE_BASIC = 0,
-    HCNET_VALUE_SIGNED = 1
+    DIAMNET_VALUE_BASIC = 0,
+    DIAMNET_VALUE_SIGNED = 1
 };
 
 struct LedgerCloseValueSignature
@@ -22,9 +22,9 @@ struct LedgerCloseValueSignature
     Signature signature; // nodeID's signature
 };
 
-/* DiamNetValue is the value used by SCP to reach consensus on a given ledger
+/* DiamnetValue is the value used by SCP to reach consensus on a given ledger
  */
-struct DiamNetValue
+struct DiamnetValue
 {
     Hash txSetHash;      // transaction set to apply to previous ledger
     TimePoint closeTime; // network close time
@@ -37,12 +37,33 @@ struct DiamNetValue
     UpgradeType upgrades<6>;
 
     // reserved for future use
+    union switch (DiamnetValueType v)
+    {
+    case DIAMNET_VALUE_BASIC:
+        void;
+    case DIAMNET_VALUE_SIGNED:
+        LedgerCloseValueSignature lcValueSignature;
+    }
+    ext;
+};
+
+const MASK_LEDGER_HEADER_FLAGS = 0x7;
+
+enum LedgerHeaderFlags
+{
+    DISABLE_LIQUIDITY_POOL_TRADING_FLAG = 0x1,
+    DISABLE_LIQUIDITY_POOL_DEPOSIT_FLAG = 0x2,
+    DISABLE_LIQUIDITY_POOL_WITHDRAWAL_FLAG = 0x4
+};
+
+struct LedgerHeaderExtensionV1
+{
+    uint32 flags; // LedgerHeaderFlags
+
     union switch (int v)
     {
-    case HCNET_VALUE_BASIC:
+    case 0:
         void;
-    case HCNET_VALUE_SIGNED:
-        LedgerCloseValueSignature lcValueSignature;
     }
     ext;
 };
@@ -54,7 +75,7 @@ struct LedgerHeader
 {
     uint32 ledgerVersion;    // the protocol version of the ledger
     Hash previousLedgerHash; // hash of the previous ledger header
-    DiamNetValue scpValue;   // what consensus agreed to
+    DiamnetValue scpValue;   // what consensus agreed to
     Hash txSetResultHash;    // the TransactionResultSet that led to this ledger
     Hash bucketListHash;     // hash of the ledger state
 
@@ -84,12 +105,14 @@ struct LedgerHeader
     {
     case 0:
         void;
+    case 1:
+        LedgerHeaderExtensionV1 v1;
     }
     ext;
 };
 
 /* Ledger upgrades
-note that the `upgrades` field from DiamNetValue is normalized such that
+note that the `upgrades` field from DiamnetValue is normalized such that
 it only contains one entry per LedgerUpgradeType, and entries are sorted
 in ascending order
 */
@@ -98,7 +121,8 @@ enum LedgerUpgradeType
     LEDGER_UPGRADE_VERSION = 1,
     LEDGER_UPGRADE_BASE_FEE = 2,
     LEDGER_UPGRADE_MAX_TX_SET_SIZE = 3,
-    LEDGER_UPGRADE_BASE_RESERVE = 4
+    LEDGER_UPGRADE_BASE_RESERVE = 4,
+    LEDGER_UPGRADE_FLAGS = 5
 };
 
 union LedgerUpgrade switch (LedgerUpgradeType type)
@@ -111,40 +135,11 @@ case LEDGER_UPGRADE_MAX_TX_SET_SIZE:
     uint32 newMaxTxSetSize; // update maxTxSetSize
 case LEDGER_UPGRADE_BASE_RESERVE:
     uint32 newBaseReserve; // update baseReserve
+case LEDGER_UPGRADE_FLAGS:
+    uint32 newFlags; // update flags
 };
 
 /* Entries used to define the bucket list */
-
-union LedgerKey switch (LedgerEntryType type)
-{
-case ACCOUNT:
-    struct
-    {
-        AccountID accountID;
-    } account;
-
-case TRUSTLINE:
-    struct
-    {
-        AccountID accountID;
-        Asset asset;
-    } trustLine;
-
-case OFFER:
-    struct
-    {
-        AccountID sellerID;
-        int64 offerID;
-    } offer;
-
-case DATA:
-    struct
-    {
-        AccountID accountID;
-        string64 dataName;
-    } data;
-};
-
 enum BucketEntryType
 {
     METAENTRY =
@@ -306,6 +301,15 @@ struct TransactionMetaV1
     OperationMeta operations<>;   // meta for each operation
 };
 
+struct TransactionMetaV2
+{
+    LedgerEntryChanges txChangesBefore; // tx level changes before operations
+                                        // are applied if any
+    OperationMeta operations<>;         // meta for each operation
+    LedgerEntryChanges txChangesAfter;  // tx level changes after operations are
+                                        // applied if any
+};
+
 // this is the meta produced when applying transactions
 // it does not include pre-apply updates such as fees
 union TransactionMeta switch (int v)
@@ -314,5 +318,49 @@ case 0:
     OperationMeta operations<>;
 case 1:
     TransactionMetaV1 v1;
+case 2:
+    TransactionMetaV2 v2;
+};
+
+// This struct groups together changes on a per transaction basis
+// note however that fees and transaction application are done in separate
+// phases
+struct TransactionResultMeta
+{
+    TransactionResultPair result;
+    LedgerEntryChanges feeProcessing;
+    TransactionMeta txApplyProcessing;
+};
+
+// this represents a single upgrade that was performed as part of a ledger
+// upgrade
+struct UpgradeEntryMeta
+{
+    LedgerUpgrade upgrade;
+    LedgerEntryChanges changes;
+};
+
+struct LedgerCloseMetaV0
+{
+    LedgerHeaderHistoryEntry ledgerHeader;
+    // NB: txSet is sorted in "Hash order"
+    TransactionSet txSet;
+
+    // NB: transactions are sorted in apply order here
+    // fees for all transactions are processed first
+    // followed by applying transactions
+    TransactionResultMeta txProcessing<>;
+
+    // upgrades are applied last
+    UpgradeEntryMeta upgradesProcessing<>;
+
+    // other misc information attached to the ledger close
+    SCPHistoryEntry scpInfo<>;
+};
+
+union LedgerCloseMeta switch (int v)
+{
+case 0:
+    LedgerCloseMetaV0 v0;
 };
 }

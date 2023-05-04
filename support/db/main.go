@@ -14,24 +14,42 @@ package db
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/diamnet/go/support/errors"
 
-	// Enable mysql
-	_ "github.com/go-sql-driver/mysql"
 	// Enable postgres
 	_ "github.com/lib/pq"
 )
 
+const (
+	// postgresQueryMaxParams defines the maximum number of parameters in a query.
+	postgresQueryMaxParams = 65535
+	maxDBPingAttempts      = 30
+)
+
+var (
+	// ErrCancelled is an error returned by Session methods when request has
+	// been cancelled (ex. context cancelled).
+	ErrCancelled = errors.New("canceling statement due to user request")
+	// ErrConflictWithRecovery is an error returned by Session methods when
+	// read replica cancels the query due to conflict with about-to-be-applied
+	// WAL entries (https://www.postgresql.org/docs/current/hot-standby.html).
+	ErrConflictWithRecovery = errors.New("canceling statement due to conflict with recovery")
+	// ErrBadConnection is an error returned when driver returns `bad connection`
+	// error.
+	ErrBadConnection = errors.New("bad connection")
+)
+
 // Conn represents a connection to a single database.
 type Conn interface {
-	Exec(query string, args ...interface{}) (sql.Result, error)
-	Get(dest interface{}, query string, args ...interface{}) error
+	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
+	GetContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
 	Rebind(sql string) string
-	Queryx(query string, args ...interface{}) (*sqlx.Rows, error)
-	Select(dest interface{}, query string, args ...interface{}) error
+	QueryxContext(ctx context.Context, query string, args ...interface{}) (*sqlx.Rows, error)
+	SelectContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
 }
 
 // DeleteBuilder is a helper struct used to construct sql queries of the DELETE
@@ -77,24 +95,46 @@ type SelectBuilder struct {
 type UpdateBuilder struct {
 	Table *Table
 
-	source interface{}
-	sql    squirrel.UpdateBuilder
+	sql squirrel.UpdateBuilder
 }
 
 // Session provides helper methods for making queries against `DB` and provides
-// utilities such as automatic query logging and transaction management.  NOTE:
-// A Session is designed to be lightweight and temporarily lived (usually
-// request scoped) which is one reason it is acceptable for it to store a
-// context.  It is not presently intended to cross goroutine boundaries and is
-// not concurrency safe.
+// utilities such as automatic query logging and transaction management. NOTE:
+// Because transaction-handling is stateful, it is not presently intended to
+// cross goroutine boundaries and is not concurrency safe.
 type Session struct {
 	// DB is the database connection that queries should be executed against.
 	DB *sqlx.DB
 
-	// Ctx is the optional context in which the repo is operating under.
-	Ctx context.Context
+	tx        *sqlx.Tx
+	txOptions *sql.TxOptions
+}
 
-	tx *sqlx.Tx
+type SessionInterface interface {
+	BeginTx(opts *sql.TxOptions) error
+	Begin() error
+	Rollback() error
+	Commit() error
+	GetTx() *sqlx.Tx
+	GetTxOptions() *sql.TxOptions
+	TruncateTables(ctx context.Context, tables []string) error
+	Clone() SessionInterface
+	Close() error
+	Get(ctx context.Context, dest interface{}, query squirrel.Sqlizer) error
+	GetRaw(ctx context.Context, dest interface{}, query string, args ...interface{}) error
+	Select(ctx context.Context, dest interface{}, query squirrel.Sqlizer) error
+	SelectRaw(ctx context.Context, dest interface{}, query string, args ...interface{}) error
+	GetTable(name string) *Table
+	Exec(ctx context.Context, query squirrel.Sqlizer) (sql.Result, error)
+	ExecRaw(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
+	NoRows(err error) bool
+	Ping(ctx context.Context, timeout time.Duration) error
+	DeleteRange(
+		ctx context.Context,
+		start, end int64,
+		table string,
+		idCol string,
+	) error
 }
 
 // Table helps to build sql queries against a given table.  It logically
@@ -106,11 +146,26 @@ type Table struct {
 	Session *Session
 }
 
+func pingDB(db *sqlx.DB) error {
+	var err error
+	for attempt := 0; attempt < maxDBPingAttempts; attempt++ {
+		if err = db.Ping(); err == nil {
+			return nil
+		}
+		time.Sleep(time.Second)
+	}
+
+	return errors.Wrapf(err, "failed to connect to DB after %v attempts", maxDBPingAttempts)
+}
+
 // Open the database at `dsn` and returns a new *Session using it.
 func Open(dialect, dsn string) (*Session, error) {
-	db, err := sqlx.Connect(dialect, dsn)
+	db, err := sqlx.Open(dialect, dsn)
 	if err != nil {
-		return nil, errors.Wrap(err, "connect failed")
+		return nil, errors.Wrap(err, "open failed")
+	}
+	if err = pingDB(db); err != nil {
+		return nil, errors.Wrap(err, "ping failed")
 	}
 
 	return &Session{DB: db}, nil

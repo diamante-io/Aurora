@@ -1,23 +1,14 @@
 package aurora
 
 import (
+	"context"
 	"net/http"
 	"testing"
 
+	"github.com/prometheus/client_golang/prometheus"
+	dto "github.com/prometheus/client_model/go"
 	"github.com/diamnet/go/services/aurora/internal/test"
 )
-
-func TestNewApp(t *testing.T) {
-	tt := test.Start(t)
-	defer tt.Finish()
-
-	config := NewTestConfig()
-	config.SentryDSN = "Not a url"
-
-	tt.Assert.Panics(func() {
-		NewApp(config).Close()
-	})
-}
 
 func TestGenericHTTPFeatures(t *testing.T) {
 	ht := StartHTTPTest(t, "base")
@@ -51,18 +42,37 @@ func TestMetrics(t *testing.T) {
 	ht := StartHTTPTest(t, "base")
 	defer ht.Finish()
 
-	hl := ht.App.historyLatestLedgerGauge
-	he := ht.App.historyElderLedgerGauge
-	cl := ht.App.coreLatestLedgerGauge
+	adminRouterRH := test.NewRequestHelper(ht.App.webServer.Router.Internal)
+	w := adminRouterRH.Get("/metrics")
+	ht.Assert.Equal(200, w.Code)
 
-	ht.Require.EqualValues(0, hl.Value())
-	ht.Require.EqualValues(0, he.Value())
-	ht.Require.EqualValues(0, cl.Value())
+	hl := ht.App.ledgerState.Metrics.HistoryLatestLedgerCounter
+	hlc := ht.App.ledgerState.Metrics.HistoryLatestLedgerClosedAgoGauge
+	he := ht.App.ledgerState.Metrics.HistoryElderLedgerCounter
+	cl := ht.App.ledgerState.Metrics.CoreLatestLedgerCounter
 
-	ht.App.UpdateLedgerState()
-	ht.App.UpdateMetrics()
+	ht.Require.EqualValues(3, getMetricValue(hl).GetCounter().GetValue())
+	ht.Require.Less(float64(1000), getMetricValue(hlc).GetGauge().GetValue())
+	ht.Require.EqualValues(1, getMetricValue(he).GetCounter().GetValue())
+	ht.Require.EqualValues(64, getMetricValue(cl).GetCounter().GetValue())
+}
 
-	ht.Require.EqualValues(3, hl.Value())
-	ht.Require.EqualValues(1, he.Value())
-	ht.Require.EqualValues(3, cl.Value())
+func TestTick(t *testing.T) {
+	ht := StartHTTPTest(t, "base")
+	defer ht.Finish()
+
+	// Just sanity-check that we return the context error...
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	err := ht.App.Tick(ctx)
+	ht.Assert.EqualError(err, context.Canceled.Error())
+}
+
+func getMetricValue(metric prometheus.Metric) *dto.Metric {
+	value := &dto.Metric{}
+	err := metric.Write(value)
+	if err != nil {
+		panic(err)
+	}
+	return value
 }

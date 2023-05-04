@@ -2,9 +2,10 @@
 title: Payments for Ledger
 clientData:
   laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=payments&endpoint=for_ledger
+replacement: https://developers.diamnet.org/api/resources/ledgers/payments/
 ---
 
-This endpoint represents all payment-releated [operations](../resources/operation.md) that are part
+This endpoint represents all payment-related [operations](../resources/operation.md) that are part
 of a valid [transactions](../resources/transaction.md) in a given [ledger](../resources/ledger.md).
 
 The operations that can be returned in by this endpoint are:
@@ -39,8 +40,8 @@ curl "https://aurora-testnet.diamnet.org/ledgers/696960/payments?limit=1"
 ### JavaScript Example Request
 
 ```javascript
-var DiamNetSdk = require('diamnet-sdk')
-var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
+var DiamnetSdk = require('diamnet-sdk')
+var server = new DiamnetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.payments()
   .forLedger("696960")

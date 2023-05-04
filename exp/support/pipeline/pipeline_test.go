@@ -110,17 +110,42 @@ func TestProcessReturnsErrorWhenPostHooksErrors(t *testing.T) {
 	assert.Equal(t, "Error running post-hook: post-hook error", err.Error())
 }
 
-func TestPostHookNotCalledWhenShutDown(t *testing.T) {
+func TestPostHookWhenShutDown(t *testing.T) {
+	done := make(chan bool)
 	p := pipeline.New(
 		pipeline.Node(&NoOpProcessor{}),
 	)
+
 	p.AddPostProcessingHook(func(ctx context.Context, err error) error {
-		panic("Hook shouldn't be called!")
+		assert.Equal(t, pipeline.ErrShutdown, err)
+		done <- true
+		return nil
 	})
 
 	go p.Process(&SimpleReader{})
 	time.Sleep(100 * time.Millisecond)
 	p.Shutdown()
+	<-done
+}
+
+func TestProcessShutdown(t *testing.T) {
+	done := make(chan bool)
+	p := pipeline.New(
+		pipeline.Node(&WaitForShutDownProcessor{}),
+	)
+
+	go func() {
+		err := <-p.Process(&SimpleReader{})
+		assert.Equal(t, pipeline.ErrShutdown, err)
+		done <- true
+	}()
+	time.Sleep(100 * time.Millisecond)
+	p.Shutdown()
+	<-done
+
+	// Calling it again should also return error (different code path)
+	err := <-p.Process(&SimpleReader{})
+	assert.Equal(t, pipeline.ErrShutdown, err)
 }
 
 // SimpleReader sends CountObject objects. If CountObject = 0 it
@@ -190,3 +215,16 @@ func (p *NoOpProcessor) Name() string {
 }
 
 func (p *NoOpProcessor) Reset() {}
+
+type WaitForShutDownProcessor struct{}
+
+func (p *WaitForShutDownProcessor) Process(ctx context.Context, store *pipeline.Store, r pipeline.Reader, w pipeline.Writer) error {
+	<-ctx.Done()
+	return nil
+}
+
+func (p *WaitForShutDownProcessor) Name() string {
+	return "WaitForShutDownProcessor"
+}
+
+func (p *WaitForShutDownProcessor) Reset() {}

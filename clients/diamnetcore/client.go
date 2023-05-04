@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"strconv"
 	"strings"
 	"time"
 
@@ -22,8 +23,33 @@ type Client struct {
 	// http.DefaultClient will be used.
 	HTTP HTTP
 
-	// URL of DiamNet Core server to connect.
+	// URL of Diamnet Core server to connect.
 	URL string
+}
+
+// Upgrade upgrades the protocol version running on the diamnet core instance
+func (c *Client) Upgrade(ctx context.Context, version int) error {
+	queryParams := url.Values{}
+	queryParams.Add("mode", "set")
+	queryParams.Add("upgradetime", "1970-01-01T00:00:00Z")
+	queryParams.Add("protocolversion", strconv.Itoa(version))
+
+	req, err := c.simpleGet(ctx, "upgrades", queryParams)
+	if err != nil {
+		return errors.Wrap(err, "failed to create request")
+	}
+
+	hresp, err := c.http().Do(req)
+	if err != nil {
+		return errors.Wrap(err, "http request errored")
+	}
+	defer hresp.Body.Close()
+
+	if !(hresp.StatusCode >= 200 && hresp.StatusCode < 300) {
+		return errors.New("http request failed with non-200 status code")
+	}
+
+	return nil
 }
 
 // Info calls the `info` command on the connected diamnet core and returns the
@@ -140,6 +166,43 @@ func (c *Client) WaitForNetworkSync(ctx context.Context) error {
 			continue
 		}
 	}
+}
+
+// ManualClose closes a ledger when Core is running in `MANUAL_CLOSE` mode
+func (c *Client) ManualClose(ctx context.Context) (err error) {
+
+	q := url.Values{}
+
+	req, err := c.simpleGet(ctx, "manualclose", q)
+	if err != nil {
+		err = errors.Wrap(err, "failed to create request")
+		return
+	}
+
+	hresp, err := c.http().Do(req)
+	if err != nil {
+		err = errors.Wrap(err, "http request errored")
+		return
+	}
+	defer hresp.Body.Close()
+
+	if !(hresp.StatusCode >= 200 && hresp.StatusCode < 300) {
+		err = errors.New("http request failed with non-200 status code")
+	}
+
+	// verify there wasn't an exception
+	resp := struct {
+		Exception string `json:"exception"`
+	}{}
+	if decErr := json.NewDecoder(hresp.Body).Decode(&resp); decErr != nil {
+		return
+	}
+	if resp.Exception != "" {
+		err = fmt.Errorf("exception in response: %s", resp.Exception)
+		return
+	}
+
+	return
 }
 
 func (c *Client) http() HTTP {

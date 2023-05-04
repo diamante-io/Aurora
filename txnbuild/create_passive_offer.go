@@ -2,23 +2,23 @@ package txnbuild
 
 import (
 	"github.com/diamnet/go/amount"
-	"github.com/diamnet/go/price"
 	"github.com/diamnet/go/support/errors"
 	"github.com/diamnet/go/xdr"
 )
 
-// CreatePassiveSellOffer represents the DiamNet create passive offer operation. See
-// https://www.diamnet.org/developers/guides/concepts/list-of-operations.html
+// CreatePassiveSellOffer represents the Diamnet create passive offer operation. See
+// https://developers.diamnet.org/docs/start/list-of-operations/
 type CreatePassiveSellOffer struct {
 	Selling       Asset
 	Buying        Asset
 	Amount        string
 	Price         string
-	SourceAccount Account
+	price         price
+	SourceAccount string
 }
 
 // BuildXDR for CreatePassiveSellOffer returns a fully configured XDR Operation.
-func (cpo *CreatePassiveSellOffer) BuildXDR() (xdr.Operation, error) {
+func (cpo *CreatePassiveSellOffer) BuildXDR(withMuxedAccounts bool) (xdr.Operation, error) {
 	xdrSelling, err := cpo.Selling.ToXDR()
 	if err != nil {
 		return xdr.Operation{}, errors.Wrap(err, "failed to set XDR 'Selling' field")
@@ -34,8 +34,7 @@ func (cpo *CreatePassiveSellOffer) BuildXDR() (xdr.Operation, error) {
 		return xdr.Operation{}, errors.Wrap(err, "failed to parse 'Amount'")
 	}
 
-	xdrPrice, err := price.Parse(cpo.Price)
-	if err != nil {
+	if err = cpo.price.parse(cpo.Price); err != nil {
 		return xdr.Operation{}, errors.Wrap(err, "failed to parse 'Price'")
 	}
 
@@ -43,7 +42,7 @@ func (cpo *CreatePassiveSellOffer) BuildXDR() (xdr.Operation, error) {
 		Selling: xdrSelling,
 		Buying:  xdrBuying,
 		Amount:  xdrAmount,
-		Price:   xdrPrice,
+		Price:   cpo.price.toXDR(),
 	}
 
 	opType := xdr.OperationTypeCreatePassiveSellOffer
@@ -52,6 +51,49 @@ func (cpo *CreatePassiveSellOffer) BuildXDR() (xdr.Operation, error) {
 		return xdr.Operation{}, errors.Wrap(err, "failed to build XDR OperationBody")
 	}
 	op := xdr.Operation{Body: body}
-	SetOpSourceAccount(&op, cpo.SourceAccount)
+	if withMuxedAccounts {
+		SetOpSourceMuxedAccount(&op, cpo.SourceAccount)
+	} else {
+		SetOpSourceAccount(&op, cpo.SourceAccount)
+	}
 	return op, nil
+}
+
+// FromXDR for CreatePassiveSellOffer initialises the txnbuild struct from the corresponding xdr Operation.
+func (cpo *CreatePassiveSellOffer) FromXDR(xdrOp xdr.Operation, withMuxedAccounts bool) error {
+	result, ok := xdrOp.Body.GetCreatePassiveSellOfferOp()
+	if !ok {
+		return errors.New("error parsing create_passive_sell_offer operation from xdr")
+	}
+
+	cpo.SourceAccount = accountFromXDR(xdrOp.SourceAccount, withMuxedAccounts)
+	cpo.Amount = amount.String(result.Amount)
+	if result.Price != (xdr.Price{}) {
+		cpo.price.fromXDR(result.Price)
+		cpo.Price = cpo.price.string()
+	}
+	buyingAsset, err := assetFromXDR(result.Buying)
+	if err != nil {
+		return errors.Wrap(err, "error parsing buying_asset in create_passive_sell_offer operation")
+	}
+	cpo.Buying = buyingAsset
+
+	sellingAsset, err := assetFromXDR(result.Selling)
+	if err != nil {
+		return errors.Wrap(err, "error parsing selling_asset in create_passive_sell_offer operation")
+	}
+	cpo.Selling = sellingAsset
+	return nil
+}
+
+// Validate for CreatePassiveSellOffer validates the required struct fields. It returns an error if any
+// of the fields are invalid. Otherwise, it returns nil.
+func (cpo *CreatePassiveSellOffer) Validate(withMuxedAccounts bool) error {
+	return validatePassiveOffer(cpo.Buying, cpo.Selling, cpo.Amount, cpo.Price)
+}
+
+// GetSourceAccount returns the source account of the operation, or the empty string if not
+// set.
+func (cpo *CreatePassiveSellOffer) GetSourceAccount() string {
+	return cpo.SourceAccount
 }

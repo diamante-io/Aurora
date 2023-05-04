@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"time"
 
 	"github.com/lib/pq"
@@ -45,7 +46,7 @@ var cmdCleanTrades = &cobra.Command{
 		now := time.Now()
 		minDate := now.AddDate(0, 0, -DaysToKeep)
 		Logger.Infof("Deleting trade entries older than %d days", DaysToKeep)
-		err = session.DeleteOldTrades(minDate)
+		err = session.DeleteOldTrades(context.Background(), minDate)
 		if err != nil {
 			Logger.Fatal("could not delete trade entries:", err)
 		}

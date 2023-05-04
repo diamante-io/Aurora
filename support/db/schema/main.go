@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 
@@ -21,8 +22,8 @@ const (
 )
 
 // Init installs the latest schema into db after clearing it first
-func Init(db *db.Session, latest []byte) error {
-	return db.ExecAll(string(latest))
+func Init(ctx context.Context, db *db.Session, latest []byte) error {
+	return db.ExecAll(ctx, string(latest))
 }
 
 // Migrate performs schema migration.  Migrations can occur in one of three

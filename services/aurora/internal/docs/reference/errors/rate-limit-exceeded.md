@@ -1,5 +1,6 @@
 ---
 title: Rate Limit Exceeded
+replacement: https://developers.diamnet.org/api/errors/http-status-codes/standard/
 ---
 
 When a single user makes too many requests to Aurora in a one hour time frame, Aurora returns a

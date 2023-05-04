@@ -1,8 +1,9 @@
 ---
 title: Paging
+replacement: https://developers.diamnet.org/api/introduction/pagination/
 ---
 
-The DiamNet network contains a lot of data and it would be infeasible to return it all at once. The paging system allows
+The Diamnet network contains a lot of data and it would be infeasible to return it all at once. The paging system allows
 a user to request a "page" of data containing only a limited number of results. Then, the user can use the paging system
 to request results adjacent to the current page where they left off at.
 

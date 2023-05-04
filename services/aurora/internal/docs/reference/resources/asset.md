@@ -1,12 +1,13 @@
 ---
 title: Asset
+replacement: https://developers.diamnet.org/api/resources/assets/
 ---
 
-**Assets** are the units that are traded on the DiamNet Network.
+**Assets** are the units that are traded on the Diamnet Network.
 
 An asset consists of an type, code, and issuer.
 
-To learn more about the concept of assets in the DiamNet network, take a look at the [DiamNet assets concept guide](https://www.diamnet.org/developers/guides/concepts/assets.html).
+To learn more about the concept of assets in the Diamnet network, take a look at the [Diamnet assets concept guide](https://www.diamnet.org/developers/guides/concepts/assets.html).
 
 ## Attributes
 
@@ -15,9 +16,9 @@ To learn more about the concept of assets in the DiamNet network, take a look at
 | asset_type               | string | The type of this asset: "credit_alphanum4", or "credit_alphanum12". |
 | asset_code               | string | The code of this asset.   |
 | asset_issuer             | string | The issuer of this asset. |
-| amount                   | number | The number of units of credit issued. |
-| num_accounts             | number | The number of accounts that: 1) trust this asset and 2) where if the asset has the auth_required flag then the account is authorized to hold the asset. |
-| flags                    | array of objects | The flags denote the enabling/disabling of certain asset issuer privileges. |
+| accounts                 | object | The number of accounts and claimable balances holding this asset. Accounts are summarized by each state of the trust line flags. |
+| balances                 | object | The number of units of credit issued, summarized by each state of the trust line flags, or if they are in a claimable balance. |
+| flags                    | object | The flags denote the enabling/disabling of certain asset issuer privileges. |
 | paging_token             | string | A [paging token](./page.md) suitable for use as the `cursor` parameter to transaction collection resources.                   |
 
 #### Flag Object
@@ -45,8 +46,18 @@ To learn more about the concept of assets in the DiamNet network, take a look at
   "asset_code": "USD",
   "asset_issuer": "GBAUUA74H4XOQYRSOW2RZUA4QL5PB37U3JS5NE3RTB2ELJVMIF5RLMAG",
   "paging_token": "USD_GBAUUA74H4XOQYRSOW2RZUA4QL5PB37U3JS5NE3RTB2ELJVMIF5RLMAG_credit_alphanum4",
-  "amount": "100.0000000",
-  "num_accounts": 91547871,
+  "accounts": {
+    "authorized": 91547871,
+    "authorized_to_maintain_liabilities": 45773935,
+    "unauthorized": 22886967,
+    "claimable_balances": 11443483
+  },
+  "balances": {
+    "authorized": "100.0000000",
+    "authorized_to_maintain_liabilities": "50.0000000",
+    "unauthorized": "25.0000000",
+    "claimable_balances": "12.5000000"
+  },
   "flags": {
     "auth_required": false,
     "auth_revocable": false

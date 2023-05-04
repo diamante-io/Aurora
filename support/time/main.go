@@ -19,6 +19,11 @@ func MillisFromInt64(millis int64) Millis {
 	return Millis(millis)
 }
 
+//MillisFromTime generates a Millis struct from given go time
+func MillisFromTime(t goTime.Time) Millis {
+	return Millis(t.UTC().UnixNano() / int64(goTime.Millisecond))
+}
+
 //MillisFromSeconds generates a Millis struct from given seconds int64
 func MillisFromSeconds(seconds int64) Millis {
 	return Millis(seconds * 1000)
@@ -66,7 +71,7 @@ func (t Millis) ToTime() goTime.Time {
 
 //Now returns current time in millis
 func Now() Millis {
-	return Millis(goTime.Now().UTC().UnixNano() / int64(goTime.Millisecond))
+	return MillisFromTime(goTime.Now())
 }
 
 func (t Millis) String() string {

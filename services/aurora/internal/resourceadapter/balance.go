@@ -4,26 +4,52 @@ import (
 	"github.com/diamnet/go/amount"
 	protocol "github.com/diamnet/go/protocols/aurora"
 	"github.com/diamnet/go/services/aurora/internal/assets"
-	"github.com/diamnet/go/services/aurora/internal/db2/core"
+	"github.com/diamnet/go/services/aurora/internal/db2/history"
 	"github.com/diamnet/go/support/errors"
 	"github.com/diamnet/go/xdr"
 )
 
-func PopulateBalance(dest *protocol.Balance, row core.Trustline) (err error) {
-	dest.Type, err = assets.String(row.Assettype)
-	if err != nil {
-		return errors.Wrap(err, "getting the string representation from the provided xdr asset type")
+func PopulatePoolShareBalance(dest *protocol.Balance, row history.TrustLine) (err error) {
+	if row.AssetType == xdr.AssetTypeAssetTypePoolShare {
+		dest.Type = "liquidity_pool_shares"
+	} else {
+		dest.Type, err = assets.String(row.AssetType)
+		if err != nil {
+			return err
+		}
+
+		if dest.Type != "liquidity_pool_shares" {
+			return PopulateAssetBalance(dest, row)
+		}
 	}
 
-	dest.Balance = amount.String(row.Balance)
-	dest.BuyingLiabilities = amount.String(row.BuyingLiabilities)
-	dest.SellingLiabilities = amount.String(row.SellingLiabilities)
-	dest.Limit = amount.String(row.Tlimit)
-	dest.Issuer = row.Issuer
-	dest.Code = row.Assetcode
-	dest.LastModifiedLedger = row.LastModified
-	isAuthorized := row.IsAuthorized()
-	dest.IsAuthorized = &isAuthorized
+	dest.LiquidityPoolId = row.LiquidityPoolID
+	dest.Balance = amount.StringFromInt64(row.Balance)
+	dest.Limit = amount.StringFromInt64(row.Limit)
+	dest.LastModifiedLedger = row.LastModifiedLedger
+	fillAuthorizationFlags(dest, row)
+
+	return
+}
+
+func PopulateAssetBalance(dest *protocol.Balance, row history.TrustLine) (err error) {
+	dest.Type, err = assets.String(row.AssetType)
+	if err != nil {
+		return err
+	}
+
+	dest.Balance = amount.StringFromInt64(row.Balance)
+	dest.BuyingLiabilities = amount.StringFromInt64(row.BuyingLiabilities)
+	dest.SellingLiabilities = amount.StringFromInt64(row.SellingLiabilities)
+	dest.Limit = amount.StringFromInt64(row.Limit)
+	dest.Issuer = row.AssetIssuer
+	dest.Code = row.AssetCode
+	dest.LastModifiedLedger = row.LastModifiedLedger
+	fillAuthorizationFlags(dest, row)
+	if row.Sponsor.Valid {
+		dest.Sponsor = row.Sponsor.String
+	}
+
 	return
 }
 
@@ -41,5 +67,25 @@ func PopulateNativeBalance(dest *protocol.Balance, stroops, buyingLiabilities, s
 	dest.Issuer = ""
 	dest.Code = ""
 	dest.IsAuthorized = nil
+	dest.IsAuthorizedToMaintainLiabilities = nil
+	dest.IsClawbackEnabled = nil
 	return
+}
+
+func fillAuthorizationFlags(dest *protocol.Balance, row history.TrustLine) {
+	isAuthorized := row.IsAuthorized()
+	dest.IsAuthorized = &isAuthorized
+
+	// After CAP-18, isAuth => isAuthToMaintain, so the following code does this
+	// in a backwards compatible manner.
+	dest.IsAuthorizedToMaintainLiabilities = &isAuthorized
+	isAuthorizedToMaintainLiabilities := row.IsAuthorizedToMaintainLiabilities()
+	if isAuthorizedToMaintainLiabilities {
+		dest.IsAuthorizedToMaintainLiabilities = &isAuthorizedToMaintainLiabilities
+	}
+
+	isClawbackEnabled := row.IsClawbackEnabled()
+	if isClawbackEnabled {
+		dest.IsClawbackEnabled = &isClawbackEnabled
+	}
 }

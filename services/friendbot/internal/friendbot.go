@@ -17,12 +17,12 @@ type Bot struct {
 
 // SubmitResult is the result from the asynchronous tx submission.
 type SubmitResult struct {
-	maybeTransactionSuccess *hProtocol.TransactionSuccess
+	maybeTransactionSuccess *hProtocol.Transaction
 	maybeErr                error
 }
 
 // Pay funds the account at `destAddress`.
-func (bot *Bot) Pay(destAddress string) (*hProtocol.TransactionSuccess, error) {
+func (bot *Bot) Pay(destAddress string) (*hProtocol.Transaction, error) {
 	bot.indexMux.Lock()
 	log.Printf("Selecting minion at index %d of max length %d", bot.nextMinionIndex, len(bot.Minions))
 	minion := bot.Minions[bot.nextMinionIndex]

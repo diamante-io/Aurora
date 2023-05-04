@@ -2,6 +2,7 @@
 title: Effects for Account
 clientData:
   laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=effects&endpoint=for_account
+replacement: https://developers.diamnet.org/api/resources/accounts/effects/
 ---
 
 This endpoint represents all [effects](../resources/effect.md) that changed a given
@@ -9,7 +10,7 @@ This endpoint represents all [effects](../resources/effect.md) that changed a gi
 account to the current ledger.
 
 This endpoint can also be used in [streaming](../streaming.md) mode so it is possible to use it to
-listen for new effects as transactions happen in the DiamNet network.
+listen for new effects as transactions happen in the Diamnet network.
 If called in streaming mode Aurora will start at the earliest known effect unless a `cursor` is
 set. In that case it will start from the `cursor`. You can also set `cursor` value to `now` to only
 stream effects created since your request time.
@@ -38,8 +39,8 @@ curl "https://aurora-testnet.diamnet.org/accounts/GA2HGBJIJKI6O4XEM7CZWY5PS6GKSX
 ### JavaScript Example Request
 
 ```javascript
-var DiamNetSdk = require('diamnet-sdk');
-var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
+var DiamnetSdk = require('diamnet-sdk');
+var server = new DiamnetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.effects()
   .forAccount("GA2HGBJIJKI6O4XEM7CZWY5PS6GKSXL6D34ERAJYQSPYA6X6AI7HYW36")
@@ -56,8 +57,8 @@ server.effects()
 ### JavaScript Streaming Example
 
 ```javascript
-var DiamNetSdk = require('diamnet-sdk')
-var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
+var DiamnetSdk = require('diamnet-sdk')
+var server = new DiamnetSdk.Server('https://aurora-testnet.diamnet.org');
 
 var effectHandler = function (effectResponse) {
   console.log(effectResponse);

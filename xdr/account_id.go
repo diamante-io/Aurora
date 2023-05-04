@@ -9,19 +9,32 @@ import (
 
 // Address returns the strkey encoded form of this AccountId.  This method will
 // panic if the accountid is backed by a public key of an unknown type.
-func (aid *AccountId) Address() string {
+func (aid AccountId) Address() string {
+	address, err := aid.GetAddress()
+	if err != nil {
+		panic(err)
+	}
+	return address
+}
+
+// GetAddress returns the strkey encoded form of this AccountId, and an error
+// if the AccountId is backed by a public key of an unknown type.
+func (aid *AccountId) GetAddress() (string, error) {
 	if aid == nil {
-		return ""
+		return "", nil
 	}
 
 	switch aid.Type {
 	case PublicKeyTypePublicKeyTypeEd25519:
-		ed := aid.MustEd25519()
+		ed, ok := aid.GetEd25519()
+		if !ok {
+			return "", fmt.Errorf("Could not get Ed25519")
+		}
 		raw := make([]byte, 32)
 		copy(raw, ed[:])
-		return strkey.MustEncode(strkey.VersionByteAccountID, raw)
+		return strkey.Encode(strkey.VersionByteAccountID, raw)
 	default:
-		panic(fmt.Errorf("Unknown account id type: %v", aid.Type))
+		return "", fmt.Errorf("Unknown account id type: %v", aid.Type)
 	}
 }
 
@@ -51,28 +64,17 @@ func (aid *AccountId) LedgerKey() (ret LedgerKey) {
 	return
 }
 
-// MarshalBinaryCompress marshals AccountId to []byte but unlike
-// MarshalBinary() it removes all unnecessary bytes, exploting the fact
-// that XDR is padding data to 4 bytes in union discriminants etc.
-// It's primary use is in ingest/io.StateReader that keep LedgerKeys in
-// memory so this function decrease memory requirements.
-//
-// Warning, do not use UnmarshalBinary() on data encoded using this method!
-func (aid AccountId) MarshalBinaryCompress() ([]byte, error) {
-	m := []byte{byte(aid.Type)}
-
+func (e *EncodingBuffer) accountIdCompressEncodeTo(aid AccountId) error {
+	if err := e.xdrEncoderBuf.WriteByte(byte(aid.Type)); err != nil {
+		return err
+	}
 	switch aid.Type {
 	case PublicKeyTypePublicKeyTypeEd25519:
-		pk, err := aid.Ed25519.MarshalBinary()
-		if err != nil {
-			return nil, err
-		}
-		m = append(m, pk...)
+		_, err := e.xdrEncoderBuf.Write(aid.Ed25519[:])
+		return err
 	default:
 		panic("Unknown type")
 	}
-
-	return m, nil
 }
 
 func MustAddress(address string) AccountId {
@@ -82,6 +84,20 @@ func MustAddress(address string) AccountId {
 		panic(err)
 	}
 	return aid
+}
+
+func MustAddressPtr(address string) *AccountId {
+	aid := MustAddress(address)
+	return &aid
+}
+
+// AddressToAccountId returns an AccountId for a given address string.
+// If the address is not valid the error returned will not be nil
+func AddressToAccountId(address string) (AccountId, error) {
+	result := AccountId{}
+	err := result.SetAddress(address)
+
+	return result, err
 }
 
 // SetAddress modifies the receiver, setting it's value to the AccountId form
@@ -106,4 +122,17 @@ func (aid *AccountId) SetAddress(address string) error {
 	*aid, err = NewAccountId(PublicKeyTypePublicKeyTypeEd25519, ui)
 
 	return err
+}
+
+// ToMuxedAccount transforms an AccountId into a MuxedAccount with
+// a zero memo id
+func (aid *AccountId) ToMuxedAccount() MuxedAccount {
+	result := MuxedAccount{Type: CryptoKeyTypeKeyTypeEd25519}
+	switch aid.Type {
+	case PublicKeyTypePublicKeyTypeEd25519:
+		result.Ed25519 = aid.Ed25519
+	default:
+		panic(fmt.Errorf("Unknown account id type: %v", aid.Type))
+	}
+	return result
 }

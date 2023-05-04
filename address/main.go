@@ -1,5 +1,5 @@
 // Package address provides utility functions for working with diamnet
-// addresses. See https://www.diamnet.org/developers/guides/concepts/federation.
+// addresses. See https://developers.diamnet.org/docs/glossary/federation/
 // html#diamnet-addresses for more on addresses.
 package address
 

@@ -1,15 +1,19 @@
 package federation
 
-import "github.com/diamnet/go/support/db"
-import "github.com/diamnet/go/support/errors"
+import (
+	"context"
+
+	"github.com/diamnet/go/support/db"
+	"github.com/diamnet/go/support/errors"
+)
 
 // LookupRecord implements `Driver` by performing `drv.LookupRecordQuery`
 // against `drv.DB` using the provided parameters
-func (drv *SQLDriver) LookupRecord(name, domain string) (*Record, error) {
+func (drv *SQLDriver) LookupRecord(ctx context.Context, name, domain string) (*Record, error) {
 	drv.initDB()
 	var result Record
 
-	err := drv.db.GetRaw(&result, drv.LookupRecordQuery, name, domain)
+	err := drv.db.GetRaw(ctx, &result, drv.LookupRecordQuery, name, domain)
 
 	if drv.db.NoRows(err) {
 		return nil, nil

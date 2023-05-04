@@ -33,7 +33,7 @@ func (c *ScraperConfig) fetchOrderbook(bType, bCode, bIssuer, cType, cCode, cIss
 	err = utils.Retry(5, 5*time.Second, c.Logger, func() error {
 		summary, err = c.Client.OrderBook(r)
 		if err != nil {
-			c.Logger.Infoln("Aurora rate limit reached!")
+			c.Logger.Info("Aurora rate limit reached!")
 		}
 		return err
 	})
@@ -42,7 +42,10 @@ func (c *ScraperConfig) fetchOrderbook(bType, bCode, bIssuer, cType, cCode, cIss
 	}
 
 	err = calcOrderbookStats(&obStats, summary)
-	return obStats, errors.Wrap(err, "could not calculate orderbook stats")
+	if err != nil {
+		return obStats, errors.Wrap(err, "could not calculate orderbook stats")
+	}
+	return obStats, nil
 }
 
 // calcOrderbookStats calculates the NumBids, BidVolume, BidMax, NumAsks, AskVolume and AskMin
@@ -118,7 +121,7 @@ func createOrderbookRequest(bType, bCode, bIssuer, cType, cCode, cIssuer string)
 	// when an Asset is native. As we store "XLM" as the asset code for native,
 	// we should only add Code and Issuer info in case we're dealing with
 	// non-native assets.
-	// See: https://www.diamnet.org/developers/aurora/reference/endpoints/orderbook-details.html
+	// See: https://developers.diamnet.org/api/aggregations/order-books/single/
 	if bType != string(auroraclient.AssetTypeNative) {
 		r.SellingAssetCode = bCode
 		r.SellingAssetIssuer = bIssuer

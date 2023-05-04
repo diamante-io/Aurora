@@ -1,7 +1,6 @@
 package scraper
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -17,6 +16,7 @@ import (
 	auroraclient "github.com/diamnet/go/clients/auroraclient"
 	hProtocol "github.com/diamnet/go/protocols/aurora"
 	"github.com/diamnet/go/services/ticker/internal/utils"
+	"github.com/diamnet/go/support/errors"
 )
 
 // shouldDiscardAsset maps the criteria for discarding an asset from the asset index
@@ -28,14 +28,14 @@ func shouldDiscardAsset(asset hProtocol.AssetStat, shouldValidateTOML bool) bool
 	if f == 0.0 {
 		return true
 	}
-	// [DiamNetX Ticker]: assets need at least some adoption to show up
+	// [DiamnetX Ticker]: assets need at least some adoption to show up
 	if asset.NumAccounts < 10 {
 		return true
 	}
 	if asset.Code == "REMOVE" {
 		return true
 	}
-	// [DiamNetX Ticker]: assets with at least 100 accounts get a pass,
+	// [DiamnetX Ticker]: assets with at least 100 accounts get a pass,
 	// even with toml issues
 	if asset.NumAccounts >= 100 {
 		return false
@@ -45,7 +45,7 @@ func shouldDiscardAsset(asset hProtocol.AssetStat, shouldValidateTOML bool) bool
 		if asset.Links.Toml.Href == "" {
 			return true
 		}
-		// [DiamNetX Ticker]: TOML files should be hosted on HTTPS
+		// [DiamnetX Ticker]: TOML files should be hosted on HTTPS
 		if !strings.HasPrefix(asset.Links.Toml.Href, "https://") {
 			return true
 		}
@@ -75,8 +75,12 @@ func fetchTOMLData(asset hProtocol.AssetStat) (data string, err error) {
 	}
 
 	req, err := http.NewRequest("GET", tomlURL, nil)
-	req.Header.Set("User-Agent", "DiamNet Ticker v1.0")
+	if err != nil {
+		err = errors.Wrap(err, "invalid URL or request")
+		return
+	}
 
+	req.Header.Set("User-Agent", "Diamnet Ticker v1.0")
 	resp, err := client.Do(req)
 	if err != nil {
 		return
@@ -286,7 +290,7 @@ func (c *ScraperConfig) parallelProcessAssets(assets []hProtocol.AssetStat, para
 			if !t.IsTrash {
 				cleanAssets = append(cleanAssets, t)
 			}
-			c.Logger.Debugln("Total assets processed:", count)
+			c.Logger.Debug("Total assets processed:", count)
 			wg.Done()
 		}
 	}()
@@ -306,13 +310,13 @@ func (c *ScraperConfig) retrieveAssets(limit int) (assets []hProtocol.AssetStat,
 		return
 	}
 
-	c.Logger.Infoln("Fetching assets from Aurora")
+	c.Logger.Info("Fetching assets from Aurora")
 
 	for assetsPage.Links.Next.Href != assetsPage.Links.Self.Href {
 		err = utils.Retry(5, 5*time.Second, c.Logger, func() error {
 			assetsPage, err = c.Client.Assets(r)
 			if err != nil {
-				c.Logger.Infoln("Aurora rate limit reached!")
+				c.Logger.Info("Aurora rate limit reached!")
 			}
 			return err
 		})
@@ -335,7 +339,7 @@ func (c *ScraperConfig) retrieveAssets(limit int) (assets []hProtocol.AssetStat,
 		if err != nil {
 			return assets, err
 		}
-		c.Logger.Debugln("Cursor currently at:", n)
+		c.Logger.Debug("Cursor currently at:", n)
 
 		r = auroraclient.AssetRequest{Limit: 200, Cursor: n}
 	}

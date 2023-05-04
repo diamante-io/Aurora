@@ -1,15 +1,16 @@
 ---
 title: Timeout
+replacement: https://developers.diamnet.org/api/errors/http-status-codes/aurora-specific/
 ---
 
 If you are encountering this error it means that either:
 
-* Aurora has not received a confirmation from the DiamNet Core server that the transaction you are
+* Aurora has not received a confirmation from the Diamnet Core server that the transaction you are
   trying to submit to the network was included in a ledger in a timely manner.
 * Aurora has not sent a response to a reverse-proxy before a specified amount of time has elapsed.
 
 The former case may happen because there was no room for your transaction for 3 consecutive
-ledgers. This is because DiamNet Core removes each submitted transaction from a queue. To solve
+ledgers. This is because Diamnet Core removes each submitted transaction from a queue. To solve
 this you can:
 
 * Keep resubmitting the same transaction (with the same sequence number) and wait until it finally

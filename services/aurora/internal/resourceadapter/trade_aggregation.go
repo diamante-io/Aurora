@@ -9,7 +9,7 @@ import (
 	"github.com/diamnet/go/services/aurora/internal/db2/history"
 )
 
-// Populate fills out the details of a trade using a row from the history_trades
+// PopulateTradeAggregation fills out the details of a trade aggregation using a row from the trade aggregations
 // table.
 func PopulateTradeAggregation(
 	ctx context.Context,
@@ -28,13 +28,25 @@ func PopulateTradeAggregation(
 		return err
 	}
 	dest.Average = price.StringFromFloat64(row.Average)
-	dest.High = row.High.String()
-	dest.HighR = row.High
-	dest.Low = row.Low.String()
-	dest.LowR = row.Low
-	dest.Open = row.Open.String()
-	dest.OpenR = row.Open
-	dest.Close = row.Close.String()
-	dest.CloseR = row.Close
+	dest.HighR = protocol.TradePrice{
+		N: row.HighN,
+		D: row.HighD,
+	}
+	dest.High = dest.HighR.String()
+	dest.LowR = protocol.TradePrice{
+		N: row.LowN,
+		D: row.LowD,
+	}
+	dest.Low = dest.LowR.String()
+	dest.OpenR = protocol.TradePrice{
+		N: row.OpenN,
+		D: row.OpenD,
+	}
+	dest.Open = dest.OpenR.String()
+	dest.CloseR = protocol.TradePrice{
+		N: row.CloseN,
+		D: row.CloseD,
+	}
+	dest.Close = dest.CloseR.String()
 	return nil
 }

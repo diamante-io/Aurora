@@ -1,5 +1,6 @@
 ---
 title: Response Format
+replacement: https://developers.diamnet.org/api/introduction/response-format/
 ---
 
 Rather than using a fully custom way of representing the resources we expose in
@@ -47,7 +48,7 @@ links between documents.  Let's look at a simple example:
 }
 ```
 
-The above response is for the genesis ledger of the DiamNet test network, and
+The above response is for the genesis ledger of the Diamnet test network, and
 the links in the `_links` attribute provide links to other relavant resources in
 Aurora.  Notice the object beneath the `transactions` key.  The key of each
 link specifies that links relation to the current resource, and in this case
@@ -65,8 +66,8 @@ valid URI before navigating to it.
 
 Pages represent a subset of a larger collection of objects.  
 As an example, it would be unfeasible to provide the
-[All Transactions](../reference/transactions-all.md) endpoint without paging.  
-Over time there will be millions of transactions in the DiamNet network's ledger
+[All Transactions](../reference/endpoints/transactions-all.md) endpoint without paging.  
+Over time there will be millions of transactions in the Diamnet network's ledger
 and returning them all over a single request would be unfeasible.
 
 Read more about paging in following docs:

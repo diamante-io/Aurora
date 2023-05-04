@@ -1,71 +1,242 @@
-package history_test
+package history
 
 import (
+	"github.com/diamnet/go/xdr"
 	"testing"
 
 	"github.com/diamnet/go/services/aurora/internal/db2"
-	. "github.com/diamnet/go/services/aurora/internal/db2/history"
 	"github.com/diamnet/go/services/aurora/internal/test"
-	"github.com/diamnet/go/xdr"
 )
 
-func TestTradeQueries(t *testing.T) {
-	tt := test.Start(t).Scenario("kahuna")
-	defer tt.Finish()
-	q := &Q{tt.AuroraSession()}
-	var trades []Trade
+var (
+	ascPQ  = db2.MustPageQuery("", false, "asc", 100)
+	descPQ = db2.MustPageQuery("", false, "desc", 100)
+)
 
-	// All trades
-	err := q.Trades().Page(db2.MustPageQuery("", false, "asc", 100)).Select(&trades)
-	if tt.Assert.NoError(err) {
-		tt.Assert.Len(trades, 4)
+func assertTradesAreEqual(tt *test.T, expected, rows []Trade) {
+	tt.Assert.Len(rows, len(expected))
+	for i := 0; i < len(rows); i++ {
+		tt.Assert.Equal(expected[i].LedgerCloseTime.Unix(), rows[i].LedgerCloseTime.Unix())
+		rows[i].LedgerCloseTime = expected[i].LedgerCloseTime
+		tt.Assert.Equal(
+			expected[i],
+			rows[i],
+		)
 	}
+}
 
-	// Paging
-	pq := db2.MustPageQuery(trades[0].PagingToken(), false, "asc", 1)
-	var pt []Trade
+const allAccounts = ""
 
-	err = q.Trades().Page(pq).Select(&pt)
-	if tt.Assert.NoError(err) {
-		if tt.Assert.Len(pt, 1) {
-			tt.Assert.Equal(trades[1], pt[0])
+func filterByAccount(trades []Trade, account string) []Trade {
+	var result []Trade
+	for _, trade := range trades {
+		if account == allAccounts ||
+			(trade.BaseAccount.Valid && trade.BaseAccount.String == account) ||
+			(trade.CounterAccount.Valid && trade.CounterAccount.String == account) {
+			result = append(result, trade)
 		}
 	}
+	return result
+}
 
-	// Cursor bounds checking
-	pq = db2.MustPageQuery("", false, "desc", 1)
-	err = q.Trades().Page(pq).Select(&pt)
-	tt.Require.NoError(err)
+func TestSelectTrades(t *testing.T) {
+	tt := test.Start(t)
+	defer tt.Finish()
+	test.ResetAuroraDB(t, tt.AuroraDB)
+	q := &Q{tt.AuroraSession()}
+	fixtures := TradeScenario(tt, q)
 
-	// test for asset pairs
-	lumen, err := q.GetAssetID(xdr.MustNewNativeAsset())
-	tt.Require.NoError(err)
-	assetUSD, err := q.GetAssetID(xdr.MustNewCreditAsset("USD", "GB2QIYT2IAUFMRXKLSLLPRECC6OCOGJMADSPTRK7TGNT2SFR2YGWDARD"))
-	tt.Require.NoError(err)
-	assetEUR, err := q.GetAssetID(xdr.MustNewCreditAsset("EUR", "GAXMF43TGZHW3QN3REOUA2U5PW5BTARXGGYJ3JIFHW3YT6QRKRL3CPPU"))
-	tt.Require.NoError(err)
+	for _, account := range append([]string{allAccounts}, fixtures.Addresses...) {
+		for _, tradeType := range []string{AllTrades, OrderbookTrades, LiquidityPoolTrades} {
+			expected := filterByAccount(FilterTradesByType(fixtures.Trades, tradeType), account)
+			rows, err := q.GetTrades(tt.Ctx, ascPQ, account, tradeType)
+			tt.Assert.NoError(err)
 
-	err = q.TradesForAssetPair(assetUSD, assetEUR).Select(&trades)
-	tt.Require.NoError(err)
-	tt.Assert.Len(trades, 0)
+			assertTradesAreEqual(tt, expected, rows)
 
-	assetUSD, err = q.GetAssetID(xdr.MustNewCreditAsset("USD", "GAXMF43TGZHW3QN3REOUA2U5PW5BTARXGGYJ3JIFHW3YT6QRKRL3CPPU"))
-	tt.Require.NoError(err)
+			rows, err = q.GetTrades(tt.Ctx, descPQ, account, tradeType)
+			tt.Assert.NoError(err)
+			start, end := 0, len(rows)-1
+			for start < end {
+				rows[start], rows[end] = rows[end], rows[start]
+				start++
+				end--
+			}
 
-	err = q.TradesForAssetPair(lumen, assetUSD).Select(&trades)
-	tt.Require.NoError(err)
-	tt.Assert.Len(trades, 1)
+			assertTradesAreEqual(tt, expected, rows)
+		}
+	}
+}
 
-	tt.Assert.Equal(xdr.Int64(2000000000), trades[0].BaseAmount)
-	tt.Assert.Equal(xdr.Int64(1000000000), trades[0].CounterAmount)
-	tt.Assert.Equal(true, trades[0].BaseIsSeller)
+func TestSelectTradesCursor(t *testing.T) {
+	tt := test.Start(t)
+	defer tt.Finish()
+	test.ResetAuroraDB(t, tt.AuroraDB)
+	q := &Q{tt.AuroraSession()}
+	fixtures := TradeScenario(tt, q)
 
-	// reverse assets
-	err = q.TradesForAssetPair(assetUSD, lumen).Select(&trades)
-	tt.Require.NoError(err)
-	tt.Assert.Len(trades, 1)
+	for _, account := range append([]string{allAccounts}, fixtures.Addresses...) {
+		for _, tradeType := range []string{AllTrades, OrderbookTrades, LiquidityPoolTrades} {
+			expected := filterByAccount(FilterTradesByType(fixtures.Trades, tradeType), account)
+			if len(expected) == 0 {
+				continue
+			}
 
-	tt.Assert.Equal(xdr.Int64(1000000000), trades[0].BaseAmount)
-	tt.Assert.Equal(xdr.Int64(2000000000), trades[0].CounterAmount)
-	tt.Assert.Equal(false, trades[0].BaseIsSeller)
+			rows, err := q.GetTrades(
+				tt.Ctx,
+				db2.MustPageQuery(expected[0].PagingToken(), false, "asc", 100),
+				account,
+				tradeType,
+			)
+			tt.Assert.NoError(err)
+			assertTradesAreEqual(tt, rows, expected[1:])
+
+			if len(expected) == 1 {
+				continue
+			}
+
+			rows, err = q.GetTrades(
+				tt.Ctx,
+				db2.MustPageQuery(expected[1].PagingToken(), false, "asc", 100),
+				account,
+				tradeType,
+			)
+			tt.Assert.NoError(err)
+			assertTradesAreEqual(tt, rows, expected[2:])
+		}
+	}
+}
+
+func TestTradesQueryForOffer(t *testing.T) {
+	tt := test.Start(t)
+	defer tt.Finish()
+	test.ResetAuroraDB(t, tt.AuroraDB)
+	q := &Q{tt.AuroraSession()}
+	fixtures := TradeScenario(tt, q)
+	tt.Assert.NotEmpty(fixtures.TradesByOffer)
+
+	for offer, expected := range fixtures.TradesByOffer {
+		trades, err := q.GetTradesForOffer(tt.Ctx, ascPQ, offer)
+		tt.Assert.NoError(err)
+		assertTradesAreEqual(tt, expected, trades)
+
+		trades, err = q.GetTradesForOffer(
+			tt.Ctx,
+			db2.MustPageQuery(expected[0].PagingToken(), false, "asc", 100),
+			offer,
+		)
+		tt.Assert.NoError(err)
+		assertTradesAreEqual(tt, expected[1:], trades)
+	}
+}
+
+func TestTradesQueryForLiquidityPool(t *testing.T) {
+	tt := test.Start(t)
+	defer tt.Finish()
+	test.ResetAuroraDB(t, tt.AuroraDB)
+	q := &Q{tt.AuroraSession()}
+	fixtures := TradeScenario(tt, q)
+	tt.Assert.NotEmpty(fixtures.TradesByOffer)
+
+	for poolID, expected := range fixtures.TradesByPool {
+		trades, err := q.GetTradesForLiquidityPool(tt.Ctx, ascPQ, poolID)
+		tt.Assert.NoError(err)
+		assertTradesAreEqual(tt, expected, trades)
+
+		trades, err = q.GetTradesForLiquidityPool(
+			tt.Ctx,
+			db2.MustPageQuery(expected[0].PagingToken(), false, "asc", 100),
+			poolID,
+		)
+		tt.Assert.NoError(err)
+		assertTradesAreEqual(tt, expected[1:], trades)
+	}
+}
+
+func TestTradesForAssetPair(t *testing.T) {
+	tt := test.Start(t)
+	defer tt.Finish()
+	test.ResetAuroraDB(t, tt.AuroraDB)
+	q := &Q{tt.AuroraSession()}
+	fixtures := TradeScenario(tt, q)
+	eurAsset := xdr.MustNewCreditAsset("EUR", issuer.Address())
+	chfAsset := xdr.MustNewCreditAsset("CHF", "GAXMF43TGZHW3QN3REOUA2U5PW5BTARXGGYJ3JIFHW3YT6QRKRL3CPPU")
+	allTrades := fixtures.TradesByAssetPair(eurAsset, chfAsset)
+
+	for _, account := range append([]string{allAccounts}, fixtures.Addresses...) {
+		for _, tradeType := range []string{AllTrades, OrderbookTrades, LiquidityPoolTrades} {
+			expected := filterByAccount(FilterTradesByType(allTrades, tradeType), account)
+
+			trades, err := q.GetTradesForAssets(tt.Ctx, ascPQ, account, tradeType, chfAsset, eurAsset)
+			tt.Assert.NoError(err)
+			assertTradesAreEqual(tt, expected, trades)
+
+			if len(expected) == 0 {
+				continue
+			}
+
+			trades, err = q.GetTradesForAssets(
+				tt.Ctx,
+				db2.MustPageQuery(expected[0].PagingToken(), false, "asc", 100),
+				account,
+				tradeType,
+				chfAsset,
+				eurAsset,
+			)
+			tt.Assert.NoError(err)
+			assertTradesAreEqual(tt, expected[1:], trades)
+		}
+	}
+}
+
+func reverseTrade(expected Trade) Trade {
+	expected.BaseIsSeller = !expected.BaseIsSeller
+	expected.BaseAssetCode, expected.CounterAssetCode = expected.CounterAssetCode, expected.BaseAssetCode
+	expected.BaseAssetIssuer, expected.CounterAssetIssuer = expected.CounterAssetIssuer, expected.BaseAssetIssuer
+	expected.BaseOfferID, expected.CounterOfferID = expected.CounterOfferID, expected.BaseOfferID
+	expected.BaseLiquidityPoolID, expected.CounterLiquidityPoolID = expected.CounterLiquidityPoolID, expected.BaseLiquidityPoolID
+	expected.BaseAssetType, expected.CounterAssetType = expected.CounterAssetType, expected.BaseAssetType
+	expected.BaseAccount, expected.CounterAccount = expected.CounterAccount, expected.BaseAccount
+	expected.BaseAmount, expected.CounterAmount = expected.CounterAmount, expected.BaseAmount
+	expected.PriceN, expected.PriceD = expected.PriceD, expected.PriceN
+	return expected
+}
+
+func TestTradesForReverseAssetPair(t *testing.T) {
+	tt := test.Start(t)
+	defer tt.Finish()
+	test.ResetAuroraDB(t, tt.AuroraDB)
+	q := &Q{tt.AuroraSession()}
+	fixtures := TradeScenario(tt, q)
+	eurAsset := xdr.MustNewCreditAsset("EUR", issuer.Address())
+	chfAsset := xdr.MustNewCreditAsset("CHF", "GAXMF43TGZHW3QN3REOUA2U5PW5BTARXGGYJ3JIFHW3YT6QRKRL3CPPU")
+	allTrades := fixtures.TradesByAssetPair(eurAsset, chfAsset)
+
+	for _, account := range append([]string{allAccounts}, fixtures.Addresses...) {
+		for _, tradeType := range []string{AllTrades, OrderbookTrades, LiquidityPoolTrades} {
+			expected := filterByAccount(FilterTradesByType(allTrades, tradeType), account)
+			for i := range expected {
+				expected[i] = reverseTrade(expected[i])
+			}
+
+			trades, err := q.GetTradesForAssets(tt.Ctx, ascPQ, account, tradeType, eurAsset, chfAsset)
+			tt.Assert.NoError(err)
+			assertTradesAreEqual(tt, expected, trades)
+
+			if len(expected) == 0 {
+				continue
+			}
+
+			trades, err = q.GetTradesForAssets(
+				tt.Ctx,
+				db2.MustPageQuery(expected[0].PagingToken(), false, "asc", 100),
+				account,
+				tradeType,
+				eurAsset,
+				chfAsset,
+			)
+			tt.Assert.NoError(err)
+			assertTradesAreEqual(tt, expected[1:], trades)
+		}
+	}
 }

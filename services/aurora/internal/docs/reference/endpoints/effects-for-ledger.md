@@ -32,8 +32,8 @@ curl "https://aurora-testnet.diamnet.org/ledgers/680777/effects?limit=1"
 ### JavaScript Example Request
 
 ```javascript
-var DiamNetSdk = require('diamnet-sdk');
-var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
+var DiamnetSdk = require('diamnet-sdk');
+var server = new DiamnetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.effects()
   .forLedger("680777")

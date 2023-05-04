@@ -10,12 +10,15 @@ import (
 	"testing"
 
 	ge "github.com/go-errors/errors"
+	"github.com/diamnet/go/support/log"
 	"github.com/diamnet/go/support/test"
 	"github.com/stretchr/testify/assert"
 )
 
-// TestRender tests the render cases
-func TestRender(t *testing.T) {
+// TestProblemRender tests the render cases
+func TestProblemRender(t *testing.T) {
+	problem := New("", log.DefaultLogger, LogNoErrors)
+
 	testCases := []struct {
 		name     string
 		p        P
@@ -29,9 +32,9 @@ func TestRender(t *testing.T) {
 			500,
 		}, {
 			"renders the type correctly",
-			P{Type: "foo"},
+			P{Type: "foo", Status: 500},
 			[]string{"foo"},
-			0,
+			500,
 		}, {
 			"renders the status correctly",
 			P{Status: 201},
@@ -39,15 +42,15 @@ func TestRender(t *testing.T) {
 			201,
 		}, {
 			"renders the extras correctly",
-			P{Extras: map[string]interface{}{"hello": "diamnet"}},
+			P{Extras: map[string]interface{}{"hello": "diamnet"}, Status: 500},
 			[]string{"hello", "diamnet"},
-			0,
+			500,
 		},
 	}
 
 	for _, kase := range testCases {
 		t.Run(kase.name, func(t *testing.T) {
-			w := testRender(context.Background(), kase.p)
+			w := testProblemRender(context.Background(), problem, kase.p)
 			for _, wantItem := range kase.wantList {
 				assert.True(t, strings.Contains(w.Body.String(), wantItem), w.Body.String())
 				assert.Equal(t, kase.wantCode, w.Code)
@@ -56,9 +59,11 @@ func TestRender(t *testing.T) {
 	}
 }
 
-// TestServerErrorConversion tests that we convert errors to ServerError problems and also log the
+// TestProblemServerErrorConversion tests that we convert errors to ServerError problems and also log the
 // stacktrace as unknown for non-rich errors
-func TestServerErrorConversion(t *testing.T) {
+func TestProblemServerErrorConversion(t *testing.T) {
+	problem := New("", log.DefaultLogger, LogUnknownErrors)
+
 	testCases := []struct {
 		name          string
 		err           error
@@ -78,7 +83,7 @@ func TestServerErrorConversion(t *testing.T) {
 	for _, kase := range testCases {
 		t.Run(kase.name, func(t *testing.T) {
 			ctx, buf := test.ContextWithLogBuffer()
-			w := testRender(ctx, kase.err)
+			w := testProblemRender(ctx, problem, kase.err)
 			logged := buf.String()
 
 			assert.True(t, strings.Contains(w.Body.String(), "server_error"), w.Body.String())
@@ -97,20 +102,22 @@ func TestServerErrorConversion(t *testing.T) {
 	}
 }
 
-// TestInflate test errors that come inflated from aurora
-func TestInflate(t *testing.T) {
+// TestProblemInflate test errors that come inflated from aurora
+func TestProblemInflate(t *testing.T) {
+	problem := New("", log.DefaultLogger, LogNoErrors)
+
 	testCase := struct {
 		name string
 		p    P
 		want string
 	}{
 		"renders the type correctly",
-		P{Type: "https://diamnet.org/aurora-errors/not_found"},
+		P{Type: "https://diamnet.org/aurora-errors/not_found", Status: 404},
 		"https://diamnet.org/aurora-errors/not_found",
 	}
 
 	t.Run(testCase.name, func(t *testing.T) {
-		w := testRender(context.Background(), testCase.p)
+		w := testProblemRender(context.Background(), problem, testCase.p)
 		var payload P
 		err := json.Unmarshal([]byte(w.Body.String()), &payload)
 		if assert.NoError(t, err) {
@@ -119,8 +126,61 @@ func TestInflate(t *testing.T) {
 	})
 }
 
-func testRender(ctx context.Context, err error) *httptest.ResponseRecorder {
+func testProblemRender(ctx context.Context, problem *Problem, err error) *httptest.ResponseRecorder {
 	w := httptest.NewRecorder()
-	Render(ctx, w, err)
+	problem.Render(ctx, w, err)
 	return w
+}
+
+func TestProblemRegisterReportFunc(t *testing.T) {
+	problem := New("", log.DefaultLogger, LogAllErrors)
+
+	var buf strings.Builder
+	ctx := context.Background()
+
+	reportFunc := func(ctx context.Context, err error) {
+		buf.WriteString("captured ")
+		buf.WriteString(err.Error())
+	}
+
+	err := errors.New("an unexpected error")
+
+	w := httptest.NewRecorder()
+
+	// before register the reportFunc
+	problem.Render(ctx, w, err)
+	assert.Equal(t, "", buf.String())
+
+	problem.RegisterReportFunc(reportFunc)
+	defer problem.RegisterReportFunc(nil)
+
+	// after register the reportFunc
+	want := "captured an unexpected error"
+	problem.Render(ctx, w, err)
+	assert.Equal(t, want, buf.String())
+}
+
+func TestProblemUnRegisterErrors(t *testing.T) {
+	problem := New("", log.DefaultLogger, LogNoErrors)
+
+	problem.RegisterError(context.DeadlineExceeded, ServerError)
+	err := problem.IsKnownError(context.DeadlineExceeded)
+	assert.Error(t, err, ServerError.Error())
+
+	problem.UnRegisterErrors()
+
+	err = problem.IsKnownError(context.DeadlineExceeded)
+	assert.NoError(t, err)
+}
+
+func TestProblemIsKnownError(t *testing.T) {
+	problem := New("", log.DefaultLogger, LogNoErrors)
+
+	problem.RegisterError(context.DeadlineExceeded, ServerError)
+	defer problem.UnRegisterErrors()
+	err := problem.IsKnownError(context.DeadlineExceeded)
+	assert.Error(t, err, ServerError.Error())
+
+	err = problem.IsKnownError(errors.New("foo"))
+	assert.NoError(t, err)
 }

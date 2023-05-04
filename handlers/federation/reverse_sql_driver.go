@@ -1,16 +1,21 @@
 package federation
 
-import "github.com/diamnet/go/support/errors"
+import (
+	"context"
+
+	"github.com/diamnet/go/support/errors"
+)
 
 // LookupReverseRecord implements `ReverseDriver` by performing
 // `drv.LookupReverseRecordQuery` against `drv.DB` using the provided parameter
 func (drv *ReverseSQLDriver) LookupReverseRecord(
+	ctx context.Context,
 	accountid string,
 ) (*ReverseRecord, error) {
 	drv.initDB()
 	var result ReverseRecord
 
-	err := drv.db.GetRaw(&result, drv.LookupReverseRecordQuery, accountid)
+	err := drv.db.GetRaw(ctx, &result, drv.LookupReverseRecordQuery, accountid)
 
 	if drv.db.NoRows(err) {
 		return nil, nil

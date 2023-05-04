@@ -1,4 +1,4 @@
-// Demo is an interactive demonstration of the Go SDK using the DiamNet TestNet.
+// Demo is an interactive demonstration of the Go SDK using the Diamnet TestNet.
 package main
 
 import (

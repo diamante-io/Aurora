@@ -15,6 +15,12 @@ type MockClient struct {
 	mock.Mock
 }
 
+// Accounts is a mocking method
+func (m *MockClient) Accounts(request AccountsRequest) (hProtocol.AccountsPage, error) {
+	a := m.Called(request)
+	return a.Get(0).(hProtocol.AccountsPage), a.Error(1)
+}
+
 // AccountDetail is a mocking method
 func (m *MockClient) AccountDetail(request AccountRequest) (hProtocol.Account, error) {
 	a := m.Called(request)
@@ -51,12 +57,6 @@ func (m *MockClient) LedgerDetail(sequence uint32) (hProtocol.Ledger, error) {
 	return a.Get(0).(hProtocol.Ledger), a.Error(1)
 }
 
-// Metrics is a mocking method
-func (m *MockClient) Metrics() (hProtocol.Metrics, error) {
-	a := m.Called()
-	return a.Get(0).(hProtocol.Metrics), a.Error(1)
-}
-
 // FeeStats is a mocking method
 func (m *MockClient) FeeStats() (hProtocol.FeeStats, error) {
 	a := m.Called()
@@ -67,6 +67,12 @@ func (m *MockClient) FeeStats() (hProtocol.FeeStats, error) {
 func (m *MockClient) Offers(request OfferRequest) (hProtocol.OffersPage, error) {
 	a := m.Called(request)
 	return a.Get(0).(hProtocol.OffersPage), a.Error(1)
+}
+
+// OfferDetail is a mocking method
+func (m *MockClient) OfferDetails(offerID string) (hProtocol.Offer, error) {
+	a := m.Called(offerID)
+	return a.Get(0).(hProtocol.Offer), a.Error(1)
 }
 
 // Operations is a mocking method
@@ -82,15 +88,33 @@ func (m *MockClient) OperationDetail(id string) (operations.Operation, error) {
 }
 
 // SubmitTransactionXDR is a mocking method
-func (m *MockClient) SubmitTransactionXDR(transactionXdr string) (hProtocol.TransactionSuccess, error) {
+func (m *MockClient) SubmitTransactionXDR(transactionXdr string) (hProtocol.Transaction, error) {
 	a := m.Called(transactionXdr)
-	return a.Get(0).(hProtocol.TransactionSuccess), a.Error(1)
+	return a.Get(0).(hProtocol.Transaction), a.Error(1)
+}
+
+// SubmitFeeBumpTransaction is a mocking method
+func (m *MockClient) SubmitFeeBumpTransaction(transaction *txnbuild.FeeBumpTransaction) (hProtocol.Transaction, error) {
+	a := m.Called(transaction)
+	return a.Get(0).(hProtocol.Transaction), a.Error(1)
 }
 
 // SubmitTransaction is a mocking method
-func (m *MockClient) SubmitTransaction(transaction txnbuild.Transaction) (hProtocol.TransactionSuccess, error) {
+func (m *MockClient) SubmitTransaction(transaction *txnbuild.Transaction) (hProtocol.Transaction, error) {
 	a := m.Called(transaction)
-	return a.Get(0).(hProtocol.TransactionSuccess), a.Error(1)
+	return a.Get(0).(hProtocol.Transaction), a.Error(1)
+}
+
+// SubmitFeeBumpTransactionWithOptions is a mocking method
+func (m *MockClient) SubmitFeeBumpTransactionWithOptions(transaction *txnbuild.FeeBumpTransaction, opts SubmitTxOpts) (hProtocol.Transaction, error) {
+	a := m.Called(transaction, opts)
+	return a.Get(0).(hProtocol.Transaction), a.Error(1)
+}
+
+// SubmitTransactionWithOptions is a mocking method
+func (m *MockClient) SubmitTransactionWithOptions(transaction *txnbuild.Transaction, opts SubmitTxOpts) (hProtocol.Transaction, error) {
+	a := m.Called(transaction, opts)
+	return a.Get(0).(hProtocol.Transaction), a.Error(1)
 }
 
 // Transactions is a mocking method
@@ -136,9 +160,9 @@ func (m *MockClient) Trades(request TradeRequest) (hProtocol.TradesPage, error) 
 }
 
 // Fund is a mocking method
-func (m *MockClient) Fund(addr string) (hProtocol.TransactionSuccess, error) {
+func (m *MockClient) Fund(addr string) (hProtocol.Transaction, error) {
 	a := m.Called(addr)
-	return a.Get(0).(hProtocol.TransactionSuccess), a.Error(1)
+	return a.Get(0).(hProtocol.Transaction), a.Error(1)
 }
 
 // StreamTransactions is a mocking method
@@ -185,6 +209,12 @@ func (m *MockClient) StreamOrderBooks(ctx context.Context, request OrderBookRequ
 func (m *MockClient) Root() (hProtocol.Root, error) {
 	a := m.Called()
 	return a.Get(0).(hProtocol.Root), a.Error(1)
+}
+
+// NextAccountsPage is a mocking method
+func (m *MockClient) NextAccountsPage(page hProtocol.AccountsPage) (hProtocol.AccountsPage, error) {
+	a := m.Called(page)
+	return a.Get(0).(hProtocol.AccountsPage), a.Error(1)
 }
 
 // NextAssetsPage is a mocking method
@@ -285,6 +315,38 @@ func (m *MockClient) PrevTradesPage(page hProtocol.TradesPage) (hProtocol.Trades
 func (m *MockClient) HomeDomainForAccount(aid string) (string, error) {
 	a := m.Called(aid)
 	return a.Get(0).(string), a.Error(1)
+}
+
+// NextTradeAggregationsPage is a mocking method
+func (m *MockClient) NextTradeAggregationsPage(page hProtocol.TradeAggregationsPage) (hProtocol.TradeAggregationsPage, error) {
+	a := m.Called(page)
+	return a.Get(0).(hProtocol.TradeAggregationsPage), a.Error(1)
+}
+
+// PrevTradeAggregationsPage is a mocking method
+func (m *MockClient) PrevTradeAggregationsPage(page hProtocol.TradeAggregationsPage) (hProtocol.TradeAggregationsPage, error) {
+	a := m.Called(page)
+	return a.Get(0).(hProtocol.TradeAggregationsPage), a.Error(1)
+}
+
+func (m *MockClient) LiquidityPoolDetail(request LiquidityPoolRequest) (hProtocol.LiquidityPool, error) {
+	a := m.Called(request)
+	return a.Get(0).(hProtocol.LiquidityPool), a.Error(1)
+}
+
+func (m *MockClient) LiquidityPools(request LiquidityPoolsRequest) (hProtocol.LiquidityPoolsPage, error) {
+	a := m.Called(request)
+	return a.Get(0).(hProtocol.LiquidityPoolsPage), a.Error(1)
+}
+
+func (m *MockClient) NextLiquidityPoolsPage(page hProtocol.LiquidityPoolsPage) (hProtocol.LiquidityPoolsPage, error) {
+	a := m.Called(page)
+	return a.Get(0).(hProtocol.LiquidityPoolsPage), a.Error(1)
+}
+
+func (m *MockClient) PrevLiquidityPoolsPage(page hProtocol.LiquidityPoolsPage) (hProtocol.LiquidityPoolsPage, error) {
+	a := m.Called(page)
+	return a.Get(0).(hProtocol.LiquidityPoolsPage), a.Error(1)
 }
 
 // ensure that the MockClient implements ClientInterface

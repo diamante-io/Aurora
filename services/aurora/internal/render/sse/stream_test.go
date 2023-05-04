@@ -1,16 +1,38 @@
+//lint:file-ignore U1001 Ignore all unused code, staticcheck doesn't understand testify/suite
+
 package sse
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"net/http/httptest"
 	"strconv"
 	"testing"
 
+	hProblem "github.com/diamnet/go/services/aurora/internal/render/problem"
+	"github.com/diamnet/go/support/render/problem"
 	"github.com/diamnet/go/support/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
+
+func (s *Stream) SentCount() int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.sent
+}
+
+// IsDone is safe to call concurrently and is exported.
+func (s *Stream) IsDone() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.limit == 0 {
+		return s.done
+	}
+
+	return s.done || s.sent >= s.limit
+}
 
 type StreamTestSuite struct {
 	suite.Suite
@@ -68,6 +90,34 @@ func (suite *StreamTestSuite) TestStream_Err() {
 	suite.stream.Err(err)
 	suite.checkHeadersAndPreamble()
 	assert.Contains(suite.T(), suite.w.Body.String(), "event: error\ndata: Unexpected stream error\n\n")
+	assert.True(suite.T(), suite.stream.IsDone())
+}
+
+// Tests that Stream can send handled registered errors
+func (suite *StreamTestSuite) TestStream_ErrRegisterError() {
+	problem.RegisterError(context.DeadlineExceeded, hProblem.Timeout)
+	defer problem.UnRegisterErrors()
+
+	suite.w = httptest.NewRecorder()
+	suite.stream = NewStream(suite.ctx, suite.w)
+	suite.stream.sent++
+	suite.stream.Err(context.DeadlineExceeded)
+	suite.checkHeadersAndPreamble()
+	assert.Contains(suite.T(), suite.w.Body.String(), "event: error\ndata: problem: timeout\n\n")
+	assert.True(suite.T(), suite.stream.IsDone())
+}
+
+// Tests that Stream can send handled ErrNoRows
+func (suite *StreamTestSuite) TestStream_ErrNoRows() {
+	problem.RegisterError(sql.ErrNoRows, problem.NotFound)
+	defer problem.UnRegisterErrors()
+
+	suite.w = httptest.NewRecorder()
+	suite.stream = NewStream(suite.ctx, suite.w)
+	suite.stream.sent++
+	suite.stream.Err(sql.ErrNoRows)
+	suite.checkHeadersAndPreamble()
+	assert.Contains(suite.T(), suite.w.Body.String(), "event: error\ndata: problem: not_found\n\n")
 	assert.True(suite.T(), suite.stream.IsDone())
 }
 

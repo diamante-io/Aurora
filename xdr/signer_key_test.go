@@ -7,6 +7,45 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestSignerKey_GetAddress(t *testing.T) {
+	tests := []struct {
+		name        string
+		wantAddress string
+	}{
+		{
+			"NilKey",
+			"",
+		},
+		{
+			"AccountID",
+			"GA3D5KRYM6CB7OWQ6TWYRR3Z4T7GNZLKERYNZGGA5SOAOPIFY6YQHES5",
+		},
+		{
+			"HashxX",
+			"TBU2RRGLXH3E5CQHTD3ODLDF2BWDCYUSSBLLZ5GNW7JXHDIYKXZWHXL7",
+		},
+		{
+			"HashX",
+			"XBU2RRGLXH3E5CQHTD3ODLDF2BWDCYUSSBLLZ5GNW7JXHDIYKXZWGTOG",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			key := &SignerKey{}
+			if tt.wantAddress != "" {
+				err := key.SetAddress(tt.wantAddress)
+				assert.NoError(t, err)
+			} else {
+				key = nil
+			}
+
+			gotAddress, err := key.GetAddress()
+			assert.Equal(t, tt.wantAddress, gotAddress)
+			assert.NoError(t, err)
+		})
+	}
+}
+
 func TestSignerKey_SetAddress(t *testing.T) {
 	cases := []struct {
 		Name    string

@@ -1,101 +1,82 @@
 package history
 
 import (
+	"context"
+	"sort"
+
 	sq "github.com/Masterminds/squirrel"
-	"github.com/diamnet/go/services/aurora/internal/db2"
-	"github.com/diamnet/go/xdr"
+
+	"github.com/diamnet/go/support/db"
+	"github.com/diamnet/go/support/errors"
 )
 
-// Accounts provides a helper to filter rows from the `history_accounts` table
-// with pre-defined filters.  See `AccountsQ` methods for the available filters.
-func (q *Q) Accounts() *AccountsQ {
-	return &AccountsQ{
-		parent: q,
-		sql:    selectAccount,
-	}
-}
-
 // AccountByAddress loads a row from `history_accounts`, by address
-func (q *Q) AccountByAddress(dest interface{}, addy string) error {
+func (q *Q) AccountByAddress(ctx context.Context, dest interface{}, addy string) error {
 	sql := selectAccount.Limit(1).Where("ha.address = ?", addy)
-	return q.Get(dest, sql)
-}
-
-// AccountByID loads a row from `history_accounts`, by id
-func (q *Q) AccountByID(dest interface{}, id int64) error {
-	sql := selectAccount.Limit(1).Where("ha.id = ?", id)
-	return q.Get(dest, sql)
-}
-
-// Page specifies the paging constraints for the query being built by `q`.
-func (q *AccountsQ) Page(page db2.PageQuery) *AccountsQ {
-	if q.Err != nil {
-		return q
-	}
-
-	q.sql, q.Err = page.ApplyTo(q.sql, "ha.id")
-	return q
-}
-
-// Select loads the results of the query specified by `q` into `dest`.
-func (q *AccountsQ) Select(dest interface{}) error {
-	if q.Err != nil {
-		return q.Err
-	}
-
-	q.Err = q.parent.Select(dest, q.sql)
-	return q.Err
+	return q.Get(ctx, dest, sql)
 }
 
 // AccountsByAddresses loads a rows from `history_accounts`, by addresses
-func (q *Q) AccountsByAddresses(dest interface{}, addresses []string) error {
+func (q *Q) AccountsByAddresses(ctx context.Context, dest interface{}, addresses []string) error {
 	sql := selectAccount.Where(map[string]interface{}{
 		"ha.address": addresses, // ha.address IN (...)
 	})
-	return q.Select(dest, sql)
+	return q.Select(ctx, dest, sql)
 }
 
-// CreateAccounts creates rows for addresses in history_accounts table and
-// put. `ON CONFLICT` is required when running a distributed ingestion.
-func (q *Q) CreateAccounts(dest interface{}, addresses []string) error {
-	sql := sq.Insert("history_accounts").Columns("address")
-	for _, address := range addresses {
-		sql = sql.Values(address)
-	}
-	sql = sql.Suffix("ON CONFLICT (address) DO UPDATE SET address=EXCLUDED.address RETURNING *")
-
-	return q.Select(dest, sql)
-}
-
-// Return id for account. If account doesn't exist, it will be created and the new id returned.
-// `ON CONFLICT` is required when running a distributed ingestion.
-func (q *Q) GetCreateAccountID(
-	aid xdr.AccountId,
-) (result int64, err error) {
-
-	var existing Account
-
-	err = q.AccountByAddress(&existing, aid.Address())
-
-	//account already exists, return id
-	if err == nil {
-		result = existing.ID
-		return
+// CreateAccounts creates rows in the history_accounts table for a given list of addresses.
+// CreateAccounts returns a mapping of account address to its corresponding id in the history_accounts table
+func (q *Q) CreateAccounts(ctx context.Context, addresses []string, batchSize int) (map[string]int64, error) {
+	builder := &db.BatchInsertBuilder{
+		Table:        q.GetTable("history_accounts"),
+		MaxBatchSize: batchSize,
+		Suffix:       "ON CONFLICT (address) DO NOTHING",
 	}
 
-	// unexpected error
-	if !q.NoRows(err) {
-		return
+	// sort assets before inserting rows into history_assets to prevent deadlocks on acquiring a ShareLock
+	// https://github.com/diamnet/go/issues/2370
+	sort.Strings(addresses)
+	var deduped []string
+	for i, address := range addresses {
+		if i > 0 && address == addresses[i-1] {
+			// skip duplicates
+			continue
+		}
+		deduped = append(deduped, address)
+		err := builder.Row(ctx, map[string]interface{}{
+			"address": address,
+		})
+		if err != nil {
+			return nil, errors.Wrap(err, "could not insert history_accounts row")
+		}
 	}
 
-	//insert account and return id
-	err = q.GetRaw(
-		&result,
-		`INSERT INTO history_accounts (address) VALUES (?) ON CONFLICT (address) DO UPDATE SET address=EXCLUDED.address RETURNING id`,
-		aid.Address(),
-	)
+	err := builder.Exec(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not exec asset insert builder")
+	}
 
-	return
+	addressToID := map[string]int64{}
+	const selectBatchSize = 10000
+
+	for i := 0; i < len(deduped); i += selectBatchSize {
+		end := i + selectBatchSize
+		if end > len(deduped) {
+			end = len(deduped)
+		}
+		subset := deduped[i:end]
+
+		var accounts []Account
+		if err := q.AccountsByAddresses(ctx, &accounts, subset); err != nil {
+			return nil, errors.Wrap(err, "could not select accounts")
+		}
+
+		for _, account := range accounts {
+			addressToID[account.Address] = account.ID
+		}
+	}
+
+	return addressToID, nil
 }
 
 var selectAccount = sq.Select("ha.*").From("history_accounts ha")

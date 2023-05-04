@@ -1,3 +1,5 @@
+//lint:file-ignore U1001 Ignore all unused code, staticcheck doesn't understand testify/suite
+
 package txsub
 
 import (
@@ -6,6 +8,7 @@ import (
 	"time"
 
 	"github.com/diamnet/go/services/aurora/internal/test"
+	"github.com/diamnet/go/support/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -74,10 +77,8 @@ func (suite *SubmissionListTestSuite) TestSubmissionList_Finish() {
 
 	suite.list.Add(suite.ctx, suite.hashes[0], suite.listeners[0])
 	suite.list.Add(suite.ctx, suite.hashes[0], suite.listeners[1])
-	r := Result{
-		Hash: suite.hashes[0],
-	}
-	suite.list.Finish(suite.ctx, r)
+	r := Result{Err: errors.New("test error")}
+	suite.list.Finish(suite.ctx, suite.hashes[0], r)
 
 	// Wries to every listener
 	r1, ok1 := <-suite.listeners[0]
@@ -103,7 +104,7 @@ func (suite *SubmissionListTestSuite) TestSubmissionList_Finish() {
 	assert.False(suite.T(), more)
 
 	// works when no one is waiting for the result
-	err := suite.list.Finish(suite.ctx, r)
+	err := suite.list.Finish(suite.ctx, suite.hashes[0], r)
 	assert.Nil(suite.T(), err)
 }
 

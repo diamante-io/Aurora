@@ -2,6 +2,7 @@
 title: Data for Account
 clientData:
   laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=data&endpoint=for_account
+replacement: https://developers.diamnet.org/api/resources/accounts/data/
 ---
 
 This endpoint represents a single [data](../resources/data.md) associated with a given [account](../resources/account.md).
@@ -27,8 +28,8 @@ curl "https://aurora-testnet.diamnet.org/accounts/GA2HGBJIJKI6O4XEM7CZWY5PS6GKSX
 ### JavaScript Example Request
 
 ```javascript
-var DiamNetSdk = require('diamnet-sdk');
-var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
+var DiamnetSdk = require('diamnet-sdk');
+var server = new DiamnetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.accounts()
   .accountId("GAKLBGHNHFQ3BMUYG5KU4BEWO6EYQHZHAXEWC33W34PH2RBHZDSQBD75")

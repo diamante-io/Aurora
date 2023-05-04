@@ -1,5 +1,6 @@
 ---
 title: Not Found
+replacement: https://developers.diamnet.org/api/errors/http-status-codes/standard/
 ---
 
 When Aurora can't find whatever data you are requesting, it will return a `not_found` error. This

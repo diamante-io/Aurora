@@ -16,10 +16,10 @@ import (
 func TestLookupByAddress(t *testing.T) {
 	hmock := httptest.NewClient()
 	tomlmock := &diamnettoml.MockClient{}
-	c := &Client{DiamNetTOML: tomlmock, HTTP: hmock}
+	c := &Client{DiamnetTOML: tomlmock, HTTP: hmock}
 
 	// happy path - string integer
-	tomlmock.On("GetDiamNetToml", "diamnet.org").Return(&diamnettoml.Response{
+	tomlmock.On("GetDiamnetToml", "diamnet.org").Return(&diamnettoml.Response{
 		FederationServer: "https://diamnet.org/federation",
 	}, nil)
 	hmock.On("GET", "https://diamnet.org/federation").
@@ -38,7 +38,7 @@ func TestLookupByAddress(t *testing.T) {
 	}
 
 	// happy path - integer
-	tomlmock.On("GetDiamNetToml", "diamnet.org").Return(&diamnettoml.Response{
+	tomlmock.On("GetDiamnetToml", "diamnet.org").Return(&diamnettoml.Response{
 		FederationServer: "https://diamnet.org/federation",
 	}, nil)
 	hmock.On("GET", "https://diamnet.org/federation").
@@ -57,7 +57,7 @@ func TestLookupByAddress(t *testing.T) {
 	}
 
 	// happy path - string
-	tomlmock.On("GetDiamNetToml", "diamnet.org").Return(&diamnettoml.Response{
+	tomlmock.On("GetDiamnetToml", "diamnet.org").Return(&diamnettoml.Response{
 		FederationServer: "https://diamnet.org/federation",
 	}, nil)
 	hmock.On("GET", "https://diamnet.org/federation").
@@ -76,7 +76,7 @@ func TestLookupByAddress(t *testing.T) {
 	}
 
 	// response exceeds limit
-	tomlmock.On("GetDiamNetToml", "toobig.org").Return(&diamnettoml.Response{
+	tomlmock.On("GetDiamnetToml", "toobig.org").Return(&diamnettoml.Response{
 		FederationServer: "https://toobig.org/federation",
 	}, nil)
 	hmock.On("GET", "https://toobig.org/federation").
@@ -92,7 +92,7 @@ func TestLookupByAddress(t *testing.T) {
 	}
 
 	// failed toml resolution
-	tomlmock.On("GetDiamNetToml", "missing.org").Return(
+	tomlmock.On("GetDiamnetToml", "missing.org").Return(
 		(*diamnettoml.Response)(nil),
 		errors.New("toml failed"),
 	)
@@ -102,7 +102,7 @@ func TestLookupByAddress(t *testing.T) {
 	}
 
 	// 404 federation response
-	tomlmock.On("GetDiamNetToml", "404.org").Return(&diamnettoml.Response{
+	tomlmock.On("GetDiamnetToml", "404.org").Return(&diamnettoml.Response{
 		FederationServer: "https://404.org/federation",
 	}, nil)
 	hmock.On("GET", "https://404.org/federation").ReturnNotFound()
@@ -112,7 +112,7 @@ func TestLookupByAddress(t *testing.T) {
 	}
 
 	// connection error on federation response
-	tomlmock.On("GetDiamNetToml", "error.org").Return(&diamnettoml.Response{
+	tomlmock.On("GetDiamnetToml", "error.org").Return(&diamnettoml.Response{
 		FederationServer: "https://error.org/federation",
 	}, nil)
 	hmock.On("GET", "https://error.org/federation").ReturnError("kaboom!")
@@ -138,10 +138,10 @@ func TestLookupByID(t *testing.T) {
 func TestForwardRequest(t *testing.T) {
 	hmock := httptest.NewClient()
 	tomlmock := &diamnettoml.MockClient{}
-	c := &Client{DiamNetTOML: tomlmock, HTTP: hmock}
+	c := &Client{DiamnetTOML: tomlmock, HTTP: hmock}
 
 	// happy path - string integer
-	tomlmock.On("GetDiamNetToml", "diamnet.org").Return(&diamnettoml.Response{
+	tomlmock.On("GetDiamnetToml", "diamnet.org").Return(&diamnettoml.Response{
 		FederationServer: "https://diamnet.org/federation",
 	}, nil)
 	hmock.On("GET", "https://diamnet.org/federation").

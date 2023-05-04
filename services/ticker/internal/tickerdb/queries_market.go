@@ -1,20 +1,21 @@
 package tickerdb
 
 import (
+	"context"
 	"fmt"
 	"strings"
 )
 
 // RetrieveMarketData retrieves the 24h- and 7d aggregated market data for all
 // markets that were active during this period.
-func (s *TickerSession) RetrieveMarketData() (markets []Market, err error) {
-	err = s.SelectRaw(&markets, marketQuery)
+func (s *TickerSession) RetrieveMarketData(ctx context.Context) (markets []Market, err error) {
+	err = s.SelectRaw(ctx, &markets, marketQuery)
 	return
 }
 
 // RetrievePartialAggMarkets retrieves the aggregated market data for all
 // markets (or for a specific one if PairName != nil) for a given period.
-func (s *TickerSession) RetrievePartialAggMarkets(
+func (s *TickerSession) RetrievePartialAggMarkets(ctx context.Context,
 	pairName *string,
 	numHoursAgo int,
 ) (partialMkts []PartialMarket, err error) {
@@ -51,14 +52,14 @@ func (s *TickerSession) RetrievePartialAggMarkets(
 		argsInterface[i] = v
 	}
 
-	err = s.SelectRaw(&partialMkts, q, argsInterface...)
+	err = s.SelectRaw(ctx, &partialMkts, q, argsInterface...)
 	return
 }
 
 // RetrievePartialMarkets retrieves data in the PartialMarket format from the database.
 // It optionally filters the data according to the provided base and counter asset params
 // provided, as well as the numHoursAgo time offset.
-func (s *TickerSession) RetrievePartialMarkets(
+func (s *TickerSession) RetrievePartialMarkets(ctx context.Context,
 	baseAssetCode *string,
 	baseAssetIssuer *string,
 	counterAssetCode *string,
@@ -88,13 +89,13 @@ func (s *TickerSession) RetrievePartialMarkets(
 	for i, v := range args {
 		argsInterface[i] = v
 	}
-	err = s.SelectRaw(&partialMkts, q, argsInterface...)
+	err = s.SelectRaw(ctx, &partialMkts, q, argsInterface...)
 	return
 }
 
 // Retrieve7DRelevantMarkets retrieves the base and counter asset data of the markets
 // that were relevant in the last 7-day period.
-func (s *TickerSession) Retrieve7DRelevantMarkets() (partialMkts []PartialMarket, err error) {
+func (s *TickerSession) Retrieve7DRelevantMarkets(ctx context.Context) (partialMkts []PartialMarket, err error) {
 	q := `
 	SELECT
 		ba.id as base_asset_id, ba.type AS base_asset_type, ba.code AS base_asset_code, ba.issuer_account AS base_asset_issuer,
@@ -105,7 +106,7 @@ func (s *TickerSession) Retrieve7DRelevantMarkets() (partialMkts []PartialMarket
 	WHERE ba.is_valid = TRUE AND ca.is_valid = TRUE AND t.ledger_close_time > now() - interval '7 days'
 	GROUP BY ba.id, ba.type, ba.code, ba.issuer_account, ca.id, ca.type, ca.code, ca.issuer_account
 	`
-	err = s.SelectRaw(&partialMkts, q)
+	err = s.SelectRaw(ctx, &partialMkts, q)
 	return
 }
 

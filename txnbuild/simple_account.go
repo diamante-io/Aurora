@@ -1,9 +1,5 @@
 package txnbuild
 
-import (
-	"github.com/diamnet/go/xdr"
-)
-
 // SimpleAccount is a minimal implementation of an Account.
 type SimpleAccount struct {
 	AccountID string
@@ -17,14 +13,14 @@ func (sa *SimpleAccount) GetAccountID() string {
 
 // IncrementSequenceNumber increments the internal record of the
 // account's sequence number by 1.
-func (sa *SimpleAccount) IncrementSequenceNumber() (xdr.SequenceNumber, error) {
+func (sa *SimpleAccount) IncrementSequenceNumber() (int64, error) {
 	sa.Sequence++
-	return sa.GetSequenceNumber()
+	return sa.Sequence, nil
 }
 
 // GetSequenceNumber returns the sequence number of the account.
-func (sa *SimpleAccount) GetSequenceNumber() (xdr.SequenceNumber, error) {
-	return xdr.SequenceNumber(sa.Sequence), nil
+func (sa *SimpleAccount) GetSequenceNumber() (int64, error) {
+	return sa.Sequence, nil
 }
 
 // NewSimpleAccount is a factory method that creates a SimpleAccount from "accountID" and "sequence".

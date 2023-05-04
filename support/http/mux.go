@@ -4,19 +4,17 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/rs/cors"
+	"github.com/diamnet/go/support/log"
 )
 
 // NewMux returns a new server mux configured with the common defaults used across all
 // diamnet services.
-func NewMux(behindProxy bool) *chi.Mux {
+func NewMux(l *log.Entry) *chi.Mux {
 	mux := chi.NewMux()
-
-	if behindProxy {
-		mux.Use(middleware.RealIP)
-	}
 
 	mux.Use(middleware.RequestID)
 	mux.Use(middleware.Recoverer)
+	mux.Use(SetLoggerMiddleware(l))
 	mux.Use(LoggingMiddleware)
 
 	return mux
@@ -24,8 +22,8 @@ func NewMux(behindProxy bool) *chi.Mux {
 
 // NewAPIMux returns a new server mux configured with the common defaults used for a web API in
 // diamnet.
-func NewAPIMux(behindProxy bool) *chi.Mux {
-	mux := NewMux(behindProxy)
+func NewAPIMux(l *log.Entry) *chi.Mux {
+	mux := NewMux(l)
 
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{"*"},

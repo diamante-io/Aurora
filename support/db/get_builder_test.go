@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"testing"
 
 	"github.com/diamnet/go/support/db/dbtest"
@@ -16,7 +17,7 @@ func TestGetBuilder_Exec(t *testing.T) {
 	var found person
 
 	tbl := sess.GetTable("people")
-	err := tbl.Get(&found, "name = ?", "scott").Exec()
+	err := tbl.Get(&found, "name = ?", "scott").Exec(context.Background())
 
 	if assert.NoError(t, err, "query error") {
 		assert.Equal(t, "scott", found.Name)

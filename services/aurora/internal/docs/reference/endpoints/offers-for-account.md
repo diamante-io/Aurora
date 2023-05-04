@@ -2,13 +2,14 @@
 title: Offers for Account
 clientData:
   laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=offers&endpoint=for_account
+replacement: https://developers.diamnet.org/api/resources/accounts/offers/
 ---
 
-People on the DiamNet network can make [offers](../resources/offer.md) to buy or sell assets. This
+People on the Diamnet network can make [offers](../resources/offer.md) to buy or sell assets. This
 endpoint represents all the offers a particular account makes.
 
 This endpoint can also be used in [streaming](../streaming.md) mode so it is possible to use it to
-listen as offers are processed in the DiamNet network. If called in streaming mode Aurora will
+listen as offers are processed in the Diamnet network. If called in streaming mode Aurora will
 start at the earliest known offer unless a `cursor` is set. In that case it will start from the
 `cursor`. You can also set `cursor` value to `now` to only stream offers created since your request
 time.
@@ -37,8 +38,8 @@ curl "https://aurora-testnet.diamnet.org/accounts/GBYUUJHG6F4EPJGNLERINATVQLNDOF
 ### JavaScript Example Request
 
 ```javascript
-var DiamNetSdk = require('diamnet-sdk');
-var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
+var DiamnetSdk = require('diamnet-sdk');
+var server = new DiamnetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.offers('accounts', 'GBYUUJHG6F4EPJGNLERINATVQLNDOFRUD7SGJZ26YZLG5PAYLG7XUSGF')
   .call()
@@ -53,8 +54,8 @@ server.offers('accounts', 'GBYUUJHG6F4EPJGNLERINATVQLNDOFRUD7SGJZ26YZLG5PAYLG7XU
 ### JavaScript Streaming Example
 
 ```javascript
-var DiamNetSdk = require('diamnet-sdk')
-var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
+var DiamnetSdk = require('diamnet-sdk')
+var server = new DiamnetSdk.Server('https://aurora-testnet.diamnet.org');
 
 var offerHandler = function (offerResponse) {
   console.log(offerResponse);
@@ -100,7 +101,7 @@ The list of offers.
             "href": "https://aurora-testnet.diamnet.org/accounts/GBYUUJHG6F4EPJGNLERINATVQLNDOFRUD7SGJZ26YZLG5PAYLG7XUSGF"
           }
         },
-        "id": 5443256,
+        "id": "5443256",
         "paging_token": "5443256",
         "seller": "GBYUUJHG6F4EPJGNLERINATVQLNDOFRUD7SGJZ26YZLG5PAYLG7XUSGF",
         "selling": {
@@ -127,4 +128,4 @@ The list of offers.
 
 ## Possible Errors
 
-- The [standard errors](../errors.md#Standard_Errors).
+- The [standard errors](../errors.md#standard-errors).

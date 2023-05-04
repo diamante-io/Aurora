@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"net/url"
 
 	"github.com/diamnet/go/protocols/aurora/operations"
@@ -13,7 +14,7 @@ import (
 // BuildURL creates the endpoint to be queried based on the data in the OperationRequest struct.
 // If no data is set, it defaults to the build the URL for all operations or all payments; depending on thevalue of `op.endpoint`
 func (op OperationRequest) BuildURL() (endpoint string, err error) {
-	nParams := countParams(op.ForAccount, op.ForLedger, op.forOperationID, op.ForTransaction)
+	nParams := countParams(op.ForAccount, op.ForLedger, op.ForLiquidityPool, op.forOperationID, op.ForTransaction)
 
 	if nParams > 1 {
 		return endpoint, errors.New("invalid request: too many parameters")
@@ -27,8 +28,14 @@ func (op OperationRequest) BuildURL() (endpoint string, err error) {
 	if op.ForAccount != "" {
 		endpoint = fmt.Sprintf("accounts/%s/%s", op.ForAccount, op.endpoint)
 	}
+	if op.ForClaimableBalance != "" {
+		endpoint = fmt.Sprintf("claimable_balances/%s/%s", op.ForClaimableBalance, op.endpoint)
+	}
 	if op.ForLedger > 0 {
 		endpoint = fmt.Sprintf("ledgers/%d/%s", op.ForLedger, op.endpoint)
+	}
+	if op.ForLiquidityPool != "" {
+		endpoint = fmt.Sprintf("liquidity_pools/%s/%s", op.ForLiquidityPool, op.endpoint)
 	}
 	if op.forOperationID != "" {
 		endpoint = fmt.Sprintf("operations/%s", op.forOperationID)
@@ -38,7 +45,7 @@ func (op OperationRequest) BuildURL() (endpoint string, err error) {
 	}
 
 	queryParams := addQueryParams(cursor(op.Cursor), limit(op.Limit), op.Order,
-		includeFailed(op.IncludeFailed))
+		includeFailed(op.IncludeFailed), join(op.Join))
 	if queryParams != "" {
 		endpoint = fmt.Sprintf("%s?%s", endpoint, queryParams)
 	}
@@ -49,6 +56,16 @@ func (op OperationRequest) BuildURL() (endpoint string, err error) {
 	}
 
 	return endpoint, err
+}
+
+// HTTPRequest returns the http request for the operations endpoint
+func (op OperationRequest) HTTPRequest(auroraURL string) (*http.Request, error) {
+	endpoint, err := op.BuildURL()
+	if err != nil {
+		return nil, err
+	}
+
+	return http.NewRequest("GET", auroraURL+endpoint, nil)
 }
 
 // setEndpoint sets the endpoint for the OperationRequest
@@ -78,7 +95,7 @@ type OperationHandler func(operations.Operation)
 // StreamOperations streams diamnet operations. It can be used to stream all operations or operations
 // for and account. Use context.WithCancel to stop streaming or context.Background() if you want to
 // stream indefinitely. OperationHandler is a user-supplied function that is executed for each streamed
-//  operation received.
+// operation received.
 func (op OperationRequest) StreamOperations(ctx context.Context, client *Client, handler OperationHandler) error {
 	endpoint, err := op.BuildURL()
 	if err != nil {

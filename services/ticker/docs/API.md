@@ -9,6 +9,14 @@ Assets from different issuers but with the same code are aggregated, so trades b
 
 are aggregated in the `XLM_BTC` pair.
 
+### Trade Pairs
+
+Trade pairs are ordered `<Counter>_<Base>`.
+
+Example:
+
+The pair `XLM_ZZZ` has the `XLM` as the counter currency and `ZZZ` as the base. For that pair if the API returns a `close` value of `2`, then the last trade for the pair was `2 XLM` exchanged for `1 ZZZ`.
+
 ### Response Fields
 
 * `generated_at`: UNIX timestamp of when data was generated
@@ -110,13 +118,13 @@ GET `https://ticker.diamnet.org/markets.json`
 }
 ```
 ## Asset (Currency) Data
-Lists all the valid assets within the DiamNet network. The provided fields are based on the [Currency Documentation of SEP-0001](https://github.com/diamnet/diamnet-protocol/blob/master/ecosystem/sep-0001.md#currency-documentation) and the [Asset fields from Aurora](https://www.diamnet.org/developers/aurora/reference/resources/asset.html).
+Lists all the valid assets within the Diamnet network. The provided fields are based on the [Currency Documentation of SEP-0001](https://github.com/diamnet/diamnet-protocol/blob/master/ecosystem/sep-0001.md#currency-documentation) and the [Asset fields from Aurora](https://developers.diamnet.org/api/resources/assets/).
 ### Response Fields
 
 * `generated_at`: UNIX timestamp of when data was generated
 * `generated_at_rfc3339 `: RFC 3339 formatted string of when data was generated
 * `code`: code of the asset
-* `issuer`: token issuer DiamNet public key
+* `issuer`: token issuer Diamnet public key
 * `type`: type of the asset (e.g. `native` or `credit_alphanum4`)
 * `num_accounts`: the number of accounts that: 1) trust this asset and 2) where if the asset has the auth_required flag then the account is authorized to hold the asset.
 * `auth_required`: an anchor must approve anyone who wants to hold its asset
@@ -226,7 +234,7 @@ Apart from the orderbook data provided by `markets.json`, orderbook data can be 
 The `type`, `code` and `issuer` parameters for any given asset can be found in the Ticker's `assets.json` endpoint described in the previous section.
 
 
-Full documentation on Aurora's Orderbook endpoint can be found [here](https://www.diamnet.org/developers/aurora/reference/endpoints/orderbook-details.html).
+Full documentation on Aurora's Orderbook endpoint can be found [here](https://developers.diamnet.org/api/aggregations/order-books/).
 
 ### Example
 #### Endpoint

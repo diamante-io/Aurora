@@ -1,6 +1,7 @@
 package toid
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -92,6 +93,30 @@ func AfterLedger(seq int32) *ID {
 	return New(seq, TransactionMask, OperationMask)
 }
 
+// LedgerRangeInclusive returns inclusive range representation between two
+// ledgers inclusive. The second value points at the to+1 ledger so when using
+// this value make sure < order is used.
+func LedgerRangeInclusive(from, to int32) (int64, int64, error) {
+	if from > to {
+		return 0, 0, errors.New("Invalid range: from > to")
+	}
+
+	if from <= 0 || to <= 0 {
+		return 0, 0, errors.New("Invalid range: from or to negative")
+	}
+
+	var toidFrom, toidTo int64
+	if from == 1 {
+		toidFrom = 0
+	} else {
+		toidFrom = New(from, 0, 0).ToInt64()
+	}
+
+	toidTo = New(to+1, 0, 0).ToInt64()
+
+	return toidFrom, toidTo, nil
+}
+
 // IncOperationOrder increments the operation order, rolling over to the next
 // ledger if overflow occurs.  This allows queries to easily advance a cursor to
 // the next operation.
@@ -114,7 +139,7 @@ func New(ledger int32, tx int32, op int32) *ID {
 }
 
 // ToInt64 converts this struct back into an int64
-func (id *ID) ToInt64() (result int64) {
+func (id ID) ToInt64() (result int64) {
 
 	if id.LedgerSequence < 0 {
 		panic("invalid ledger sequence")
@@ -135,7 +160,7 @@ func (id *ID) ToInt64() (result int64) {
 }
 
 // String returns a string representation of this id
-func (id *ID) String() string {
+func (id ID) String() string {
 	return fmt.Sprintf("%d", id.ToInt64())
 }
 

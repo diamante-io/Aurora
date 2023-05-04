@@ -1,14 +1,15 @@
 package db
 
 import (
+	"context"
 	"github.com/diamnet/go/support/errors"
 )
 
 // Exec executes the query represented by the builder, populating the
 // destination with the results returned by running the query against the
 // current database session.
-func (sb *SelectBuilder) Exec() error {
-	err := sb.Table.Session.Select(sb.dest, sb.sql)
+func (sb *SelectBuilder) Exec(ctx context.Context) error {
+	err := sb.Table.Session.Select(ctx, sb.dest, sb.sql)
 	if err != nil {
 		return errors.Wrap(err, "select failed")
 	}

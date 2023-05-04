@@ -10,8 +10,8 @@ import (
 	"github.com/diamnet/go/support/errors"
 )
 
-// GetDiamNetToml returns diamnet.toml file for a given domain
-func (c *Client) GetDiamNetToml(domain string) (resp *Response, err error) {
+// GetDiamnetToml returns diamnet.toml file for a given domain
+func (c *Client) GetDiamnetToml(domain string) (resp *Response, err error) {
 	var hresp *http.Response
 	hresp, err = c.HTTP.Get(c.url(domain))
 	if err != nil {
@@ -25,14 +25,14 @@ func (c *Client) GetDiamNetToml(domain string) (resp *Response, err error) {
 		return
 	}
 
-	limitReader := io.LimitReader(hresp.Body, DiamNetTomlMaxSize)
+	limitReader := io.LimitReader(hresp.Body, DiamnetTomlMaxSize)
 	_, err = toml.DecodeReader(limitReader, &resp)
 
 	// There is one corner case not handled here: response is exactly
-	// DiamNetTomlMaxSize long and is incorrect toml. Check discussion:
+	// DiamnetTomlMaxSize long and is incorrect toml. Check discussion:
 	// https://github.com/diamnet/go/pull/24#discussion_r89909696
 	if err != nil && limitReader.(*io.LimitedReader).N == 0 {
-		err = errors.Errorf("diamnet.toml response exceeds %d bytes limit", DiamNetTomlMaxSize)
+		err = errors.Errorf("diamnet.toml response exceeds %d bytes limit", DiamnetTomlMaxSize)
 		return
 	}
 
@@ -44,15 +44,15 @@ func (c *Client) GetDiamNetToml(domain string) (resp *Response, err error) {
 	return
 }
 
-// GetDiamNetTomlByAddress returns diamnet.toml file of a domain fetched from a
+// GetDiamnetTomlByAddress returns diamnet.toml file of a domain fetched from a
 // given address
-func (c *Client) GetDiamNetTomlByAddress(addy string) (*Response, error) {
-	_, domain, err := address.Split(addy)
+func (c *Client) GetDiamnetTomlByAddress(addr string) (*Response, error) {
+	_, domain, err := address.Split(addr)
 	if err != nil {
 		return nil, errors.Wrap(err, "parse address failed")
 	}
 
-	return c.GetDiamNetToml(domain)
+	return c.GetDiamnetToml(domain)
 }
 
 // url returns the appropriate url to load for resolving domain's diamnet.toml

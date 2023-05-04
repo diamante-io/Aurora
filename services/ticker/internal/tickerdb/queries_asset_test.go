@@ -1,6 +1,7 @@
 package tickerdb
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -17,6 +18,7 @@ func TestInsertOrUpdateAsset(t *testing.T) {
 
 	var session TickerSession
 	session.DB = db.Open()
+	ctx := context.Background()
 	defer session.DB.Close()
 
 	// Run migrations to make sure the tests are run
@@ -38,10 +40,10 @@ func TestInsertOrUpdateAsset(t *testing.T) {
 		Name:      name,
 	}
 	tbl := session.GetTable("issuers")
-	_, err = tbl.Insert(issuer).IgnoreCols("id").Exec()
+	_, err = tbl.Insert(issuer).IgnoreCols("id").Exec(ctx)
 	require.NoError(t, err)
 	var dbIssuer Issuer
-	err = session.GetRaw(&dbIssuer, `
+	err = session.GetRaw(ctx, &dbIssuer, `
 		SELECT *
 		FROM issuers
 		ORDER BY id DESC
@@ -51,6 +53,7 @@ func TestInsertOrUpdateAsset(t *testing.T) {
 
 	// Creating first asset:
 	firstTime := time.Now()
+	t.Log("firstTime:", firstTime)
 	a := Asset{
 		Code:          code,
 		IssuerAccount: issuerAccount,
@@ -58,11 +61,11 @@ func TestInsertOrUpdateAsset(t *testing.T) {
 		LastValid:     firstTime,
 		LastChecked:   firstTime,
 	}
-	err = session.InsertOrUpdateAsset(&a, []string{"code", "issuer_account", "issuer_id"})
+	err = session.InsertOrUpdateAsset(ctx, &a, []string{"code", "issuer_account", "issuer_id"})
 	require.NoError(t, err)
 
 	var dbAsset1 Asset
-	err = session.GetRaw(&dbAsset1, `
+	err = session.GetRaw(ctx, &dbAsset1, `
 		SELECT *
 		FROM assets
 		ORDER BY id DESC
@@ -75,24 +78,25 @@ func TestInsertOrUpdateAsset(t *testing.T) {
 	assert.Equal(t, dbIssuer.ID, dbAsset1.IssuerID)
 	assert.Equal(
 		t,
-		firstTime.Local().Truncate(time.Millisecond),
-		dbAsset1.LastValid.Local().Truncate(time.Millisecond),
+		firstTime.Local().Round(time.Millisecond),
+		dbAsset1.LastValid.Local().Round(time.Millisecond),
 	)
 	assert.Equal(
 		t,
-		firstTime.Local().Truncate(time.Millisecond),
-		dbAsset1.LastChecked.Local().Truncate(time.Millisecond),
+		firstTime.Local().Round(time.Millisecond),
+		dbAsset1.LastChecked.Local().Round(time.Millisecond),
 	)
 
 	// Creating Seconde Asset:
 	secondTime := time.Now()
+	t.Log("secondTime:", secondTime)
 	a.LastValid = secondTime
 	a.LastChecked = secondTime
-	err = session.InsertOrUpdateAsset(&a, []string{"code", "issuer_account", "issuer_id"})
+	err = session.InsertOrUpdateAsset(ctx, &a, []string{"code", "issuer_account", "issuer_id"})
 	require.NoError(t, err)
 
 	var dbAsset2 Asset
-	err = session.GetRaw(&dbAsset2, `
+	err = session.GetRaw(ctx, &dbAsset2, `
 		SELECT *
 		FROM assets
 		ORDER BY id DESC
@@ -109,23 +113,24 @@ func TestInsertOrUpdateAsset(t *testing.T) {
 	assert.True(t, dbAsset2.LastChecked.After(firstTime))
 	assert.Equal(
 		t,
-		secondTime.Local().Truncate(time.Millisecond),
-		dbAsset2.LastValid.Local().Truncate(time.Millisecond),
+		secondTime.Local().Round(time.Millisecond),
+		dbAsset2.LastValid.Local().Round(time.Millisecond),
 	)
 	assert.Equal(
 		t,
-		secondTime.Local().Truncate(time.Millisecond),
-		dbAsset2.LastChecked.Local().Truncate(time.Millisecond),
+		secondTime.Local().Round(time.Millisecond),
+		dbAsset2.LastChecked.Local().Round(time.Millisecond),
 	)
 
 	// Creating Third Asset:
 	thirdTime := time.Now()
+	t.Log("thirdTime:", thirdTime)
 	a.LastValid = thirdTime
 	a.LastChecked = thirdTime
-	err = session.InsertOrUpdateAsset(&a, []string{"code", "issuer_id", "last_valid", "last_checked", "issuer_account"})
+	err = session.InsertOrUpdateAsset(ctx, &a, []string{"code", "issuer_id", "last_valid", "last_checked", "issuer_account"})
 	require.NoError(t, err)
 	var dbAsset3 Asset
-	err = session.GetRaw(&dbAsset3, `
+	err = session.GetRaw(ctx, &dbAsset3, `
 		SELECT *
 		FROM assets
 		ORDER BY id DESC
@@ -142,12 +147,12 @@ func TestInsertOrUpdateAsset(t *testing.T) {
 	assert.True(t, dbAsset3.LastChecked.Before(thirdTime))
 	assert.Equal(
 		t,
-		dbAsset2.LastValid.Local().Truncate(time.Millisecond),
-		dbAsset3.LastValid.Local().Truncate(time.Millisecond),
+		dbAsset2.LastValid.Local().Round(time.Millisecond),
+		dbAsset3.LastValid.Local().Round(time.Millisecond),
 	)
 	assert.Equal(
-		t, dbAsset2.LastValid.Local().Truncate(time.Millisecond),
-		dbAsset3.LastChecked.Local().Truncate(time.Millisecond),
+		t, dbAsset2.LastValid.Local().Round(time.Millisecond),
+		dbAsset3.LastChecked.Local().Round(time.Millisecond),
 	)
 }
 
@@ -157,6 +162,7 @@ func TestGetAssetByCodeAndIssuerAccount(t *testing.T) {
 
 	var session TickerSession
 	session.DB = db.Open()
+	ctx := context.Background()
 	defer session.DB.Close()
 
 	// Run migrations to make sure the tests are run
@@ -178,10 +184,10 @@ func TestGetAssetByCodeAndIssuerAccount(t *testing.T) {
 		Name:      name,
 	}
 	tbl := session.GetTable("issuers")
-	_, err = tbl.Insert(issuer).IgnoreCols("id").Exec()
+	_, err = tbl.Insert(issuer).IgnoreCols("id").Exec(ctx)
 	require.NoError(t, err)
 	var dbIssuer Issuer
-	err = session.GetRaw(&dbIssuer, `
+	err = session.GetRaw(ctx, &dbIssuer, `
 		SELECT *
 		FROM issuers
 		ORDER BY id DESC
@@ -198,11 +204,11 @@ func TestGetAssetByCodeAndIssuerAccount(t *testing.T) {
 		LastValid:     firstTime,
 		LastChecked:   firstTime,
 	}
-	err = session.InsertOrUpdateAsset(&a, []string{"code", "issuer_account", "issuer_id"})
+	err = session.InsertOrUpdateAsset(ctx, &a, []string{"code", "issuer_account", "issuer_id"})
 	require.NoError(t, err)
 
 	var dbAsset Asset
-	err = session.GetRaw(&dbAsset, `
+	err = session.GetRaw(ctx, &dbAsset, `
 		SELECT *
 		FROM assets
 		ORDER BY id DESC
@@ -211,13 +217,13 @@ func TestGetAssetByCodeAndIssuerAccount(t *testing.T) {
 	require.NoError(t, err)
 
 	// Searching for an asset that exists:
-	found, id, err := session.GetAssetByCodeAndIssuerAccount(code, issuerAccount)
+	found, id, err := session.GetAssetByCodeAndIssuerAccount(ctx, code, issuerAccount)
 	require.NoError(t, err)
 	assert.Equal(t, dbAsset.ID, id)
 	assert.True(t, found)
 
 	// Now searching for an asset that does not exist:
-	found, _, err = session.GetAssetByCodeAndIssuerAccount(
+	found, _, err = session.GetAssetByCodeAndIssuerAccount(ctx,
 		"NONEXISTENT CODE",
 		issuerAccount,
 	)

@@ -63,13 +63,13 @@ func decode(content string, dest interface{}) error {
 
 func init() {
 	govalidator.SetFieldsRequiredByDefault(true)
-	govalidator.CustomTypeTagMap.Set("diamnet_accountid", govalidator.CustomTypeValidator(isDiamNetAccountID))
-	govalidator.CustomTypeTagMap.Set("diamnet_seed", govalidator.CustomTypeValidator(isDiamNetSeed))
-	govalidator.CustomTypeTagMap.Set("diamnet_amount", govalidator.CustomTypeValidator(isDiamNetAmount))
+	govalidator.CustomTypeTagMap.Set("diamnet_accountid", govalidator.CustomTypeValidator(isDiamnetAccountID))
+	govalidator.CustomTypeTagMap.Set("diamnet_seed", govalidator.CustomTypeValidator(isDiamnetSeed))
+	govalidator.CustomTypeTagMap.Set("diamnet_amount", govalidator.CustomTypeValidator(isDiamnetAmount))
 
 }
 
-func isDiamNetAmount(i interface{}, context interface{}) bool {
+func isDiamnetAmount(i interface{}, context interface{}) bool {
 	enc, ok := i.(string)
 
 	if !ok {
@@ -81,7 +81,7 @@ func isDiamNetAmount(i interface{}, context interface{}) bool {
 	return err == nil
 }
 
-func isDiamNetAccountID(i interface{}, context interface{}) bool {
+func isDiamnetAccountID(i interface{}, context interface{}) bool {
 	enc, ok := i.(string)
 
 	if !ok {
@@ -93,7 +93,7 @@ func isDiamNetAccountID(i interface{}, context interface{}) bool {
 	return err == nil
 }
 
-func isDiamNetSeed(i interface{}, context interface{}) bool {
+func isDiamnetSeed(i interface{}, context interface{}) bool {
 	enc, ok := i.(string)
 
 	if !ok {

@@ -19,7 +19,7 @@ import (
 type Config struct {
 	Port     int `valid:"required"`
 	Database struct {
-		Type string `valid:"matches(^mysql|sqlite3|postgres$)"`
+		Type string `valid:"matches(^sqlite3|postgres$)"`
 		DSN  string `valid:"required"`
 	} `valid:"required"`
 	Queries struct {
@@ -89,7 +89,7 @@ func initDriver(cfg Config) (federation.Driver, error) {
 
 	switch cfg.Database.Type {
 	case "mysql":
-		dialect = "mysql"
+		return nil, errors.Errorf("Invalid db type: %s, mysql support is discontinued", cfg.Database.Type)
 	case "postgres":
 		dialect = "postgres"
 	case "sqlite3":
@@ -126,7 +126,7 @@ func initDriver(cfg Config) (federation.Driver, error) {
 }
 
 func initMux(driver federation.Driver) *chi.Mux {
-	mux := http.NewAPIMux(false)
+	mux := http.NewAPIMux(log.DefaultLogger)
 
 	fed := &federation.Handler{
 		Driver: driver,

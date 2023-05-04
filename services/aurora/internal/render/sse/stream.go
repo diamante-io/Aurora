@@ -2,7 +2,6 @@ package sse
 
 import (
 	"context"
-	"database/sql"
 	"net/http"
 	"sync"
 
@@ -16,14 +15,8 @@ var (
 	errBadStream = errors.New("Unexpected stream error")
 
 	// known errors
-	errNoObject    = errors.New("Object not found")
 	ErrRateLimited = errors.New("Rate limit exceeded")
 )
-
-var knownErrors = map[error]struct{}{
-	sql.ErrNoRows:  struct{}{},
-	ErrRateLimited: struct{}{},
-}
 
 type Stream struct {
 	ctx      context.Context
@@ -63,12 +56,6 @@ func (s *Stream) Send(e Event) {
 	s.sent++
 }
 
-func (s *Stream) SentCount() int {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	return s.sent
-}
-
 func (s *Stream) SetLimit(limit int) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -83,23 +70,6 @@ func (s *Stream) Done() {
 	s.done = true
 }
 
-// isDone checks to see if the stream is done. Not safe to call concurrently
-// and meant for internal use.
-func (s *Stream) isDone() bool {
-	if s.limit == 0 {
-		return s.done
-	}
-
-	return s.done || s.sent >= s.limit
-}
-
-// IsDone is safe to call concurrently and is exported.
-func (s *Stream) IsDone() bool {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	return s.isDone()
-}
-
 func (s *Stream) Err(err error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -111,15 +81,10 @@ func (s *Stream) Err(err error) {
 		return
 	}
 
-	rootErr := errors.Cause(err)
-	if rootErr == sql.ErrNoRows {
-		//TODO: return errNoObject directly in SSE() methods.
-		err = errNoObject
-	}
-
-	_, ok := knownErrors[rootErr]
-	if !ok {
-		log.Ctx(s.ctx).Error(err)
+	if knownErr := problem.IsKnownError(err); knownErr != nil {
+		err = knownErr
+	} else {
+		log.Ctx(s.ctx).WithStack(err).Error(err)
 		err = errBadStream
 	}
 

@@ -1,7 +1,7 @@
 package hal
 
 import (
-	"regexp"
+	"strings"
 )
 
 type Link struct {
@@ -10,11 +10,7 @@ type Link struct {
 }
 
 func (l *Link) PopulateTemplated() {
-	var err error
-	l.Templated, err = regexp.Match("{.*}", []byte(l.Href))
-	if err != nil {
-		panic(err)
-	}
+	l.Templated = strings.Contains(l.Href, "{")
 }
 
 func NewLink(href string) Link {

@@ -1,6 +1,8 @@
 package simplepath
 
 import (
+	"context"
+
 	"github.com/go-errors/errors"
 	"github.com/diamnet/go/exp/orderbook"
 	"github.com/diamnet/go/services/aurora/internal/paths"
@@ -19,39 +21,44 @@ var (
 )
 
 // InMemoryFinder is an implementation of the path finding interface
-// using the experimental in memory orderbook
+// using the in memory orderbook
 type InMemoryFinder struct {
-	graph *orderbook.OrderBookGraph
+	graph        *orderbook.OrderBookGraph
+	includePools bool
 }
 
 // NewInMemoryFinder constructs a new InMemoryFinder instance
-func NewInMemoryFinder(graph *orderbook.OrderBookGraph) InMemoryFinder {
+func NewInMemoryFinder(graph *orderbook.OrderBookGraph, includePools bool) InMemoryFinder {
 	return InMemoryFinder{
-		graph: graph,
+		graph:        graph,
+		includePools: includePools,
 	}
 }
 
 // Find implements the path payments finder interface
-func (finder InMemoryFinder) Find(q paths.Query, maxLength uint) ([]paths.Path, error) {
+func (finder InMemoryFinder) Find(ctx context.Context, q paths.Query, maxLength uint) ([]paths.Path, uint32, error) {
 	if finder.graph.IsEmpty() {
-		return nil, ErrEmptyInMemoryOrderBook
+		return nil, 0, ErrEmptyInMemoryOrderBook
 	}
 
 	if maxLength == 0 {
 		maxLength = MaxInMemoryPathLength
 	}
 	if maxLength > MaxInMemoryPathLength {
-		return nil, errors.New("invalid value of maxLength")
+		return nil, 0, errors.New("invalid value of maxLength")
 	}
 
-	orderbookPaths, err := finder.graph.FindPaths(
+	orderbookPaths, lastLedger, err := finder.graph.FindPaths(
+		ctx,
 		int(maxLength),
 		q.DestinationAsset,
 		q.DestinationAmount,
 		q.SourceAccount,
 		q.SourceAssets,
 		q.SourceAssetBalances,
+		q.ValidateSourceBalance,
 		maxAssetsPerPath,
+		finder.includePools,
 	)
 	results := make([]paths.Path, len(orderbookPaths))
 	for i, path := range orderbookPaths {
@@ -63,7 +70,7 @@ func (finder InMemoryFinder) Find(q paths.Query, maxLength uint) ([]paths.Path, 
 			DestinationAmount: path.DestinationAmount,
 		}
 	}
-	return results, err
+	return results, lastLedger, err
 }
 
 // FindFixedPaths returns a list of payment paths where the source and destination
@@ -72,29 +79,31 @@ func (finder InMemoryFinder) Find(q paths.Query, maxLength uint) ([]paths.Path, 
 // `sourceAccountID` is optional. if `sourceAccountID` is provided then no offers
 // created by `sourceAccountID` will be considered when evaluating payment paths
 func (finder InMemoryFinder) FindFixedPaths(
-	sourceAccount *xdr.AccountId,
+	ctx context.Context,
 	sourceAsset xdr.Asset,
 	amountToSpend xdr.Int64,
-	destinationAsset xdr.Asset,
+	destinationAssets []xdr.Asset,
 	maxLength uint,
-) ([]paths.Path, error) {
+) ([]paths.Path, uint32, error) {
 	if finder.graph.IsEmpty() {
-		return nil, ErrEmptyInMemoryOrderBook
+		return nil, 0, ErrEmptyInMemoryOrderBook
 	}
 
 	if maxLength == 0 {
 		maxLength = MaxInMemoryPathLength
 	}
 	if maxLength > MaxInMemoryPathLength {
-		return nil, errors.New("invalid value of maxLength")
+		return nil, 0, errors.New("invalid value of maxLength")
 	}
 
-	orderbookPaths, err := finder.graph.FindFixedPaths(
+	orderbookPaths, lastLedger, err := finder.graph.FindFixedPaths(
+		ctx,
 		int(maxLength),
-		sourceAccount,
 		sourceAsset,
 		amountToSpend,
-		destinationAsset,
+		destinationAssets,
+		maxAssetsPerPath,
+		finder.includePools,
 	)
 	results := make([]paths.Path, len(orderbookPaths))
 	for i, path := range orderbookPaths {
@@ -106,5 +115,5 @@ func (finder InMemoryFinder) FindFixedPaths(
 			DestinationAmount: path.DestinationAmount,
 		}
 	}
-	return results, err
+	return results, lastLedger, err
 }

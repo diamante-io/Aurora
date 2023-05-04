@@ -25,7 +25,7 @@ func (tbl *Table) Get(
 	args ...interface{},
 ) *GetBuilder {
 
-	cols := columnsForStruct(dest)
+	cols := ColumnsForStruct(dest)
 	sql := sq.Select(cols...).From(tbl.Name).Where(pred, args...).Limit(1)
 
 	return &GetBuilder{
@@ -68,7 +68,7 @@ func (tbl *Table) Select(
 	args ...interface{},
 ) *SelectBuilder {
 
-	cols := columnsForStruct(dest)
+	cols := ColumnsForStruct(dest)
 	sql := sq.Select(cols...).From(tbl.Name).Where(pred, args...)
 
 	return &SelectBuilder{
@@ -78,20 +78,11 @@ func (tbl *Table) Select(
 	}
 }
 
-// Update returns a new query builder configured to update rows that match the
-// predicate with the values of the provided source struct.  See docs for
-// `UpdateBuildeExec` for more documentation.
-func (tbl *Table) Update(
-	source interface{},
-	pred interface{},
-	args ...interface{},
-) *UpdateBuilder {
-
-	sql := sq.Update(tbl.Name).Where(pred, args...)
-
+// Update returns a new query builder configured to update the table.
+// See docs for `UpdateBuilderExec` for more documentation.
+func (tbl *Table) Update() *UpdateBuilder {
 	return &UpdateBuilder{
-		Table:  tbl,
-		source: source,
-		sql:    sql,
+		Table: tbl,
+		sql:   sq.Update(tbl.Name),
 	}
 }

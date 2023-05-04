@@ -4,36 +4,52 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/diamnet/go/ingest/ledgerbackend"
+
 	"github.com/sirupsen/logrus"
-	"github.com/throttled/throttled"
+	"github.com/diamnet/throttled"
 )
 
 // Config is the configuration for aurora.  It gets populated by the
 // app's main function and is provided to NewApp.
 type Config struct {
-	DatabaseURL            string
-	DiamNetCoreDatabaseURL string
-	DiamNetCoreURL         string
-	HistoryArchiveURLs     []string
-	Port                   uint
+	DatabaseURL        string
+	RoDatabaseURL      string
+	HistoryArchiveURLs []string
+	Port               uint
+	AdminPort          uint
+
+	EnableCaptiveCoreIngestion  bool
+	UsingDefaultPubnetConfig    bool
+	CaptiveCoreBinaryPath       string
+	RemoteCaptiveCoreURL        string
+	CaptiveCoreConfigPath       string
+	CaptiveCoreTomlParams       ledgerbackend.CaptiveCoreTomlParams
+	CaptiveCoreToml             *ledgerbackend.CaptiveCoreToml
+	CaptiveCoreStoragePath      string
+	CaptiveCoreReuseStoragePath bool
+
+	DiamnetCoreDatabaseURL string
+	DiamnetCoreURL         string
 
 	// MaxDBConnections has a priority over all 4 values below.
 	MaxDBConnections            int
 	AuroraDBMaxOpenConnections int
 	AuroraDBMaxIdleConnections int
-	CoreDBMaxOpenConnections    int
-	CoreDBMaxIdleConnections    int
 
 	SSEUpdateFrequency time.Duration
 	ConnectionTimeout  time.Duration
 	RateQuota          *throttled.RateQuota
-	RateLimitRedisKey  string
-	RedisURL           string
 	FriendbotURL       *url.URL
 	LogLevel           logrus.Level
 	LogFile            string
+
 	// MaxPathLength is the maximum length of the path returned by `/paths` endpoint.
-	MaxPathLength     uint
+	MaxPathLength uint
+	// MaxAssetsPerPathRequest is the maximum number of assets considered for `/paths/strict-send` and `/paths/strict-recieve`
+	MaxAssetsPerPathRequest int
+	DisablePoolPathFinding  bool
+
 	NetworkPassphrase string
 	SentryDSN         string
 	LogglyToken       string
@@ -44,16 +60,6 @@ type Config struct {
 	TLSKey string
 	// Ingest toggles whether this aurora instance should run the data ingestion subsystem.
 	Ingest bool
-	// EnableExperimentalIngestion  a feature flag that enables the exprimental ingestion subsystem.
-	// If this flag is true then the following features in aurora will be available:
-	// * In-Memory path finding
-	// * Accounts for signers endpoint
-	EnableExperimentalIngestion bool
-	// IngestStateReaderTempSet defines where to store temporary objects during state
-	// ingestion. Possible options are `memory` and `postgres`.
-	IngestStateReaderTempSet string
-	// IngestFailedTransactions toggles whether to ingest failed transactions
-	IngestFailedTransactions bool
 	// CursorName is the cursor used for ingesting from diamnet-core.
 	// Setting multiple cursors in different Aurora instances allows multiple
 	// Auroras to ingest from the same diamnet-core instance without cursor
@@ -71,9 +77,22 @@ type Config struct {
 	// SkipCursorUpdate causes the ingestor to skip reporting the "last imported
 	// ledger" state to diamnet-core.
 	SkipCursorUpdate bool
-	// EnableAssetStats is a feature flag that determines whether to calculate
-	// asset stats during the ingestion and expose `/assets` endpoint.
-	// Enabling it has a negative impact on CPU when ingesting ledgers full of
-	// many different assets related operations.
-	EnableAssetStats bool
+	// IngestDisableStateVerification disables state verification
+	// `System.verifyState()` when set to `true`.
+	IngestDisableStateVerification bool
+	// IngestEnableExtendedLogLedgerStats enables extended ledger stats in
+	// logging.
+	IngestEnableExtendedLogLedgerStats bool
+	// ApplyMigrations will apply pending migrations to the aurora database
+	// before starting the aurora service
+	ApplyMigrations bool
+	// CheckpointFrequency establishes how many ledgers exist between checkpoints
+	CheckpointFrequency uint32
+	// BehindCloudflare determines if Aurora instance is behind Cloudflare. In
+	// such case http.Request.RemoteAddr will be replaced with Cloudflare header.
+	BehindCloudflare bool
+	// BehindAWSLoadBalancer determines if Aurora instance is behind AWS load
+	// balances like ELB or ALB. In such case http.Request.RemoteAddr will be
+	// replaced with the last IP in X-Forwarded-For header.
+	BehindAWSLoadBalancer bool
 }

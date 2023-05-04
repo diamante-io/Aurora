@@ -1,23 +1,22 @@
 # auroraclient
 
 
-`auroraclient` is a [DiamNet Go SDK](https://www.diamnet.org/developers/reference/) package that provides client access to a aurora server. It supports all endpoints exposed by the [aurora API](https://www.diamnet.org/developers/aurora/reference/index.html).
+`auroraclient` is a [Diamnet Go SDK](https://developers.diamnet.org/api/) package that provides client access to a aurora server. It supports all endpoints exposed by the [aurora API](https://developers.diamnet.org/api/introduction/).
 
-This project is maintained by the DiamNet Development Foundation.
+This project is maintained by the Diamnet Development Foundation.
 
 ## Getting Started
-This library is aimed at developers building Go applications that interact with the [DiamNet network](https://www.diamnet.org/). It allows users to query the network and submit transactions to the network. The recommended transaction builder for Go programmers is [txnbuild](https://github.com/diamnet/go/tree/master/txnbuild). Together, these two libraries provide a complete DiamNet SDK.
+This library is aimed at developers building Go applications that interact with the [Diamnet network](https://www.diamnet.org/). It allows users to query the network and submit transactions to the network. The recommended transaction builder for Go programmers is [txnbuild](https://github.com/diamnet/go/tree/master/txnbuild). Together, these two libraries provide a complete Diamnet SDK.
 
 * The [auroraclient API reference](https://godoc.org/github.com/diamnet/go/clients/auroraclient).
 * The [txnbuild API reference](https://godoc.org/github.com/diamnet/go/txnbuild).
 
 ### Prerequisites
-* Go 1.10 or greater
+* Go (this repository is officially supported on the last two releases of Go)
+* [Modules](https://github.com/golang/go/wiki/Modules) to manage dependencies
 
 ### Installing
-* Download the DiamNet Go monorepo: `git clone git@github.com:diamnet/go.git`
-* Enter the source directory: `cd $GOPATH/src/github.com/diamnet/go`
-* Download external dependencies: `dep ensure -v`
+* `go get github.com/diamnet/go/clients/auroraclient`
 
 ### Usage
 

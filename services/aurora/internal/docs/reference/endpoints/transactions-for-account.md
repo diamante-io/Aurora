@@ -2,12 +2,13 @@
 title: Transactions for Account
 clientData:
   laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=transactions&endpoint=for_account
+replacement: https://developers.diamnet.org/api/resources/accounts/transactions/
 ---
 
 This endpoint represents successful [transactions](../resources/transaction.md) that affected a
 given [account](../resources/account.md).  This endpoint can also be used in
 [streaming](../streaming.md) mode so it is possible to use it to listen for new transactions that
-affect a given account as they get made in the DiamNet network.
+affect a given account as they get made in the Diamnet network.
 
 If called in streaming mode Aurora will start at the earliest known transaction unless a `cursor`
 is set. In that case it will start from the `cursor`. You can also set `cursor` value to `now` to
@@ -38,8 +39,8 @@ curl "https://aurora-testnet.diamnet.org/accounts/GBS43BF24ENNS3KPACUZVKK2VYPOZV
 ### JavaScript Example Request
 
 ```javascript
-var DiamNetSdk = require('diamnet-sdk');
-var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
+var DiamnetSdk = require('diamnet-sdk');
+var server = new DiamnetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.transactions()
   .forAccount("GBS43BF24ENNS3KPACUZVKK2VYPOZVBQO2CISGZ777RYGOPYC2FT6S3K")
@@ -55,8 +56,8 @@ server.transactions()
 ### JavaScript Streaming Example
 
 ```javascript
-var DiamNetSdk = require('diamnet-sdk')
-var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
+var DiamnetSdk = require('diamnet-sdk')
+var server = new DiamnetSdk.Server('https://aurora-testnet.diamnet.org');
 
 var txHandler = function (txResponse) {
   console.log(txResponse);

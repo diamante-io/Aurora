@@ -26,7 +26,7 @@ createdb keystore
 keystored migrate up
 ```
 
-You can undo all migrations by running
+You can undo the last migration by running
 ```sh
 keystored migrate down
 ```
@@ -68,6 +68,26 @@ keystored -tls-cert=PATH_TO_TLS_CERT -tls-key=PATH_TO_TLS_KEY serve
 ```
 
 To disable authentication, you can simply add the `-auth=false` flag.
+
+## Build docker image:
+
+To build docker image:
+```sh
+cd github.com/diamnet/go/services/keystore
+make docker-build
+```
+
+to use custom tag:
+```sh
+cd github.com/diamnet/go/services/keystore
+TAG=my-registry.example.com/keystore:dev make docker-build
+```
+
+to push image built using the command above:
+```sh
+cd github.com/diamnet/go/services/keystore
+TAG=my-registry.example.com/keystore:dev make docker-push
+```
 
 ## Logging
 

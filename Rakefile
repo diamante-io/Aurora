@@ -8,12 +8,12 @@ namespace :xdr do
   # Prior to launch, we should be separating our .x files into a separate
   # repo, and should be able to improve this integration.
   HAYASHI_XDR = [
-                 "src/xdr/DiamNet-types.x",
-                 "src/xdr/DiamNet-ledger-entries.x",
-                 "src/xdr/DiamNet-transaction.x",
-                 "src/xdr/DiamNet-ledger.x",
-                 "src/xdr/DiamNet-overlay.x",
-                 "src/xdr/DiamNet-SCP.x",
+                  "src/xdr/Diamnet-SCP.x",
+                  "src/xdr/Diamnet-ledger-entries.x",
+                  "src/xdr/Diamnet-ledger.x",
+                  "src/xdr/Diamnet-overlay.x",
+                  "src/xdr/Diamnet-transaction.x",
+                  "src/xdr/Diamnet-types.x"
                 ]
   LOCAL_XDR_PATHS = HAYASHI_XDR.map{ |src| "xdr/" + File.basename(src) }
 
@@ -40,7 +40,6 @@ namespace :xdr do
     require "pathname"
     require "xdrgen"
     require 'fileutils'
-    FileUtils.rm_f("xdr/xdr_generated.go")
 
     compilation = Xdrgen::Compilation.new(
       LOCAL_XDR_PATHS,
@@ -49,6 +48,14 @@ namespace :xdr do
       language:   :go
     )
     compilation.compile
+
+    xdr_generated = IO.read("xdr/xdr_generated.go")
+    IO.write("xdr/xdr_generated.go", <<~EOS)
+      //lint:file-ignore S1005 The issue should be fixed in xdrgen. Unfortunately, there's no way to ignore a single file in staticcheck.
+      //lint:file-ignore U1000 fmtTest is not needed anywhere, should be removed in xdrgen.
+      #{xdr_generated}
+    EOS
+
     system("gofmt -w xdr/xdr_generated.go")
   end
 end

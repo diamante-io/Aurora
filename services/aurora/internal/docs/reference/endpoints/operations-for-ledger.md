@@ -2,6 +2,7 @@
 title: Operations for Ledger
 clientData:
   laboratoryUrl: https://www.diamnet.org/laboratory/#explorer?resource=operations&endpoint=for_ledger
+replacement: https://developers.diamnet.org/api/resources/ledgers/operations/
 ---
 
 This endpoint returns successful [operations](../resources/operation.md) that occurred in a given [ledger](../resources/ledger.md).
@@ -32,8 +33,8 @@ curl "https://aurora-testnet.diamnet.org/ledgers/681637/operations?limit=1"
 ### JavaScript Example Request
 
 ```javascript
-var DiamNetSdk = require('diamnet-sdk');
-var server = new DiamNetSdk.Server('https://aurora-testnet.diamnet.org');
+var DiamnetSdk = require('diamnet-sdk');
+var server = new DiamnetSdk.Server('https://aurora-testnet.diamnet.org');
 
 server.operations()
   .forLedger("681637")
