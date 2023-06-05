@@ -218,7 +218,7 @@ type ClientInterface interface {
 
 // DefaultTestNetClient is a default client to connect to test network.
 var DefaultTestNetClient = &Client{
-	AuroraURL:     "https://aurora-testnet.diamnet.org/",
+	AuroraURL:     "https://diamtestnet.diamcircle.io/",
 	HTTP:           http.DefaultClient,
 	auroraTimeout: AuroraTimeout,
 }
